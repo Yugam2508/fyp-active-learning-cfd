@@ -9,8 +9,10 @@ and a set of ablations that isolate what actually drives performance.
 ## Status — read this first
 
 This repository is a **research record, including negative results.**
-`paper/paper.pdf` is a **superseded draft**: its headline claims predate the
-ablations in `docs/FINDINGS_soft_vs_hard.md` and are no longer supported.
+`paper/paper.tex` has been **revised to match** the ablations in
+`docs/FINDINGS_soft_vs_hard.md` (reframed as an ablation / characterisation
+paper). `paper/paper.pdf` is still the **old, superseded build** — rebuild it
+from `paper.tex` once the figures are in `figures/` (see Paper below).
 
 What the experiments currently support:
 
@@ -75,8 +77,13 @@ seeds. Seeds are 1000 + trial index, paired across arms.
 ## Paper
 
 `paper/paper.tex` compiles with `pdflatex paper.tex` (run twice for refs).
-Being revised to match `docs/FINDINGS_soft_vs_hard.md`.
+It needs these figures in `figures/` (or `paper/figures/`):
+`fig_ablation.pdf` and `fig_crossbench.pdf` (from the thesis runs),
+`fig_uq_pbox.pdf`, `fig_uq_decomp.pdf`, `fig_uq_sobol.pdf`
+(`experiments/demo_uq.py`) and `fig_campaign.pdf` (campaign plot).
+Every number in the ablation and aggregation tables is recomputable from the
+JSON records in `results/`.
 
 ## Licence
 
-MIT (see LICENSE) — add one if you intend to publish this.
+MIT (see LICENSE).
