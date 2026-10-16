@@ -32,7 +32,7 @@ Research (A*STAR), Singapore}
 
 \begin{abstract}
 Monte Carlo propagation of distributions needs far more evaluations of the
-measurement model than an expensive simulation allows, so the model is often
+measurement model than an expensive simulation allows, so the model is
 replaced by a surrogate trained on about twenty runs. We compare surrogate
 strategies on four test models, including a Gaussian plume model of an
 ammonia release, over 30 paired repetitions, and score the propagated mean,
@@ -44,8 +44,7 @@ transformation of positive variables reduced the error up to eightfold.
 Committees of different surrogates beat a well-specified Gaussian process
 only where one member matched the response structure, and only with
 cross-validation error weighting. Adaptive selection of runs did not help
-consistently. Practical rules for surrogate-based uncertainty evaluation
-follow.
+consistently. We derive practical rules from these results.
 \end{abstract}
 
 \begin{keywords}
@@ -222,7 +221,10 @@ borehole models ($p\le0.023$) and never better. Adaptive selection of runs
 gave no consistent benefit. For the single GP it was never better and was
 worse on the plume ($p=0.008$). For the committee it helped on the physics
 and borehole models (median ratios 0.80 and 0.61), hurt on the plume (1.25)
-and made no difference on the Ishigami function. \TBDSPEC
+and made no difference on the Ishigami function. Spectral (UEigV)
+acquisition was worse than variance acquisition on three models (on the
+borehole model by a factor of 1.7, $p<10^{-7}$) and better only on the plume
+(0.90, $p=0.009$).
 
 \begin{table*}[tb]
 \centering
@@ -238,7 +240,11 @@ absolute error ($\times100$) of $P(Y>y_{0.95})=0.05$.}
 Strategy & mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$ &
 mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$\\
 \midrule
-\TBDPROP
+GP, original kernel & 8.90 & 21.1 & 4.86 & 10.4 & 20.4 & 3.29 & 1.60 & 13.0 & 4.25 & 10.3 & 34.6 & 4.73 \\
+GP, Mat\'ern-5/2 ARD & 1.36 & 3.88 & 1.37 & 9.68 & 17.7 & 2.87 & 0.66 & 2.45 & 0.91 & \textbf{8.48} & \textbf{16.0} & 3.61 \\
+GP, log variables & -- & -- & -- & \textbf{4.74} & \textbf{6.94} & \textbf{0.76} & \textbf{0.17} & \textbf{0.60} & \textbf{0.18} & -- & -- & -- \\
+Committee, CV-weighted & \textbf{0.21} & \textbf{0.41} & \textbf{0.15} & 8.75 & 23.1 & 3.15 & 1.06 & 10.9 & 3.05 & 11.0 & 28.7 & \textbf{2.89} \\
+Committee, adaptive & \textbf{0.21} & \textbf{0.41} & \textbf{0.15} & 55.1 & 20.5 & 5.39 & 3.30 & 1.41 & 0.49 & 15.9 & 34.9 & 4.40 \\
 \bottomrule
 \end{tabular}
 \end{table*}

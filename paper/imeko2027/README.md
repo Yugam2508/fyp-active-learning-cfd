@@ -21,14 +21,14 @@ Compliance of `extended_abstract.tex`:
 |---|---|
 | Official class `imeko_wc`, no layout changes | yes (class files unmodified) |
 | Sections: title, authors/affiliation, abstract, introduction + state of the art, proposed contribution, preliminary results + potential applications, conclusions, references | yes |
-| Abstract ≤ ~150 words, no equations or references | yes (149 words as typeset) |
+| Abstract ≤ ~150 words, no equations or references | yes (150 words as typeset) |
 | Keywords separated by semicolons | yes |
 | British English | yes |
 | Units via `siunitx`; leading zeros | yes |
 | Table captions above, figure captions below; "Fig." in text; every float cited before it appears | yes |
 | Axis labels in words, units in parentheses | yes |
 | Acronyms defined at first use in the body | yes |
-| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 23 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
+| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 22 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
 | Authors' contribution section (more than one author) | yes |
 | Compiles without errors, undefined references or overfull boxes | yes |
 | Length | 4 pages |
