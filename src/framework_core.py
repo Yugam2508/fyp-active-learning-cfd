@@ -41,8 +41,19 @@ if _HAS_TORCH:
 
 
 def lhs(d, n):
-    """Latin Hypercube Sample, shape (n, d) in [0,1]^d  (scipy backend)."""
-    return qmc.LatinHypercube(d=d).random(n)
+    """Latin Hypercube Sample, shape (n, d) in [0,1]^d  (scipy backend).
+
+    The engine is seeded from the global numpy RNG so that np.random.seed()
+    fixes the design.  Recent SciPy (>= 1.15) seeds an unseeded engine from
+    OS entropy, which made initial designs irreproducible and broke the
+    paired-seed protocol; see docs/REPRODUCIBILITY.md.
+    """
+    seed = int(np.random.randint(0, 2**31 - 1))
+    try:
+        engine = qmc.LatinHypercube(d=d, rng=np.random.default_rng(seed))
+    except TypeError:                    # SciPy < 1.15 has no `rng` keyword
+        engine = qmc.LatinHypercube(d=d, seed=seed)
+    return engine.random(n)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -84,6 +95,12 @@ class ToyProblem:
     def _ishigami(self, X):
         x1, x2, x3 = X[:, 0], X[:, 1], X[:, 2]
         return np.sin(x1) + 7*np.sin(x2)**2 + 0.1*x3**4*np.sin(x1)
+
+    def _schwefel(self, X):
+        # Standard Schwefel function (Surjanovic & Bingham); added for the
+        # domain-size control in experiments/campaign_domain.py.
+        d = X.shape[1]
+        return 418.9829*d - np.sum(X*np.sin(np.sqrt(np.abs(X))), axis=1)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
