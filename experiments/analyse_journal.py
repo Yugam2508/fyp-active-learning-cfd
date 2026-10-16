@@ -206,7 +206,7 @@ def selection_summary():
             c = min(cands, key=lambda c: r[f"loo_rmse_{c}"])
             chosen[c] = chosen.get(c, 0) + 1
             oracle = min(data[k]["nrmse"][sd] for k in cands)
-            rows.append({"nrmse": data[c]["nrmse"][sd], "oracle": oracle,
+            rows.append({"seed": sd, "nrmse": data[c]["nrmse"][sd], "oracle": oracle,
                          "gp_m52": data["gp_m52"]["nrmse"][sd],
                          "relerr_q95": data[c]["relerr_q95"][sd],
                          "thr_abserr": data[c]["thr_abserr"][sd]})
@@ -220,7 +220,8 @@ def selection_summary():
                   "share_oracle": float(np.mean(v("nrmse") == v("oracle"))),
                   "ratio_to_gp_m52": float(np.median(v("nrmse") / v("gp_m52"))),
                   "relerr_q95_median": float(np.median(v("relerr_q95"))),
-                  "thr_abserr_median": float(np.median(v("thr_abserr")))}
+                  "thr_abserr_median": float(np.median(v("thr_abserr"))),
+                  "per_seed_nrmse": {str(x["seed"]): x["nrmse"] for x in rows}}
     return out
 
 
@@ -466,29 +467,41 @@ def fig_coverage(S):
 
 
 def fig_n20(S):
-    """nRMSE relative to the GP Matern ARD baseline, all benchmarks."""
+    """nRMSE relative to the GP Matern ARD baseline, all benchmarks, with the
+    candidate chosen by LOO error (the proposed procedure)."""
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    show = ["gp_orig", "gp_quad", "gp_log", "spce", "spce_log", "pas_ard:cv", "al_gp", "al_var:cv"]
+    show = ["gp_orig", "gp_quad", "gp_log", "gp_quadlog", "spce", "spce_log",
+            "pas_ard:cv", "al_gp", "al_var:cv", "loo"]
     benches = [b for b in BENCHES if "gp_m52" in S["n20"].get(b, {})]
-    fig, ax = plt.subplots(figsize=(7.2, 3.0))
-    w = 0.8 / len(show)
+    fig, ax = plt.subplots(figsize=(7.2, 3.4))
+    w = 0.84 / len(show)
     for j, m in enumerate(show):
         xs, ys, lo, hi = [], [], [], []
         for i, b in enumerate(benches):
-            a, c = load(b, m), load(b, "gp_m52")
-            t = paired(a, c) if a else None
+            if m == "loo":
+                ps = S["selection"].get(b, {}).get("per_seed_nrmse")
+                a = {int(k): v for k, v in ps.items()} if ps else {}
+            else:
+                a = load(b, m)
+            t = paired(a, load(b, "gp_m52")) if a else None
             if t:
                 xs.append(i + (j - len(show) / 2 + 0.5) * w); ys.append(t["ratio"])
                 lo.append(t["ratio"] - t["ci"][0]); hi.append(t["ci"][1] - t["ratio"])
-        ax.errorbar(xs, ys, yerr=[lo, hi], fmt="o", ms=3, lw=0.8, capsize=1.5, label=plain(m))
+        lab = "LOO-selected (procedure)" if m == "loo" else plain(m)
+        kw = dict(color="k", marker="*", ms=6) if m == "loo" else dict(marker="o", ms=3)
+        ax.errorbar(xs, ys, yerr=[lo, hi], fmt=kw.pop("marker"), lw=0.8,
+                    capsize=1.5, label=lab, **kw)
+    for i in range(1, len(benches)):
+        ax.axvline(i - 0.5, color="0.85", lw=0.5)
     ax.axhline(1, color="k", lw=0.6)
-    ax.set_yscale("log"); ax.set_xticks(range(len(benches)))
-    ax.set_xticklabels([LABEL[b] for b in benches], rotation=30, ha="right", fontsize=7)
+    ax.set_yscale("log"); ax.set_xticks(range(len(benches))); ax.set_xlim(-0.5, len(benches) - 0.5)
+    ax.set_xticklabels([LABEL[b] for b in benches], rotation=25, ha="right", fontsize=7)
     ax.set_ylabel("nRMSE / nRMSE(GP Matérn ARD)", fontsize=8)
     ax.tick_params(labelsize=7); ax.grid(axis="y", alpha=0.3, lw=0.5)
-    ax.legend(fontsize=6.5, ncol=4, frameon=False, loc="upper left")
+    ax.legend(fontsize=6.5, ncol=4, frameon=False, loc="upper center",
+              bbox_to_anchor=(0.5, -0.32))
     fig.tight_layout()
     os.makedirs(FIG, exist_ok=True)
     fig.savefig(os.path.join(FIG, "fig_relative_nrmse.pdf"))
