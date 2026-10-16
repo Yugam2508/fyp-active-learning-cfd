@@ -1,0 +1,29 @@
+name: checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    env:
+      OMP_NUM_THREADS: "1"
+      OPENBLAS_NUM_THREADS: "1"
+      MKL_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pinned dependencies (CPU PyTorch)
+        run: pip install -r requirements-lock.txt --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Benchmarks agree with UQTestFuns
+        run: python experiments/check_benchmarks.py
+      - name: Published records are reproduced
+        run: python experiments/test_reproducibility.py --quick
+      - name: Numbers quoted in the papers are recomputed
+        run: |
+          python paper/imeko2027/check_numbers.py
+          python experiments/analyse_journal.py --check
+          python paper/check_numbers_journal.py

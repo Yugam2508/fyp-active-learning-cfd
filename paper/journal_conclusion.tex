@@ -11,9 +11,9 @@ analysis was an artefact of one hyperparameter held fixed. Among such
 candidates and a sparse PCE, the one with the smallest leave-one-out error
 was as good as the best in hindsight on all ten models, including a CFD
 simulation of a release behind a building. Committees of surrogates and
-space-filling adaptive designs gave no consistent gain at these budgets,
+variance-driven adaptive designs gave no consistent gain at 20 runs,
 whereas a design targeted at the threshold improved exceedance
-probabilities. Finally, the surrogate's own error must be part of the
+probabilities when the threshold lay in a tail of the distribution. Finally, the surrogate's own error must be part of the
 uncertainty statement, and it should be estimated from leave-one-out
 residuals rather than from the GP's predictive variance: the former
 restored the nominal coverage of the GUM~S1 coverage interval and gave

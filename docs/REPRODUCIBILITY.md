@@ -136,3 +136,12 @@ Notes.
   `buoyantBoussinesqSimpleFoam` with zero gravity and zero expansion
   coefficient, which is the same transport equation (diffusivity
   nu/Pr + nu_t/Pr_t with Pr = Sc, Pr_t = Sc_t).
+- The CFD cache ends with 2900 runs: 1550 from `cfd_precompute.py` (30 x 25
+  design runs and 800 reference flow states) and 1350 added by the three
+  adaptive CFD arms (30 seeds x 15 sequential runs each). The adaptive arms
+  were run as nine blocks of 10 seeds in parallel (`RESULTS_DIR=results/parts/...`)
+  and merged with `experiments/merge_parts.py`, as `run_cfd_campaign.sh` does.
+- `paper/check_numbers_journal.py` recomputes every number typed into the
+  journal prose; `.github/workflows/ci.yml` runs it together with
+  `check_benchmarks.py`, `test_reproducibility.py --quick`, the extended
+  abstract's `check_numbers.py` and `analyse_journal.py --check`.

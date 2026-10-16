@@ -150,8 +150,9 @@ $Sc=0.7$ and the turbulent Schmidt number $Sc_t$ as an input, since its
 appropriate value is uncertain and varies between flows~\cite{tominaga2007}.
 Flow and scalar are solved together by the SIMPLE algorithm on 7776
 hexahedral cells, refined towards the building, until all scaled residuals
-fall below $10^{-5}$ (pressure) and $10^{-6}$ (other fields), typically in
-1000--1400 iterations (about 20\,s on one core). The output is the
+fall below $10^{-5}$ (pressure) and $10^{-6}$ (other fields), or 4000
+iterations, typically in
+1000--1500 iterations (about 20\,s on one core). The output is the
 concentration at 1.5\,m height a distance $x_r$ downstream of the leeward
 face, $C=10^3\,Q\,s(x_r)$\,mg\,m$^{-3}$ for a release rate $Q$ per metre of
 crosswind width; since the scalar is passive, $x_r$ and $Q$ need no

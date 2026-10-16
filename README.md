@@ -30,9 +30,9 @@ effect sizes with bootstrap intervals and Holm-adjusted tests):
 | Choosing the surrogate by leave-one-out (LOO) error works without the true model | supported | median nRMSE within 0–4.4 % of the best candidate in hindsight on all 10 models |
 | A committee beats a well-specified GP | **not supported** | never better than a GP with trend; 1.7–2.4× worse on 4 of 10 models |
 | CV inverse-error weighting is needed for committees | supported | never worse than uniform, up to 2000× better |
-| Space-filling adaptive designs help | **budget-dependent** | never at N ≤ 20; at N = 40–80 on smooth models (0.22–0.87×), worse on the plume |
+| Variance-driven adaptive designs help | **budget-dependent** | GP-SD design: never at N ≤ 20, at N = 40–80 on smooth models (0.22–0.87×), worse on the plume; adaptive committee better than the passive one on 4 of 7 models (incl. CFD) but worse exceedance estimates on plume and CFD |
 | UEigV (spectral) beats variance acquisition | **refuted** | never better; worse on 3 of 6 models |
-| Threshold-targeted design (AK-MCS) helps exceedance probabilities | supported | error reduced 2–9× in 8 of 15 comparisons, never worse |
+| Threshold-targeted design (AK-MCS) helps exceedance probabilities | supported for tail thresholds | error reduced 2–9× in 8 of 15 analytical comparisons, never worse; no gain on the CFD case, where the threshold is exceeded in 67 % of cases |
 | The GP's predictive variance is a valid surrogate contribution | **not supported** | pointwise coverage down to 68 %; intervals for y95 cover the truth in a median 53 % of seeds |
 | LOO residuals added to each Monte Carlo trial give a valid contribution | supported | GUM S1 95 % interval coverage 91–97 % on all models; jackknife+ 95–99 % pointwise |
 
