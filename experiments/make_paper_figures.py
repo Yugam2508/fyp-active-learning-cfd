@@ -65,7 +65,8 @@ def fig_strip():
             ("soft",   "UEigV, error weighting"),
             ("nopce",  "UEigV, no PCE members"),
             ("gpvar",  "Single GP, posterior SD")]
-    fig, ax = plt.subplots(figsize=(COL_W, 2.15))
+    # y labels sit outside the axes: shrink the canvas so the tight bbox ~ COL_W
+    fig, ax = plt.subplots(figsize=(COL_W - 0.67, 2.15))
     rs = np.random.RandomState(0)                  # jitter only
     for i, (key, _) in enumerate(arms):
         r = np.array([t["rmse"] for t in
@@ -114,34 +115,37 @@ def domain_summary():
 
 
 def fig_domain():
+    """Median test RMSE normalised by the output SD, both arms, per domain."""
     s = domain_summary()
     phys = sorted((v for v in s.values() if v["function"] == "physics"),
                   key=lambda v: v["half_width"])
     h = np.array([v["half_width"] for v in phys])
-    rho = np.array([v["rho_mean"] for v in phys])
-    fig, ax = plt.subplots(figsize=(COL_W, 2.0))
-    ax.axhline(1.0, color=MUTED, lw=0.7, ls=(0, (3, 2)))
-    ax.text(h[0] * 0.9, 1.25, "break-even", fontsize=6.5, color=MUTED,
-            va="bottom", ha="left")
-    ax.plot(h, rho, color=BLUE, lw=1.5, marker="o", ms=4.5, zorder=3,
-            label="Physics benchmark")
-    for hi, ri in zip(h, rho):
-        ax.annotate(f"{ri:.3g}", (hi, ri), textcoords="offset points",
-                    xytext=(0, -10 if ri < 1 else 6), ha="center",
-                    fontsize=6.5, color=INK)
+    gp = np.array([v["median_lhsgp"] / v["output_std"] for v in phys])
+    al = np.array([v["median_al"] / v["output_std"] for v in phys])
+    fig, ax = plt.subplots(figsize=(COL_W, 2.1))
+    ax.plot(h, gp, color=ORANGE, lw=1.5, marker="s", ms=4, zorder=3,
+            label="Passive GP (20-point LHS)")
+    ax.plot(h, al, color=BLUE, lw=1.5, marker="o", ms=4, zorder=3,
+            label="Committee, adaptive")
     if "schwefel" in s:
         sw = s["schwefel"]
-        ax.plot([sw["half_width"]], [sw["rho_mean"]], marker="D", ms=4.5,
-                color=ORANGE, ls="none", zorder=3,
-                label="Schwefel control")
-        ax.annotate(f"{sw['rho_mean']:.3g}", (sw["half_width"], sw["rho_mean"]),
-                    textcoords="offset points", xytext=(0, 6), ha="center",
-                    fontsize=6.5, color=INK)
+        ax.plot([sw["half_width"]], [sw["median_lhsgp"] / sw["output_std"]],
+                marker="s", ms=4.5, mfc="white", mec=ORANGE, mew=1.2, ls="none",
+                zorder=3)
+        ax.plot([sw["half_width"]], [sw["median_al"] / sw["output_std"]],
+                marker="o", ms=4.5, mfc="white", mec=BLUE, mew=1.2, ls="none",
+                zorder=3)
+        ax.annotate("Schwefel\ncontrol", (sw["half_width"], 1.0),
+                    textcoords="offset points", xytext=(0, -24), ha="center",
+                    fontsize=6.5, color=MUTED)
+    ax.axhline(1.0, color=MUTED, lw=0.7, ls=(0, (3, 2)))
+    ax.text(14, 1.15, "constant predictor", fontsize=6.5, color=MUTED)
     ax.set_xscale("log"); ax.set_yscale("log")
     ax.set_xticks([2, 10, 50, 100, 200, 500])
     ax.set_xticklabels(["2", "10", "50", "100", "200", "500"])
+    ax.set_ylim(1e-4, 3)
     ax.set_xlabel("Domain half-width, $h$")
-    ax.set_ylabel("RMSE ratio, $\\rho$")
+    ax.set_ylabel("Median RMSE / output SD")
     ax.grid(color=GRID, lw=0.5)
     ax.legend(loc="lower left", frameon=False)
     _clean(ax)
