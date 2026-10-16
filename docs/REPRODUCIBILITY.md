@@ -97,3 +97,42 @@ file. Delete a file to rerun it from scratch.
 
 Every number in the IMEKO extended abstract is traced to its source file
 in `paper/imeko2027/NUMBERS.md`.
+
+## 7. Journal study (2026-10-16 onwards)
+
+Environment: cloud container, Python 3.11.15, 4 CPU cores, single-threaded
+BLAS (`OMP_NUM_THREADS=1`), exact package versions in `requirements-lock.txt`;
+OpenFOAM v1912 from the Ubuntu package `openfoam` (1912.200626-2build3) for
+the CFD case.
+
+| Step | Command | Output |
+|---|---|---|
+| benchmark formulas vs UQTestFuns | `python experiments/check_benchmarks.py` | console |
+| published records still reproduced | `python experiments/test_reproducibility.py` | console |
+| all analytical-model jobs (new arms, budgets 10–80, `--augment` of the N = 20 records) | `bash experiments/run_journal_campaign.sh 4` | `results/results_gen_*.json` |
+| coverage validation | `bash experiments/run_coverage_campaign.sh 4` | `results/results_cov_*.json` |
+| CFD runs for designs and reference | `CFD_WORKERS=4 python experiments/cfd_precompute.py` | `results/cfd_runs/*.json` |
+| CFD grid sensitivity | `python experiments/cfd_grid_check.py` | `results/cfd_grid_check.json` |
+| all CFD jobs | `bash experiments/run_cfd_campaign.sh 4` | `results/results_{gen,cov}_cfd_*.json` |
+| statistics, tables, figures | `python experiments/analyse_journal.py` | `results/journal/`, `figures/journal/` |
+| check that summary.json is reproduced | `python experiments/analyse_journal.py --check` | exit status |
+
+Notes.
+
+- `--augment` regenerates every published N = 20 record from its seed,
+  checks that all stored fields are reproduced to a relative tolerance of
+  1e-9 and only then adds the new fields (`thr_*`, exceedance at the model's
+  physical threshold). Mismatches would be reported in `results/logs/` and
+  leave the record untouched.
+- The CFD reference is 800 CFD runs × 50 draws of (x_r, Q), not 2e5 runs;
+  see `src/cfd_benchmark.py`. Every CFD run is cached as one JSON file
+  keyed by its four flow inputs, so rerunning a campaign reuses them; delete
+  `results/cfd_runs/` to recompute from scratch (about 20 s per run on one
+  core). Each record stores the iteration count and whether the residual
+  criteria were met within 4000 iterations.
+- The OpenFOAM function objects (the usual way to add a passive scalar)
+  abort with an `IOstream "sha1"` error in this Ubuntu build of v1912; the
+  scalar is therefore solved as the temperature of
+  `buoyantBoussinesqSimpleFoam` with zero gravity and zero expansion
+  coefficient, which is the same transport equation (diffusivity
+  nu/Pr + nu_t/Pr_t with Pr = Sc, Pr_t = Sc_t).
