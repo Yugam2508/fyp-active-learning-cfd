@@ -25,7 +25,7 @@ except Exception:                        # pragma: no cover
 from scipy.stats import qmc, chi2
 from scipy.spatial.distance import pdist, squareform
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern, WhiteKernel
+from sklearn.gaussian_process.kernels import RBF, Matern, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import BayesianRidge
@@ -114,13 +114,29 @@ class Surrogate:
 
 
 class GPSurrogate(Surrogate):
-    def __init__(self, kernel="RBF"):
-        super().__init__(f"GP-{kernel}", "GP")
-        k = RBF() if kernel == "RBF" else Matern(nu=1.5)
-        self.gp = GaussianProcessRegressor(
-            kernel=k + WhiteKernel(1e-2), normalize_y=True, n_restarts_optimizer=5)
+    """GP member.  spec="orig" (default) is the notebook's kernel,
+    k + White with NO signal-amplitude hyperparameter and an isotropic
+    length scale.  spec="ard" adds a ConstantKernel amplitude and one length
+    scale per input (ARD); its name carries a trailing "*".  The "orig" kernel
+    is what causes the prior-reversion failure on the physics benchmark; see
+    experiments/campaign_gpspec.py and docs/FINDINGS_soft_vs_hard.md."""
+    def __init__(self, kernel="RBF", spec="orig"):
+        super().__init__(f"GP-{kernel}" + ("*" if spec == "ard" else ""), "GP")
+        self.kernel_name, self.spec = kernel, spec
+        self.gp = None
         self.scaler = StandardScaler()
+    def _kernel(self, d):
+        if self.spec == "orig":
+            k = RBF() if self.kernel_name == "RBF" else Matern(nu=1.5)
+            return k + WhiteKernel(1e-2)
+        ls = np.ones(d)
+        k = (RBF(ls, (1e-2, 1e3)) if self.kernel_name == "RBF"
+             else Matern(ls, (1e-2, 1e3), nu=1.5))
+        return ConstantKernel(1.0, (1e-3, 1e3)) * k + WhiteKernel(1e-4, (1e-8, 1e-1))
     def fit(self, X, y):
+        self.gp = GaussianProcessRegressor(
+            kernel=self._kernel(X.shape[1]), normalize_y=True,
+            n_restarts_optimizer=5)
         self.scaler.fit(X); self.gp.fit(self.scaler.transform(X), y)
     def predict(self, X):
         return self.gp.predict(self.scaler.transform(X))

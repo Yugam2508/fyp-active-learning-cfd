@@ -11,7 +11,11 @@ Configs:
 Each trial runs two arms with the same seed and the same N = 20 budget:
   AL      original framework: 5-point LHS + 15 UEigV queries, hard LCS,
           prediction = uniform mean of surviving models (= ActiveLearner)
-  LHSGP   passive baseline: 20-point LHS, single GP-RBF
+  LHSGP   passive baseline: 20-point LHS, single GP-RBF (original kernel,
+          no amplitude hyperparameter)
+  LHSGP*  same design, GP with amplitude + ARD Matern-5/2 (well specified);
+          stored as rmse_lhsgp_m52.  Add it to existing records with
+          `python campaign_domain.py <config> 0 30 --add-m52`.
 RMSE is computed on 5,000 uniform test points drawn with RandomState(7) over
 the configuration's own domain.  Seeds are 1000 + trial index.
 Results append to results/results_domain_<config>.json (resumable).
@@ -46,6 +50,7 @@ CONFIGS = {
 MAX_STEPS, N_INIT, N_TEST = 15, 5, 5000
 
 config, start, n = sys.argv[1], int(sys.argv[2]), int(sys.argv[3])
+ADD_M52 = "--add-m52" in sys.argv
 assert config in CONFIGS, f"unknown config {config}"
 fname, h = CONFIGS[config]
 problem = ToyProblem(3, fname)
@@ -74,16 +79,33 @@ def run_al(seed):
     return rmse(pred), [m.name for m in models]
 
 
-def run_lhsgp(seed):
+def run_lhsgp(seed, m52=False):
     np.random.seed(seed)
     X = domain[:, 0] + lhs(3, N_INIT + MAX_STEPS) * (domain[:, 1] - domain[:, 0])
     y = problem.noisy(X)
-    gp = GPSurrogate("RBF")
-    gp.fit(X, y)
-    return rmse(gp.predict(X_test))
+    if not m52:
+        gp = GPSurrogate("RBF")
+        gp.fit(X, y)
+        return rmse(gp.predict(X_test))
+    from sklearn.gaussian_process import GaussianProcessRegressor
+    from sklearn.gaussian_process.kernels import Matern, ConstantKernel, WhiteKernel
+    from sklearn.preprocessing import StandardScaler
+    k = (ConstantKernel(1.0, (1e-3, 1e3)) * Matern(np.ones(3), (1e-2, 1e3), nu=2.5)
+         + WhiteKernel(1e-4, (1e-8, 1e-1)))
+    sc = StandardScaler().fit(X)
+    g = GaussianProcessRegressor(k, normalize_y=True, n_restarts_optimizer=5,
+                                 random_state=0).fit(sc.transform(X), y)
+    return rmse(g.predict(sc.transform(X_test)))
 
 
 results = json.load(open(OUT)) if os.path.exists(OUT) else []
+if ADD_M52:                      # augment existing records, nothing else reruns
+    for r in results:
+        if "rmse_lhsgp_m52" not in r:
+            r["rmse_lhsgp_m52"] = run_lhsgp(r["seed"], m52=True)
+    json.dump(results, open(OUT, "w"))
+    print(f"[{config}] added rmse_lhsgp_m52 to {len(results)} records")
+    sys.exit(0)
 done = {r["seed"] for r in results}
 for t in range(start, start + n):
     seed = 1000 + t
