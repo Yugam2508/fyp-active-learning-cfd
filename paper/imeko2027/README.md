@@ -21,14 +21,15 @@ Compliance of `extended_abstract.tex`:
 |---|---|
 | Official class `imeko_wc`, no layout changes | yes (class files unmodified) |
 | Sections: title, authors/affiliation, abstract, introduction + state of the art, proposed contribution, preliminary results + potential applications, conclusions, references | yes |
-| Abstract ≤ ~150 words, no equations or references | yes (143 words in source, about 149 as typeset) |
+| Abstract ≤ ~150 words, no equations or references | yes (149 words as typeset) |
 | Keywords separated by semicolons | yes |
 | British English | yes |
 | Units via `siunitx`; leading zeros | yes |
 | Table captions above, figure captions below; "Fig." in text; every float cited before it appears | yes |
 | Axis labels in words, units in parentheses | yes |
 | Acronyms defined at first use in the body | yes |
-| BibTeX with `imeko_wc.bst`; all authors listed (< 6) | yes; checked in `docs/REFERENCES_VERIFICATION.md` |
+| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 21 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
+| Authors' contribution section (more than one author) | yes |
 | Compiles without errors, undefined references or overfull boxes | yes |
 | Length | 4 pages |
 
@@ -60,18 +61,28 @@ python check_numbers.py            # optional: audit every number
 The class needs `newtx` (TeX Live: `texlive-fonts-extra`) and the
 `algorithms`/`algpseudocode` packages (`texlive-science`).
 
+## Authors (as entered in the paper; EDAS must match exactly)
+
+| | Given names | Surname | Affiliation | E-mail |
+|---|---|---|---|---|
+| 1 (corresponding) | Yugam Jinesh | Vora | Department of Engineering Science, National University of Singapore, Singapore | yugam@u.nus.edu |
+| 2 | Wee Hoe | Ng | same (please confirm) | — |
+
+The AUTHORS' CONTRIBUTION section uses CRediT roles: Vora — conceptualisation,
+methodology, software, investigation, formal analysis, visualisation, writing
+(original draft); Ng — conceptualisation, supervision, writing (review and
+editing). Adjust if your supervisor's roles differ.
+
 ## Before uploading (author)
 
-1. **Name, affiliation, e-mail.** The paper uses "Vora Yugam Jinesh",
-   Department of Engineering Science, NUS, and `yjv2508@gmail.com`. EDAS
-   requires the profile to match the paper **exactly**; an institutional
-   address may be preferred.
-2. **Co-authors.** If a supervisor is a co-author, add them with `\author`
-   and add the AUTHORS' CONTRIBUTION section (CRediT roles) as in the template.
+1. **Supervisor's affiliation**: confirm it is the same department; if not,
+   add a second `\affiliation` and point his `\author` entry to it.
+2. **Supervisor's approval** of the text and author order.
 3. **Funding.** `\funding{}` is empty; fill it in if any applies.
 4. **Submit.** Log in to EDAS → <https://edas.info/newPaper.php?c=35447> →
-   enter title and a short abstract → Register Paper → upload the PDF in the
-   Extended Abstract row (blue cloud icon).
+   enter title and a short abstract → Register Paper → upload
+   `extended_abstract.pdf` in the Extended Abstract row (blue cloud icon).
+   Add Wee Hoe Ng as co-author in EDAS as well.
 
 ## Plan for the final paper (May 2027, max. 6 pages)
 

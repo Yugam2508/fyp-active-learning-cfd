@@ -15,15 +15,15 @@
 
 \begin{document}
 
-\title{Surrogate-based Monte Carlo propagation for expensive measurement
-models: when passive Gaussian processes fail and what a surrogate committee
-needs}
+\title{Error-weighted surrogate committees for Monte Carlo propagation through
+expensive models}
 
-\author[a1]{Vora Yugam Jinesh}
+\author[a1]{name=Yugam Jinesh, surname=Vora, abbreviation=Y. J. Vora}
+\author[a1]{name=Wee Hoe, surname=Ng, abbreviation=W. H. Ng}
 \affiliation[a1]{Department of Engineering Science, National University of
 Singapore, Singapore}
 \CorrespondingAuthorNumber{1}
-\CorrespondingAuthorEmail{yjv2508@gmail.com}
+\CorrespondingAuthorEmail{yugam@u.nus.edu}
 \funding{}
 
 \maketitle
@@ -55,7 +55,8 @@ Model-form uncertainty
 Evaluating measurement uncertainty by the propagation of distributions,
 following Supplement~1 to the Guide to the Expression of Uncertainty in
 Measurement (GUM~S1)~\cite{jcgm100,jcgm101}, requires the measurement model
-$Y=f(\mathbf{X})$ to be evaluated once per Monte Carlo trial. For many
+$Y=f(\mathbf{X})$ to be evaluated once per Monte Carlo trial, typically
+$10^5$ to $10^6$ times~\cite{cox2006,harris2014}. For many
 quantities of practical interest, $f$ is itself a numerical simulation. One
 example is the concentration downstream of an accidental ammonia release in an
 industrial hall~\cite{tan2017}. A single computational fluid dynamics (CFD) run
@@ -65,17 +66,20 @@ practical budget is often fewer than twenty runs.
 
 The usual remedy is a \emph{surrogate} (emulator) trained on those runs and
 used in place of $f$ inside the Monte Carlo loop~\cite{heidenreich2017,
-wang2022}. This trades an intractable cost for a new contribution to the
+wang2022,ohagan2006}. This trades an intractable cost for a new contribution to the
 uncertainty budget: the error of the surrogate itself. From a metrological
 point of view, this contribution must be evaluated and reported, not assumed
 to be negligible. The standard surrogate, Gaussian process (GP)
 regression~\cite{sacks1989,rw2006}, provides a predictive variance, but that
 variance is conditional on the GP being an adequate model. Where it is not,
-the GP can be confidently wrong~\cite{huellermeier2021}.
+the GP can be confidently wrong~\cite{huellermeier2021}; such model
+inadequacy has to be treated as an uncertainty source in its own
+right~\cite{kennedy2001}.
 
-Committee-based schemes respond by training several structurally different
-surrogates, choosing new runs where they disagree, and combining their
-predictions. Weighted combinations of surrogates are established in design
+Adaptive designs place new runs where a surrogate is most
+uncertain~\cite{gramacy2009}. Committee-based schemes extend this idea by
+training several structurally different surrogates, choosing new runs where
+they disagree, and combining their predictions. Weighted combinations of surrogates are established in design
 optimisation~\cite{goel2007,viana2009}, and spectral measures of disagreement
 have recently been proposed for uncertainty quantification of language
 models~\cite{lin2024}. Which ingredients of such schemes matter when they are
@@ -108,7 +112,8 @@ avoids it.
 
 \subsection{Committee scheme under study}
 A committee of $K=9$ surrogates with different inductive biases is used: two
-GPs, polynomial chaos expansions (PCE) of degrees 2 and 3, two random forests,
+GPs, polynomial chaos expansions (PCE)~\cite{xiu2002,sudret2008} of degrees
+2 and 3, two random forests,
 a support vector regressor and two neural networks. The committee is trained on
 a five-point Latin hypercube design, and fifteen further runs are then chosen
 sequentially where the members disagree most (Algorithm~\ref{alg:al}).
@@ -370,6 +375,11 @@ the uncertainty budget. These results come from a synthetic model in which an
 anchor member is available. The final paper will add test cases with no such
 member and a dispersion-type model, and will replace the uncalibrated
 envelopes with conformal intervals.
+
+\section*{AUTHORS' CONTRIBUTION}
+Yugam Jinesh Vora: conceptualisation, methodology, software, investigation,
+formal analysis, visualisation, writing -- original draft. Wee Hoe Ng:
+conceptualisation, supervision, writing -- review and editing.
 
 \bibliographystyle{imeko_wc}
 \bibliography{references}
