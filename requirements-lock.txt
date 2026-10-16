@@ -1,0 +1,14 @@
+# Exact versions used for the journal campaigns (cloud container, Python 3.11.15,
+# Ubuntu 24.04, 4 CPU cores, OMP_NUM_THREADS=1). Install with
+#   pip install -r requirements-lock.txt
+# (CPU-only PyTorch: add --extra-index-url https://download.pytorch.org/whl/cpu).
+# The CFD case additionally needs OpenFOAM v1912: `apt-get install openfoam`
+# (Ubuntu package 1912.200626-2build3).
+numpy==2.4.6
+scipy==1.17.1
+scikit-learn==1.9.1
+matplotlib==3.11.2
+joblib==1.6.0
+threadpoolctl==3.7.0
+torch==2.14.1
+uqtestfuns==0.7.0

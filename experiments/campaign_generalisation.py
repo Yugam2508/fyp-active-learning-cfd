@@ -44,7 +44,8 @@ the identical design and every adaptive arm the identical start. Candidate
 pools for adaptive arms are drawn from the input distribution.
 
 Metrics, against a reference Monte Carlo of the true model (2e5 points,
-RandomState(8)); propagation uses 3e4 points (RandomState(9)):
+RandomState(8); for the CFD case the 40 000-point reference of
+src/cfd_benchmark.py); propagation uses 3e4 points (RandomState(9)):
   nrmse            RMSE on 5000 test points (RandomState(7)) / reference SD
   relerr_mean/sd/q95  relative error of the propagated mean, SD, 95th pct.
   exc_*            P(Y > y95_ref): estimate, member envelope, coverage
@@ -117,8 +118,13 @@ def draw(n_pts):
     return problem.ppf(np.random.uniform(0, 1, (n_pts, d)))
 
 
-X_test = fixed(5000, np.random.RandomState(7)); y_test = problem.evaluate(X_test)
-X_ref = fixed(200_000, np.random.RandomState(8)); y_ref = problem.evaluate(X_ref)
+if hasattr(problem, "reference_sets"):   # CFD: reference built from cached runs
+    _sets = problem.reference_sets()
+    X_test, X_ref = _sets["test"], _sets["ref"]
+else:
+    X_test = fixed(5000, np.random.RandomState(7))
+    X_ref = fixed(200_000, np.random.RandomState(8))
+y_test = problem.evaluate(X_test); y_ref = problem.evaluate(X_ref)
 X_mc = fixed(30_000, np.random.RandomState(9))
 REF = {"mean": float(y_ref.mean()), "sd": float(y_ref.std()),
        "q95": float(np.quantile(y_ref, 0.95))}
