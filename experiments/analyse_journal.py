@@ -145,6 +145,15 @@ def summarise():
                                          "p_true": next(iter(load(b, m, metric="thr_true").values()), None),
                                          "envelope_coverage": (float(np.mean(list(cov.values())))
                                                                if ":" in m and cov else None)}
+        S.setdefault("prop", {})[b] = {}
+        for m in METHODS:
+            row = {}
+            for k in ("relerr_mean", "relerr_sd", "relerr_q95", "thr_abserr", "thr_hat"):
+                d = load(b, m, metric=k)
+                if d:
+                    row[k] = float(np.median(list(d.values())))
+            if row:
+                S["prop"][b][m] = row
         for a, c, metric, label in COMPARISONS:
             t = paired(load(b, a, metric=metric), load(b, c, metric=metric))
             if t:
@@ -201,20 +210,22 @@ def fmt(x):
 
 
 def tab_n20(S, methods):
-    """Median nRMSE [95 % CI], benchmark x method, best per row in bold."""
+    """Median nRMSE, benchmark x method, best per row in bold. A method
+    "ak" stands for AK-MCS on the recommended scale (log if positive)."""
     lines = []
     for b in BENCHES:
         row = S["n20"].get(b, {})
         if not row:
             continue
-        vals = {m: row[m]["median"] for m in methods if m in row}
+        pick = lambda m: ("ak_log" if recommended(b) == "gp_log" else "ak_m52") if m == "ak" else m
+        vals = {m: row[pick(m)]["median"] for m in methods if pick(m) in row}
         best = min(vals.values())
         cells = []
         for m in methods:
-            if m not in row:
+            if m not in vals:
                 cells.append("--"); continue
-            t = fmt(row[m]["median"])
-            cells.append(f"\\textbf{{{t}}}" if row[m]["median"] == best else t)
+            t = fmt(vals[m])
+            cells.append(f"\\textbf{{{t}}}" if vals[m] == best else t)
         lines.append(f"{LABEL[b]} & " + " & ".join(cells) + r" \\")
     return "\n".join(lines) + "\n"
 
@@ -225,15 +236,40 @@ def ptxt(p):
     return f"{p:.1g}" if p < 0.01 else f"{p:.2f}"
 
 
+SHORT = {"physics": "Phys.", "plume": "Plume", "borehole": "Bore.", "ishigami": "Ishi.",
+         "otl": "OTL", "piston": "Pist.", "borehole_gum": "Bore.G", "plume_gum": "Plume.G",
+         "flood": "Flood", "cfd": "CFD"}
+
+
 def tab_tests(S, N=20):
+    """Matrix comparison x model: median paired ratio; bold if the Holm-
+    adjusted p < 0.05 (two-sided Wilcoxon). Below 1 favours the first."""
+    lines = []
+    for a, c, metric, label in COMPARISONS:
+        cells, any_ = [], False
+        for b in BENCHES:
+            t = next((t for t in S["tests"] if (t["a"], t["b"], t["metric"], t["N"], t["bench"])
+                      == (a, c, metric, N, b)), None)
+            if t is None:
+                cells.append("--"); continue
+            any_ = True
+            x = t["ratio"]
+            r = f"{x:.2g}" if x < 0.1 else (f"{x:.3f}" if abs(x - 1) < 0.01 else f"{x:.2f}")
+            cells.append(f"\\textbf{{{r}}}" if t["p_holm"] < 0.05 else r)
+        if any_:
+            lines.append(f"{label} & " + " & ".join(cells) + r" \\")
+    return "\n".join(lines) + "\n"
+
+
+def tab_tests_long(S, N=20):
+    """Supplementary table: every paired comparison with CI, wins, Holm p."""
     lines = []
     for a, c, metric, label in COMPARISONS:
         for t in S["tests"]:
             if (t["a"], t["b"], t["metric"], t["N"]) == (a, c, metric, N):
-                star = "$^\\ast$" if t["p_holm"] < 0.05 else ""
                 lines.append(f"{label} & {LABEL[t['bench']]} & {t['ratio']:.3g} "
                              f"[{t['ci'][0]:.3g}, {t['ci'][1]:.3g}] & {t['wins']}/{t['n']} & "
-                             f"{ptxt(t['p_holm'])}{star} \\\\")
+                             f"{ptxt(t['p_holm'])} \\\\")
     return "\n".join(lines) + "\n"
 
 
@@ -243,6 +279,25 @@ POSITIVE = {"plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "
 def recommended(b):
     """The GP the paper recommends for a model: log variables if positive."""
     return "gp_log" if b in POSITIVE else "gp_m52"
+
+
+def tab_prop(S):
+    """Validation error of reported quantities, median over seeds, for the
+    recommended GP (passive and AK-MCS) and the CV-weighted committee:
+    relative error (%) of mean, SD, y_0.95; absolute error (x100) of the
+    exceedance probability at the model's threshold."""
+    lines = []
+    for b in BENCHES:
+        g = recommended(b); ak = "ak_log" if g == "gp_log" else "ak_m52"
+        P = S["prop"].get(b, {})
+        if g not in P:
+            continue
+        pct = lambda m, k: (f"{100 * P[m][k]:.2f}" if 100 * P[m][k] < 10 else f"{100 * P[m][k]:.1f}") \
+            if m in P and k in P[m] else "--"
+        lines.append(f"{LABEL[b]} & {pct(g, 'relerr_mean')} & {pct(g, 'relerr_sd')} & "
+                     f"{pct(g, 'relerr_q95')} & {pct(g, 'thr_abserr')} & {pct(ak, 'thr_abserr')} & "
+                     f"{pct('pas_ard:cv', 'relerr_q95')} & {pct('pas_ard:cv', 'thr_abserr')} \\\\")
+    return "\n".join(lines) + "\n"
 
 
 def tab_coverage(S):
@@ -412,11 +467,13 @@ if __name__ == "__main__":
         print("summary.json reproduced" if same else "summary.json DIFFERS from the records")
         sys.exit(0 if same else 1)
     json.dump(S, open(path, "w"), indent=1)
-    main_methods = ["gp_orig", "gp_m52", "gp_quad", "gp_log", "spce", "spce_log",
-                    "pas_ard:cv", "al_gp", "al_var:cv"]
+    main_methods = ["gp_orig", "gp_m52", "gp_quad", "gp_log", "gp_quadlog", "spce",
+                    "spce_log", "pas_ard:cv", "al_gp", "al_var:cv", "ak"]
     open(os.path.join(OUT, "tab_n20.tex"), "w").write(tab_n20(S, main_methods))
     open(os.path.join(OUT, "tab_tests.tex"), "w").write(tab_tests(S))
+    open(os.path.join(OUT, "tab_tests_long.tex"), "w").write(tab_tests_long(S))
     open(os.path.join(OUT, "tab_coverage.tex"), "w").write(tab_coverage(S))
+    open(os.path.join(OUT, "tab_prop.tex"), "w").write(tab_prop(S))
     fig_sweep(S); fig_n20(S); fig_coverage(S)
     print(f"{S['n_tests']} paired tests; significant after Holm: "
           f"{sum(t['p_holm'] < 0.05 for t in S['tests'])}")
