@@ -76,8 +76,42 @@ def summarise():
     return S
 
 
+PROP_ROWS = [("gp_orig", "GP, original kernel"),
+             ("gp_m52", "GP, Mat\\'ern-5/2 ARD"),
+             ("gp_log", "GP, log variables"),
+             ("pas_ard:cv", "Committee, CV-weighted"),
+             ("al_var:cv", "Committee, adaptive")]
+
+
+def latex_propagation_table(S):
+    """Rows for Table III of the extended abstract (medians over 30 seeds):
+    relative error of mean and y95 in %, |P - 0.05| x 100; best per column
+    in bold."""
+    cols = [(b, k) for b in BENCHES
+            for k in ("relerr_mean", "relerr_q95", "exc_abserr")]
+    val = {(m, b, k): S["medians"][b].get(m, {}).get(k)
+           for m, _ in PROP_ROWS for b, k in cols}
+    best = {c: min(v for (m, b, k), v in val.items() if (b, k) == c and v is not None)
+            for c in cols}
+    lines = []
+    for m, label in PROP_ROWS:
+        cells = []
+        for b, k in cols:
+            v = val[(m, b, k)]
+            if v is None:
+                cells.append("--"); continue
+            fmt = lambda x: f"{100 * x:.2f}" if 100 * x < 10 else f"{100 * x:.1f}"
+            txt = fmt(v)
+            cells.append(f"\\textbf{{{txt}}}" if txt == fmt(best[(b, k)]) else txt)
+        lines.append(f"{label} & " + " & ".join(cells) + r" \\")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     S = summarise()
+    tex = latex_propagation_table(S)
+    open(os.path.join(RES, "table_propagation.tex"), "w").write(tex + "\n")
+    print(tex)
     json.dump(S, open(os.path.join(RES, "summary_generalisation.json"), "w"), indent=1)
     for b in BENCHES:
         print(f"\n=== {b} " + "=" * 60)

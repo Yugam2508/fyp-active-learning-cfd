@@ -1,81 +1,57 @@
 # Number provenance — IMEKO WC 2027 extended abstract
 
-Every quantitative statement in `extended_abstract.tex`, with the file it
-comes from and how it is computed. All paths are relative to the repository
-root. "Success" means RMSE < 200. Medians are over the 30 seeds (1000–1029)
-unless stated. Recompute everything with `python paper/imeko2027/check_numbers.py`,
-which prints each value below from the raw records.
+Every quantitative statement in `extended_abstract.tex`, where it comes from,
+and how it is computed. Run
 
-## Protocol section
+```bash
+python paper/imeko2027/check_numbers.py
+```
 
-| Text | Value | Source |
-|---|---|---|
-| output SD at h = 200 | ≈ 4100 (4073) | `results/summary_domain.json` → `phys200.output_std` |
-| prior-reverted GP RMSE | ≈ 2400 (median 2445) | `summary_domain.json` → `phys200.median_lhsgp` |
+to recompute all of them from the raw records (it uses
+`experiments/analyse_generalisation.py`). Medians are over the 30 seeds
+1000–1029. Normalised RMSE (nRMSE) = test RMSE / reference output SD.
+Paired tests: two-sided Wilcoxon signed-rank on log nRMSE.
 
-## Domain sweep (Fig. 1, §III.B) — `results/results_domain_*.json`, summary in `results/summary_domain.json`
+## Sources
 
-| Text | Value | Computation |
-|---|---|---|
-| passive GP, h = 2 | 1.00 SD | median `rmse_lhsgp` / `output_std` (phys2) |
-| passive GP, h ≥ 10 | 0.60 SD | same, phys10–phys200 (0.612, 0.600, 0.600, 0.600) |
-| committee, h = 2 | 0.99 SD | median `rmse_al` / `output_std` |
-| committee, h = 200 | 1.7e-4 SD | same, phys200 |
-| ratio of mean RMSEs | 1.04 → 0.030 | `rho_mean`, phys2 and phys200 |
-| quadratic share of variance | 44 % at h = 2; ≈ 100 % for h ≥ 10 | Var(0.2‖x‖²)/Var(f) on 2×10⁵ uniform points (`check_numbers.py`) |
-| committee median RMSE at h = 2, h ≥ 50 | 0.62–0.68 | median `rmse_al`: 0.615, 0.655, 0.679, 0.679 |
-| RMS of oscillatory + exponential terms | 0.50–0.61 | SD of sin2x₁cos2x₂ + exp(−x₃²) on the same points |
-| committee median at h = 10 | 1.99 | median `rmse_al` (phys10) |
-| PCE-d2 retained at h = 10 | 15/30 | `final_models == ["PCE-d2"]` (phys10) |
-| Schwefel ratio | 1.10 | `rho_mean` (schwefel); both arms ≈ 1 SD |
+| Records | Produced by |
+|---|---|
+| `results/results_gen_<model>_<arm>.json` | `experiments/campaign_generalisation.py <model> <arm> 0 30` |
+| `results/summary_generalisation.json`, `results/table_propagation.tex` | `experiments/analyse_generalisation.py` |
+| `results/results_domain_<config>.json` (fields `rmse_lhsgp`, `rmse_lhsgp_m52`) | `experiments/campaign_domain.py <config> 0 30 [--add-m52]` |
+| `figures/fig_strategies.pdf` | `experiments/make_paper_figures.py strategies` |
 
-## Ablations (Table I, Fig. 2) — `results/results_{hard,varacq,nopce,gpvar,soft}.json`
+## Statement → value → source
 
-| Text | Value | Computation |
-|---|---|---|
-| UEigV, hard rejection | 0.682, 27/30 | median `rmse`, success count (`hard`) |
-| Variance, hard rejection | 0.660, 30/30, p = 0.047 | `varacq`; Wilcoxon vs `hard` on log RMSE |
-| variance lower in 18/30 | 18 | paired count |
-| no PCE | 2387, 0/30, p < 1e-4 | `nopce` |
-| GP alone | 1772, 0/30, p < 1e-4 | `gpvar` |
-| Eq. (2) weighting | 0.646, 29/30, p = 0.004 | `soft` |
-| collapse to one member | 30/30 | `results/results_decompose.json`: `n_survivors == 1` |
-| median collapse iteration | 10 of 15 | median `collapse_iter` |
-| random share of budget | 31 % (139/450) | Σ`random_queries_after_collapse` / (30 × 15) |
-| PCE-d2 sole survivor | 27/30 | `survivor_names` (PCE-d3: 2, DNN-H64: 1) |
+| Section | Statement | Value | Source / computation |
+|---|---|---|---|
+| Abstract, III.A | "up to eighteen-fold" (kernel specification) | 0.591 → 0.033 on physics (17.9× by medians; 18× per-seed median ratio) | `gp_orig`, `gp_amp`, physics |
+| Abstract, III.A | "up to eightfold" (log transformation) | borehole 0.089 → 0.011 (8.0× by medians) | `gp_m52`, `gp_log`, borehole |
+| II.A | plume spans three orders of magnitude; 12 % above 210 mg m⁻³ | 1.8–2448 mg m⁻³; 12.3 % | `benchmarks.Plume` on the 2×10⁵ reference sample |
+| III.A, Table II | all single-GP medians | see table | `gp_*` arms |
+| III.A | amplitude alone: all 30 seeds improve, p < 1e-8 | 30/30, p = 1.9e-9 | test `gp_amp vs gp_orig`, physics |
+| III.A | original kernel 0.60 for h = 10…200; Matérn 0.17 at 10, 0.08 for 50…200 | 0.612/0.600/0.600/0.600; 0.173/0.078/0.078/0.080 | `results_domain_phys*.json` |
+| III.A | ARD on borehole 0.30 → 0.09 | 0.295 → 0.089 | `gp_orig`, `gp_m52` |
+| III.A | log: 30 and 27 of 30 seeds improve | borehole 30/30, plume 27/30 | test `gp_log vs gp_m52` |
+| III.A | ten runs per input → 30 runs for Ishigami | d = 3 | Loeppky et al. (2009) |
+| III.B | committee beats best single GP only on physics, by > 2 orders | 180× vs `gp_amp`; 440× vs `gp_m52` | medians |
+| III.B | borehole committee 2.3× worse, 0/30 better | ratio 2.33, 0/30 | test `pas_ard:cv vs gp_m52` |
+| III.B | plume, Ishigami tie | p = 0.21, 1.0 | same test |
+| III.B | uniform worse than CV: physics (~2000×), plume, borehole (p ≤ 0.023), never better | ratios 4.7e-4, 0.98, 0.84; Ishigami p = 0.18 | test `pas_ard:cv vs pas_ard:uni` |
+| III.B | adaptive GP never better; worse on plume p = 0.008 | p = 0.21, 0.0081, 0.44, 0.21 | test `al_gp vs gp_m52` |
+| III.B | adaptive committee: 0.80, 0.61, 1.25, n.s. | as stated | test `al_var:cv vs pas_ard:cv` |
+| III.B | spectral vs variance acquisition | see `check_numbers.py` | test `al_ueigv:cv vs al_var:cv` |
+| Table III | all entries | generated | `results/table_propagation.tex` |
+| III.C | best-strategy errors: y95 0.41 / 6.9 / 0.60 / 16 %; P within 0.0015 / 0.0076 / 0.0018 / 0.029 | as stated | Table III (bold entries) |
+| III.C | adaptive committee plume mean error 55 % | 55.1 % | `al_var:cv` plume `relerr_mean` |
+| III.C | envelope coverage 0–100 % | physics `pas_ard:cv` 0 %, `al_var:cv` 100 % | `exc_covered` |
+| III.C, Fig. 3 | P(C > 210 mg m⁻³): reference 0.123, GP log 0.119, GP raw 0.158, committee 0.142 | as stated | `results/plume_cdf_seed1000.json` (`make_paper_figures.py plume`) |
+| III.A, Fig. 1 | domain sweep curves | as plotted | `results_domain_*.json` (`make_paper_figures.py domain`) |
 
-## Aggregation (Table II) — `results/results_hardmin3.json`, `results/results_hard.json`, `results/results_soft.json`
+## Carried over from earlier work (not used for claims here)
 
-| Text | Value | Computation |
-|---|---|---|
-| Hard, K_min = 1 | 0.682, 27/30 | `results_hard.json` |
-| Hard, K_min = 3, uniform | 1556, 0/30 | median `rmse_uniform` |
-| Hard, K_min = 3, Eq. (2) | 0.701, 27/30 | median `rmse_cvweighted` |
-| Weighting only | 0.646, 29/30 | `results_soft.json` |
-| PCE-d2 survives | 27/30 | `"PCE-d2" in survivor_names` |
-| weighted succeeds in exactly those 27 | yes | the three failures (seeds 1006, 1012, 1014) lack PCE-d2 |
-| paired p | < 1e-8 (5.6e-9) | Wilcoxon `rmse_uniform` vs `rmse_cvweighted` |
-
-## Propagation (Table III, Fig. 3)
-
-Table III: medians over successful seeds of `results/results_soft.json` (29)
-and `results/results_hard.json` (27): `q_relerr`, |`exc_central` − `exc_true`|,
-`exc_up` − `exc_lo`, means of `mean_covered`, `exc_covered`, `pbox_coverage`.
-
-Representative run: `results/representative_run_seed1000.json`
-(`experiments/make_paper_figures.py pbox`; seed 1000 is the first seed, not selected).
-
-| Text | Value | Field |
-|---|---|---|
-| mean | 0.21 % | `mean.rel_err` |
-| SD | 0.14 % | `std.rel_err` |
-| 5th, 50th, 95th percentiles | 0.66, 0.24, 0.41 % | `quantiles.*.rel_err` |
-| abstract "within 0.7 %" | max of the above | |
-| model-form share | 0.50 → 7e-8 | `trajectory[0]`, `trajectory[-1]` `.model_form_fraction` |
-| actual surrogate error share | ≈ 2e-8 | `rmse`² / `std.true`² |
-
-## Values carried over from earlier records (not rerun)
-
-The ablation arms in Table I and rows 1 and 4 of Table II come from the
-committed PyTorch campaigns, produced before the Latin-hypercube seeding fix
-(`docs/REPRODUCIBILITY.md` §3). They are reported as recorded.
+The physics-only campaigns of the earlier analysis (`results/results_{hard,
+soft,varacq,nopce,gpvar,hardmin3,decompose}.json`) used committees with the
+original GP kernel. They are documented in `docs/FINDINGS_soft_vs_hard.md`
+and are superseded for the purposes of this abstract by the controlled
+comparison above.

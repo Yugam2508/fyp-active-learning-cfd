@@ -136,3 +136,60 @@ predictor) changes nothing: p = 0.90, 26/30 pairs within 1 %.
   shown or validated there.
 - Table III median-quantile error for the weighted committee is 0.23 %
   (0.235 %); earlier drafts rounded it to 0.24 %.
+
+---
+
+## Update 2026-10-17 — controlled comparison with correctly specified baselines
+
+**Trigger.** Adding a standard GP baseline (Matérn-5/2, ARD, amplitude) to the
+generalisation study showed that the passive GP on the physics benchmark is
+not catastrophically bad at all.
+
+### 1. The "prior reversion" failure is a kernel-specification artefact
+`framework_core.GPSurrogate` (the notebook's kernel) is `RBF() + WhiteKernel`
+with **no amplitude (signal-variance) hyperparameter** and one isotropic
+length scale. With `normalize_y=True` this fixes the prior variance to the
+data variance and the GP cannot represent the quadratic bowl. Median nRMSE,
+physics benchmark, 20-point LHS, 30 seeds (`results_gen_physics_gp_*.json`):
+
+| Kernel | nRMSE |
+|---|---:|
+| original (no amplitude, isotropic) | 0.591 |
+| + amplitude | **0.033** |
+| + ARD only | 0.608 |
+| + amplitude + ARD | 0.036 |
+| Matérn-5/2 + amplitude + ARD | 0.079 |
+
+The amplitude alone improves all 30 seeds (p = 1.9e-9). Across the domain
+sweep, the original kernel sits at 0.60 for h = 10…200, while the Matérn GP
+reaches 0.17 at h = 10 and 0.08 for h = 50…200 (`rmse_lhsgp_m52` in
+`results_domain_*.json`). **All earlier claims that "passive GPs fail
+catastrophically on large domains" are withdrawn**; what remains true is that
+the committee is more accurate on *this* benchmark because PCE-d2 matches it.
+
+### 2. Generalisation study (`campaign_generalisation.py`, 4 models × 11 arms × 30 seeds)
+Summary in `results/summary_generalisation.json`; audit in
+`paper/imeko2027/check_numbers.py`.
+
+- **Kernel specification**: physics 18× (amplitude); borehole 3.4× (ARD);
+  no effect on plume or Ishigami.
+- **Log-transformed variables** (plume, borehole): 8× better on borehole
+  (0.089 → 0.011, 30/30), 1.4× on plume (0.60 → 0.42, 27/30). Largest gain for
+  a model without a matching committee member.
+- **Committee vs best single GP** (same 20-point design): wins only on
+  physics (>100×, PCE-d2 anchor). Borehole: committee 2.3× *worse*
+  (0/30). Plume, Ishigami: tie.
+- **Aggregation**: CV weighting ≥ uniform everywhere; significant on physics,
+  plume, borehole. Holds with corrected GP members too.
+- **Adaptive runs**: single GP never better (plume worse, p = 0.008).
+  Committee: better on physics (0.80) and borehole (0.61), worse on plume
+  (1.25, adaptive committee mean error 55 %), neutral on Ishigami.
+- **Spectral vs variance acquisition**: see `check_numbers.py` (UEigV arm).
+- **Member envelopes** as model-form intervals for P(Y > y95): coverage
+  0–100 % depending on model and strategy; not calibrated.
+
+### Consequence for the paper
+The IMEKO extended abstract was rewritten around the controlled comparison:
+kernel specification and variable transformation matter more than committees
+or adaptive designs at N = 20; committees help only with a matching member
+and only with error weighting.

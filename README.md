@@ -21,24 +21,24 @@ This repository is a **research record, including negative results.**
 - How results were produced, and a seeding bug fixed on 2026-10-16:
   `docs/REPRODUCIBILITY.md`.
 
-What the experiments currently support (physics benchmark unless stated;
-30 seeds per arm):
+What the experiments currently support (30 paired seeds per arm, N = 20 model
+runs; physics, Gaussian plume, borehole and Ishigami models; see
+`docs/FINDINGS_soft_vs_hard.md`, update 2026-10-17):
 
 | Claim | Status | Evidence |
 |---|---|---|
-| A passively sampled GP reverts towards a constant predictor once run spacing is large (median RMSE 0.60 output SD for every half-width h ≥ 10) | supported | `campaign_domain.py`, `figures/fig_domain_sweep.pdf` |
-| The committee helps only through a member that represents the dominant response component (PCE-d2 for the quadratic term) | supported | domain sweep: committee error ≈ RMS of the unrepresentable terms; no-PCE ablation 0/30; Schwefel control (no matching member) ratio 1.10 |
-| Original thesis framing: failure needs large domain **and** high dynamic range | **revised** | the Schwefel control does not isolate dynamic range: both passive GP and committee sit at ≈ 1 SD there |
-| Uniform averaging over a heterogeneous committee is catastrophic in the prior-reversion regime | supported | `campaign_hardmin.py 3`: 0/30 success (median RMSE 1556) though PCE-d2 survives in 27/30 |
-| CV inverse-error weighting is the causal ingredient | supported | same survivors and data: 27/30 success, exactly the 27 trials that retain PCE-d2; paired p < 1e-8 |
-| UEigV (spectral) beats plain ensemble-variance acquisition | **refuted** | `campaign_ablations.py varacq`: 30/30 vs 27/30 success, variance better (p = 0.047) |
-| Soft weighting beats hard LCS rejection *as a manager* | **confounded** | hard collapses to one model in 30/30 trials (median iteration 10) and spends 31 % of queries at random; predictor swap null (p = 0.90); `results/results_decompose.json` |
-| Forward-UQ stage recovers ground-truth MC | supported | `results/representative_run_seed1000.json`: mean 0.21 %, SD 0.14 %, quantiles ≤ 0.66 % |
-| Member envelopes (p-box, exceedance interval) are calibrated | **not supported** | exceedance coverage 62 %; conformal calibration is future work |
+| Passive GP surrogates fail catastrophically on large domains (prior reversion) | **withdrawn — artefact** | caused by the original GP kernel lacking an amplitude hyperparameter; adding it: physics nRMSE 0.591 → 0.033 (30/30 seeds) |
+| GP kernel specification (amplitude, ARD) is a first-order choice | supported | up to 18× (physics), 3.4× (borehole) |
+| Log-transforming positive variables helps multiplicative models | supported | borehole 8× (0.089 → 0.011), plume 1.4× |
+| A committee beats a well-specified GP | **only with a matching member** | physics > 100× (PCE-d2); borehole 2.3× worse; plume, Ishigami tie |
+| CV inverse-error weighting is necessary for committees | supported | never worse than uniform; significantly better on 3 of 4 models |
+| Adaptive selection of runs helps at N = 20 | **not supported** | single GP never better; committee mixed (better 2, worse 1, tie 1) |
+| UEigV (spectral) beats variance acquisition | **refuted** | physics campaign (p = 0.047, variance better); generalisation study, see `check_numbers.py` |
+| Committee member envelopes are calibrated model-form intervals | **not supported** | coverage 0–100 % |
+| Forward-UQ propagation reproduces reference Monte Carlo | supported where the surrogate is accurate | Table III of the extended abstract |
 
-Nothing here generalises yet: every committee result is on **one** synthetic
-benchmark whose dominant term matches PCE-d2's hypothesis class. A benchmark
-with no matching member is the next step.
+Remaining limits: four test models, uniform inputs, N = 20 only; a CFD-based
+dispersion case and calibrated (conformal) intervals are the next steps.
 
 ## Layout
 
@@ -46,10 +46,13 @@ with no matching member is the next step.
 src/                    library modules (importable)
   framework_core.py       committee, UEigV, hard LCS, ActiveLearner
   uq_extension.py         SoftLCS (CV inverse-error weights), UQAnalyzer
+  benchmarks.py           physics, Gaussian plume, borehole, Ishigami
 experiments/            runnable studies, launch from anywhere
   demo_uq.py              end-to-end pipeline + presentation UQ figures
   make_paper_figures.py   print-ready paper figures from results/*.json
   campaign_domain.py      domain-size sweep + Schwefel control
+  campaign_generalisation.py  controlled comparison on 4 models (11 strategies)
+  analyse_generalisation.py   medians, paired tests, LaTeX table
   campaign.py             30-trial paired hard vs soft, with UQ coverage
   campaign_ablations.py   varacq | nopce | gpvar
   campaign_hardmin.py     hard LCS with a minimum committee size (fair baseline)
@@ -84,6 +87,11 @@ python experiments/campaign_hardmin.py 3 0 30
 python experiments/decompose_soft_vs_hard.py 0 30
 for c in phys2 phys10 phys50 phys100 phys200 schwefel; do
   python experiments/campaign_domain.py $c 0 30; done
+for b in physics plume borehole ishigami; do
+  for a in gp_orig gp_amp gp_ardnoamp gp_ard gp_m52 al_gp pas_orig pas_ard al_var al_ueigv; do
+    python experiments/campaign_generalisation.py $b $a 0 30; done; done
+for b in plume borehole; do python experiments/campaign_generalisation.py $b gp_log 0 30; done
+python experiments/analyse_generalisation.py
 python experiments/make_paper_figures.py            # paper figures + summaries
 ```
 
