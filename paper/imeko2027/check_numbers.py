@@ -38,6 +38,12 @@ for arm in ["gp_orig", "gp_amp", "gp_ardnoamp", "gp_ard", "gp_m52", "gp_log"]:
     print(f"{arm:12s} " + "  ".join(
         f"{b}={M[b][arm]['nrmse']:.3g}" if arm in M[b] else f"{b}=--" for b in M))
 
+print(f"number of paired tests (Holm family): {S['n_tests']}")
+for b in M:
+    for k in ["gp_amp vs gp_orig", "gp_log vs gp_m52"]:
+        if k in T[b]:
+            print(f"  {b} {k}: holm p = {T[b][k]['p_holm']:.2g}")
+
 head("Section III.A statements")
 t = T["physics"]["gp_amp vs gp_orig"]
 print(f"physics amplitude alone: 0.591 -> 0.033, wins {t['wins']}/30, p={t['p']:.1g}, "
@@ -61,7 +67,8 @@ for b in M:
               "al_var:cv vs pas_ard:cv", "al_ueigv:cv vs al_var:cv"]:
         if k in T[b]:
             t = T[b][k]
-            print(f"{b:9s} {k:26s} ratio {t['median_ratio']:9.4g} wins {t['wins']:2d}/{t['n']} p={t['p']:.2g}")
+            print(f"{b:9s} {k:26s} ratio {t['median_ratio']:9.4g} wins {t['wins']:2d}/{t['n']} "
+                  f"p={t['p']:.2g} holm={t['p_holm']:.2g}")
 print("physics committee vs best single GP (gp_amp): "
       f"{M['physics']['gp_amp']['nrmse']/M['physics']['pas_ard:cv']['nrmse']:.0f}x")
 
@@ -78,3 +85,18 @@ r = json.load(open(os.path.join(RES, "plume_cdf_seed1000.json")))
 for k, v in r.items():
     if isinstance(v, dict) and "P_exceed_idlh" in v:
         print(f"{k:28s} P(C > 210) = {v['P_exceed_idlh']:.3f}")
+
+head("Section III.D / Table IV: estimating the surrogate error (results_err_*.json)")
+for b, a in [("physics", "gp_m52"), ("plume", "gp_m52"), ("plume", "gp_log"),
+             ("borehole", "gp_m52"), ("borehole", "gp_log"), ("ishigami", "gp_m52")]:
+    d = json.load(open(os.path.join(RES, f"results_err_{b}_{a}.json")))
+    rc = np.array([r["cv_rmse"] / r["true_rmse"] for r in d])
+    rs = np.array([r["sd_rms"] / r["true_rmse"] for r in d])
+    cov = np.array([r["cov95"] for r in d])
+    print(f"{b:9s} {a:7s} n={len(d)} CV/true {np.median(rc):.2f} SD/true {np.median(rs):.2f} "
+          f"cov95 {np.median(cov):.0%} | CV>=true {int((rc >= 1).sum())}/30, "
+          f"CV<0.5 true {int((rc < 0.5).sum())}/30")
+    if b == "plume":
+        pr = d[0]["p_idlh_ref"]
+        print(f"    P(C>IDLH) reference {pr:.3f}; median |error| "
+              f"{np.median([abs(r['p_idlh'] - pr) for r in d]):.3f}")

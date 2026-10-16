@@ -195,3 +195,40 @@ The IMEKO extended abstract was rewritten around the controlled comparison:
 kernel specification and variable transformation matter more than committees
 or adaptive designs at N = 20; committees help only with a matching member
 and only with error weighting.
+
+---
+
+## Update 2026-10-17 (b) — reviewer round; estimating the surrogate error
+
+A mock review (IMEKO-style, "accept with minor revisions") raised four main
+points; each is now addressed in the extended abstract.
+
+1. **Validation error vs uncertainty contribution.** New experiment
+   `campaign_error_estimation.py` (results `results_err_*.json`): for the
+   recommended GPs, compare the true error with what is available from the
+   20 runs alone.
+
+   | Model | GP | CV / true | GP SD / true | 95 % coverage |
+   |---|---|---:|---:|---:|
+   | Physics | Matérn | 9.06 | 1.58 | 100 % |
+   | Plume | Matérn | 0.99 | 0.36 | 77 % |
+   | Plume | log | 0.81 | 0.42 | 73 % |
+   | Borehole | Matérn | 2.11 | 0.79 | 90 % |
+   | Borehole | log | 2.61 | 1.45 | 99 % |
+   | Ishigami | Matérn | 1.07 | 0.58 | 73 % |
+
+   Five-fold CV is conservative (≥ true error in 28/30 and 30/30 seeds where
+   the GP is good; < ½ true in at most 6/30). The GP's own predictive SD
+   understates the error 1.7–2.8× exactly where the GP is weak, and its 95 %
+   intervals cover only 73–77 %. Proposed GUM S1 treatment: add a surrogate
+   error input E_s with zero mean and standard uncertainty = CV RMSE.
+2. **Plume is not CFD.** Stated explicitly as an analytical proxy.
+3. **Exceedance metrics.** P(Y > y95,ref) (tail accuracy, true value 0.05)
+   is separated from P(C > IDLH) (fixed threshold, reference 0.123); over 30
+   seeds the log GP's median absolute error is 0.009, the raw GP's 0.023.
+4. **Adaptive claim too broad.** Restricted to the tested designs.
+
+Also: Holm adjustment over the 36 paired tests. Three statements lose
+significance and were narrowed (uniform vs CV on plume; adaptive GP worse on
+plume; UEigV vs variance on physics, plume, Ishigami). UEigV remains
+significantly worse on borehole (adjusted p = 7e-7).

@@ -33,8 +33,9 @@ runs; physics, Gaussian plume, borehole and Ishigami models; see
 | A committee beats a well-specified GP | **only with a matching member** | physics > 100× (PCE-d2); borehole 2.3× worse; plume, Ishigami tie |
 | CV inverse-error weighting is necessary for committees | supported | never worse than uniform; significantly better on 3 of 4 models |
 | Adaptive selection of runs helps at N = 20 | **not supported** | single GP never better; committee mixed (better 2, worse 1, tie 1) |
-| UEigV (spectral) beats variance acquisition | **refuted** | generalisation study: worse on 3 of 4 models (borehole 1.7×, p = 3e-8), better only on plume (0.90, p = 0.009) |
+| UEigV (spectral) beats variance acquisition | **refuted** | never better after Holm adjustment; borehole 1.7× worse (adjusted p = 7e-7) |
 | Committee member envelopes are calibrated model-form intervals | **not supported** | coverage 0–100 % |
+| The surrogate error can be estimated from the 20 runs | **by cross-validation, conservatively** | CV ≥ true error in most seeds; the GP's own predictive SD understates it 1.7–2.8× on hard models (`campaign_error_estimation.py`) |
 | Forward-UQ propagation reproduces reference Monte Carlo | supported where the surrogate is accurate | Table III of the extended abstract |
 
 Remaining limits: four test models, uniform inputs, N = 20 only; a CFD-based
@@ -52,7 +53,8 @@ experiments/            runnable studies, launch from anywhere
   make_paper_figures.py   print-ready paper figures from results/*.json
   campaign_domain.py      domain-size sweep + Schwefel control
   campaign_generalisation.py  controlled comparison on 4 models (11 strategies)
-  analyse_generalisation.py   medians, paired tests, LaTeX table
+  analyse_generalisation.py   medians, paired tests (Holm), LaTeX table
+  campaign_error_estimation.py  CV and GP-variance estimates of surrogate error
   campaign.py             30-trial paired hard vs soft, with UQ coverage
   campaign_ablations.py   varacq | nopce | gpvar
   campaign_hardmin.py     hard LCS with a minimum committee size (fair baseline)
