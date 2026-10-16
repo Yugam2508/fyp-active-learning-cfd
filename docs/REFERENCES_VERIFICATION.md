@@ -51,3 +51,31 @@ arXiv, MLAnthology). A DOI is included only where that check confirmed it.
 - Considered but not added because the record could not be confirmed:
   Seung, Opper, Sompolinsky, "Query by committee" (COLT 1992);
   Wübbeler, Krystek, Elster (Meas. Sci. Technol. 2008).
+
+## Journal version (`paper/journal.bib`), checked 2026-10-16
+
+Entries added for the journal study (new baselines, benchmarks and the
+coverage validation). Direct DOI resolvers (Crossref, doi.org) are blocked by
+the network policy of the cloud environment used for this check, so each
+record was confirmed through publisher/indexing pages returned by search, or
+through the reference lists bundled in UQTestFuns v0.7.0 (whose input models
+the benchmarks are cross-checked against).
+
+| Key | Reference | Checked against | DOI in .bib |
+|---|---|---|---|
+| barber2021 | Barber, Candès, Ramdas, Tibshirani, *Ann. Stat.* 49(1) 486–507 (2021) | Project Euclid, arXiv 1905.02928 | yes |
+| echard2011 | Echard, Gayton, Lemaire, *Struct. Saf.* 33(2) 145–154 (2011) | Structurae, UQTestFuns (four_branch, undamped_oscillator) | yes |
+| blatman2011 | Blatman, Sudret, *J. Comput. Phys.* 230(6) 2345–2367 (2011) | citing literature (Lüthen et al., arXiv 2009.04800; Sudret group pages) | yes |
+| efron2004 | Efron, Hastie, Johnstone, Tibshirani, *Ann. Stat.* 32(2) 407–451 (2004) | Project Euclid, arXiv math/0406456 (407–499 includes the discussion) | yes |
+| gneiting2007 | Gneiting, Raftery, *J. Am. Stat. Assoc.* 102(477) 359–378 (2007) | DTIC technical report, citing literature | yes |
+| benari2007 | Ben-Ari, Steinberg, *Qual. Eng.* 19, 327–338 (2007) | UQTestFuns (otl_circuit, piston) | yes |
+| morris1993 | Morris, Mitchell, Ylvisaker, *Technometrics* 35(3) 243–255 (1993) | UQTestFuns (borehole), arXiv 0802.4381 reference list | yes |
+| harper1983 | Harper, Gupta, report BMI/ONWI-516, Battelle (1983) | SFU Virtual Library, UQTestFuns (borehole) | — |
+| iooss2015 | Iooss, Lemaître, in Dellino, Meloni (eds.), Springer (2015) 101–122 | HAL hal-00975701, arXiv 1404.2405, UQTestFuns (flood) | yes |
+| wicaksono2023 | Wicaksono, Hecht, *J. Open Source Softw.* 8(90) 5671 (2023) | JOSS page | yes |
+| vlse | Surjanovic, Bingham, Virtual Library of Simulation Experiments | SFU website | URL |
+
+Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
+input models), flood and Ishigami implementations in `src/benchmarks.py`
+agree with UQTestFuns v0.7.0 to a relative difference below 1e-10, and all
+non-uniform marginal quantiles agree to 1e-6 (`experiments/check_benchmarks.py`).
