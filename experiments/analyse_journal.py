@@ -383,9 +383,11 @@ def fig_sweep(S):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    benches = [b for b in BENCHES if S["sweep"].get(b)]
+    benches = [b for b in BENCHES
+               if any(len(r) >= 2 for r in S["sweep"].get(b, {}).values())]
     if not benches:
         return
+    from matplotlib.ticker import FuncFormatter, NullFormatter
     style = {"gp_orig": ("0.6", ":", "x"), "gp_m52": ("C0", "-", "o"),
              "gp_quad": ("C1", "-", "s"), "gp_log": ("C2", "-", "^"),
              "spce": ("C3", "--", "D"), "spce_log": ("C3", ":", "d"),
@@ -404,6 +406,8 @@ def fig_sweep(S):
         ax.set_xscale("log", base=2); ax.set_yscale("log")
         ax.set_xticks(BUDGETS); ax.set_xticklabels(BUDGETS)
         ax.set_title(LABEL[b], fontsize=8); ax.tick_params(labelsize=7)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:g}"))
+        ax.yaxis.set_minor_formatter(NullFormatter())
         ax.grid(alpha=0.3, lw=0.5)
     for ax in axes.flat[n:]:
         ax.axis("off")
@@ -411,9 +415,14 @@ def fig_sweep(S):
         ax.set_xlabel("model runs $N$", fontsize=8)
     for ax in axes[:, 0]:
         ax.set_ylabel("nRMSE", fontsize=8)
-    h, l = axes.flat[0].get_legend_handles_labels()
-    fig.legend(h, l, loc="lower center", ncol=5, fontsize=7, frameon=False)
-    fig.tight_layout(rect=(0, 0.06, 1, 1))
+    handles = {}
+    for ax in axes.flat:
+        for h, l in zip(*ax.get_legend_handles_labels()):
+            handles.setdefault(l, h)
+    order = [plain(m) for m in SWEEP if plain(m) in handles]
+    fig.legend([handles[l] for l in order], order, loc="lower center", ncol=5,
+               fontsize=7, frameon=False)
+    fig.tight_layout(rect=(0, 0.08, 1, 1))
     os.makedirs(FIG, exist_ok=True)
     fig.savefig(os.path.join(FIG, "fig_budget_sweep.pdf"))
     plt.close(fig)

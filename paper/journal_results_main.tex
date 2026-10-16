@@ -99,3 +99,39 @@ models with positive outputs (choosing a log-scale GP in most seeds), and
 left it unchanged on the flood and Ishigami models. The selection step
 therefore recovers practically all of the benefit of the right
 specification without access to the true model.
+
+\subsection{Dependence on the number of runs}
+\label{sec:res-budget}
+Fig.~\ref{fig:budget} repeats the main strategies with $N=10$, 40 and 80
+runs on the six models with uniform inputs. The ranking of the
+specifications is stable: the original kernel stays the worst GP at every
+budget, and the benefit of the log scale grows with $N$, from factors of
+0.62--0.92 at $N=10$ to 0.10--0.48 at $N=80$ on the four positive models,
+because the transformed response is smooth enough to be learned to high
+accuracy once the runs resolve it. Sparse PCE remains best on the physics
+model at every budget (at $N=10$ it already has an nRMSE of
+$1.6\times10^{-4}$, against 0.97 for the Mat\'ern GP) and worse than the GP
+on most of the others.
+
+The verdict on space-filling adaptive designs depends on the budget. At
+$N=10$ and 20 they never helped significantly. At $N=40$ and 80, adding
+runs at the largest GP posterior SD reduced the nRMSE on the physics
+(0.22--0.43), borehole (0.77), OTL (0.75 at $N=80$) and piston
+(0.81--0.88) models, which are smooth and on which the GP's uncertainty is
+informative once its hyperparameters are well determined, but increased it
+on the plume model (1.19 at $N=40$), whose error concentrates in the
+high-concentration corner that the posterior SD does not single out. The
+adaptive committee was better than the passive one at $N=40$ on the
+physics and borehole models (0.94 and 0.50) and no different elsewhere.
+Adaptive selection is thus worth considering when the budget is several
+times the number of inputs, but not as a remedy for very small budgets,
+when the surrogate's own uncertainty is itself poorly estimated.
+
+\begin{figure*}[tb]
+\centering
+\includegraphics[width=\textwidth]{journal/fig_budget_sweep}
+\caption{Median nRMSE over 30 seeds against the number of runs $N$ for the
+six models with uniform inputs; shaded: 95\% bootstrap confidence interval
+of the median. Adaptive committees were run up to $N=40$.}
+\label{fig:budget}
+\end{figure*}
