@@ -32,19 +32,21 @@ Research (A*STAR), Singapore}
 
 \begin{abstract}
 Monte Carlo propagation of distributions needs far more model evaluations
-than an expensive simulation allows, so the model is replaced by a surrogate trained on about twenty runs. We compare surrogate
-strategies on four test models, including a Gaussian plume model of an
-ammonia release, over 30 paired repetitions, scoring propagated quantiles
-and exceedance probabilities against reference Monte Carlo values. The
-kernel specification of a Gaussian process changed the error up to
-eighteen-fold; one hyperparameter held fixed produced an apparent failure
-that an earlier analysis attributed to domain size. Logarithmic
-transformation of positive variables reduced the error up to eightfold.
-Committees of surrogates beat a well-specified Gaussian process
-only where one member matched the response structure, and only with error
-weighting; the adaptive designs tested gave no consistent gain.
-Cross-validation estimated the surrogate error conservatively; the Gaussian
-process's own predictive uncertainty understated it up to threefold.
+than an expensive simulation allows, so a surrogate trained on about twenty
+runs replaces it. We compare surrogate strategies on four test
+models, including a Gaussian plume model of an ammonia release (30 paired
+repetitions), scoring propagated quantiles and exceedance probabilities
+against reference values. The kernel specification of a Gaussian process
+changed the error up to eighteen-fold; one hyperparameter held fixed produced
+an apparent failure that an earlier analysis attributed to domain size.
+Logarithmic transformation of positive variables reduced the error up to
+eightfold, and sixfold on a CFD dispersion case. Committees beat a
+well-specified Gaussian process only where a member matched the response
+structure;
+adaptive designs gave no consistent gain. Adding
+leave-one-out residuals to every Monte Carlo trial restored the nominal
+coverage of the 95\,\% coverage interval, whereas Gaussian-process intervals
+covered as few as 71\,\% of test points.
 \end{abstract}
 
 \begin{keywords}
@@ -95,8 +97,8 @@ magnitude and has a \qty{12}{\percent} probability of exceeding the level
 immediately dangerous to life or health (IDLH) for ammonia,
 \qty{210}{\milli\gram\per\cubic\metre} (about \num{300} ppm). The plume model
 is an analytical, controlled proxy for dispersion problems, cheap enough for
-exact reference values; it is not a CFD simulation, and CFD responses with
-recirculation or regime changes may behave differently. \emph{Borehole}
+exact reference values; it is not a CFD simulation, and
+Section~\ref{sec:cfd} checks the main findings on a CFD case. \emph{Borehole}
 (water flow) and \emph{Ishigami} are standard test functions for computer
 experiments. No committee member matches the last three.
 
@@ -292,53 +294,67 @@ and the reference Monte Carlo distribution. Dotted: IDLH level for ammonia.}
 \label{fig:plume}
 \end{figure}
 
-\subsection{Estimating the surrogate contribution}
+\subsection{Validating the surrogate contribution}
 \label{sec:estimate}
-In a real evaluation the reference is unavailable, and the surrogate's
-contribution must be estimated from the twenty runs. Table~\ref{tab:est}
-compares two estimates with the true error for the recommended GPs: the
-five-fold cross-validation RMSE (hyperparameters re-fitted in every fold) and
-the root mean square of the GP's own predictive SD. Cross-validation was
-conservative: it was at least the true error in 28 and 30 of 30 seeds on the
-physics and borehole models, close to it on the plume and Ishigami models,
-and below half of it in at most 6 of 30 seeds (plume, log variables). The
-GP's own uncertainty was unreliable in the unsafe direction where the GP is
-weakest: on the plume and Ishigami models it understated the error by a
-factor of 1.7 to 2.8, and its nominal \qty{95}{\percent} predictive intervals
-covered 73 to \qty{77}{\percent} of test points. The member envelope of a
-committee was no better a substitute: read as an interval for
-$P(Y>y_{0.95})$, it contained the reference value in 0 to
-\qty{100}{\percent} of seeds depending on model and strategy~\cite{ferson1996}.
+In a real evaluation the reference is unavailable, so the surrogate's
+contribution must be estimated from the twenty runs. We propagate
+$Y=\hat f(\mathbf{X})+E$, with the surrogate error $E$ drawn anew for every
+Monte Carlo trial, and compare two models of $E$: the GP's own predictive
+distribution, and a normal distribution whose SD is the root-mean-square
+leave-one-out (LOO) residual, obtained by re-fitting the surrogate without
+each run in turn (on the log scale for the log-variable GP). The jackknife+
+\cite{barber2021} turns the same LOO fits into pointwise prediction
+intervals with a distribution-free coverage guarantee. Table~\ref{tab:est}
+gives the coverage achieved against the true models. The GP's own intervals
+covered only \qty{71}{\percent} of test points on the plume and Ishigami
+models, the jackknife+ intervals \qty{97}{\percent} on all four. Treating
+the surrogate as exact gave GUM~S1 coverage intervals for $Y$ with an
+achieved coverage of 86 to \qty{95}{\percent}; adding the LOO error raised it
+to 95 to \qty{97}{\percent}. Intervals for $y_{0.95}$ from the jackknife over
+the LOO fits contained the true value in 83 to \qty{100}{\percent} of
+repetitions, those from the GP posterior in 73 to \qty{97}{\percent}. Adding
+the LOO residuals of the surrogate to each Monte Carlo trial is thus a
+simple treatment of the surrogate contribution that we found valid.
 
 \begin{table}[tb]
 \centering
-\caption{Estimating the surrogate error from the 20 runs, median over 30
-seeds: ratio of the five-fold cross-validation RMSE and of the GP's
-root-mean-square predictive SD to the true RMSE, and coverage of the nominal
-\qty{95}{\percent} predictive interval. M: Mat\'ern GP; L: on log variables.}
+\caption{Coverage (\%) of nominal \qty{95}{\percent} intervals, 30 seeds,
+recommended GP (log variables for plume and borehole). Pointwise: share of
+test points (GP or jackknife+). GUM~S1: achieved coverage of the coverage
+interval of $Y$, surrogate exact or with the LOO error added. $y_{0.95}$:
+share of seeds whose interval contains the true value (GP posterior or
+jackknife).}
 \label{tab:est}
-\begin{tabular}{llrrr}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrrrrr}
 \toprule
-Model & GP & CV / true & SD / true & Coverage\\
+& \multicolumn{2}{c}{Pointwise} & \multicolumn{2}{c}{GUM S1} &
+\multicolumn{2}{c}{$y_{0.95}$}\\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Model & GP & J+ & exact & +LOO & GP & J\\
 \midrule
-Physics  & M & 9.06 & 1.58 & \qty{100}{\percent}\\
-Plume    & M & 0.99 & 0.36 & \qty{77}{\percent}\\
-Plume    & L & 0.81 & 0.42 & \qty{73}{\percent}\\
-Borehole & M & 2.11 & 0.79 & \qty{90}{\percent}\\
-Borehole & L & 2.61 & 1.45 & \qty{99}{\percent}\\
-Ishigami & M & 1.07 & 0.58 & \qty{73}{\percent}\\
+Physics  & 98 & 97 & 92 & 95 &  90 &  87\\
+Plume    & 71 & 97 & 94 & 95 &  77 &  93\\
+Borehole & 97 & 97 & 95 & 95 &  97 & 100\\
+Ishigami & 71 & 97 & 86 & 97 &  73 &  83\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-These results suggest a simple, conservative treatment for a GUM~S1
-evaluation: propagate $Y=\hat f(\mathbf{X})+E_{\mathrm s}$, where $\hat f$ is
-the surrogate and the surrogate error $E_{\mathrm s}$ is an additional input
-with expectation zero and standard uncertainty equal to the cross-validation
-RMSE. This ignores the spatial variation and correlation of the surrogate
-error and inflates the uncertainty when the surrogate is accurate; its
-calibration on a CFD case, for example by conformal
-prediction~\cite{angelopoulos2023}, is the main task for the final paper.
+\subsection{A CFD dispersion case}
+\label{sec:cfd}
+To check that the main findings carry over to a CFD response, the plume
+formula was replaced by a two-dimensional Reynolds-averaged simulation
+(OpenFOAM~\cite{weller1998}, $k$--$\varepsilon$ model) of a ground-level
+release upwind of a building, whose recirculating wake the plume model
+lacks. Its six inputs are the wind speed, roughness length, building
+height, turbulent Schmidt number, receptor distance and release rate; the
+reference is built from 800 CFD runs. With 20 runs, the log-variable GP had
+a median normalised RMSE of 0.080 against 0.53 for the Mat\'ern GP (better
+in all 30 seeds), and estimated $y_{0.95}$ within \qty{6.9}{\percent} (Mat\'ern
+GP \qty{18.5}{\percent}, committee \qty{27}{\percent}) and the probability of
+exceeding the IDLH within 0.009; the reference's own standard uncertainties
+are \qty{3.3}{\percent} and 0.007.
 
 \subsection{Potential applications}
 For surrogate-based GUM~S1 evaluations with about twenty runs, such as a
@@ -349,9 +365,9 @@ positive, for example concentrations and flows. \emph{Use a committee only
 with error weighting}, and expect a gain only when a member can represent the
 dominant structure. \emph{Prefer a space-filling design} unless an adaptive
 criterion has been shown to help for the quantity of interest.
-\emph{Estimate the surrogate contribution by cross-validation} and include it
-in the budget, rather than relying on the GP's own predictive variance or on
-committee spread.
+\emph{Include the surrogate contribution} by adding the LOO residuals to
+each Monte Carlo trial, rather than relying on the GP's own predictive
+variance or on committee spread.
 
 \section{Conclusions}
 For Monte Carlo uncertainty propagation with twenty runs of an expensive
@@ -360,11 +376,13 @@ the variables mattered more than the choice between single surrogates,
 committees and the adaptive designs tested. A failure of GP surrogates
 reported in an earlier analysis was caused by one hyperparameter held fixed.
 Committees helped only when a member matched the response structure and only
-with cross-validation error weighting. Cross-validation gave a conservative
-estimate of the surrogate's error, whereas the GP's own uncertainty could not
-be trusted. These findings rest on analytical models; the final paper will
-add a CFD dispersion case, budgets other than twenty runs, and a calibrated
-treatment of the surrogate contribution.
+with cross-validation error weighting. Adding the leave-one-out residuals
+of the surrogate to each Monte Carlo trial restored the nominal coverage of
+the GUM~S1 coverage interval, whereas the GP's own uncertainty could not be
+trusted. A CFD dispersion case confirmed the benefit of the log
+transformation. The final paper will add further models with GUM-type input
+distributions, budgets from 10 to 80 runs, and targeted designs for
+exceedance probabilities.
 
 \section*{AUTHORS' CONTRIBUTION}
 Yugam Jinesh Vora: conceptualisation, methodology, software, investigation,

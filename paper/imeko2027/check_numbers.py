@@ -86,17 +86,28 @@ for k, v in r.items():
     if isinstance(v, dict) and "P_exceed_idlh" in v:
         print(f"{k:28s} P(C > 210) = {v['P_exceed_idlh']:.3f}")
 
-head("Section III.D / Table IV: estimating the surrogate error (results_err_*.json)")
-for b, a in [("physics", "gp_m52"), ("plume", "gp_m52"), ("plume", "gp_log"),
-             ("borehole", "gp_m52"), ("borehole", "gp_log"), ("ishigami", "gp_m52")]:
-    d = json.load(open(os.path.join(RES, f"results_err_{b}_{a}.json")))
-    rc = np.array([r["cv_rmse"] / r["true_rmse"] for r in d])
-    rs = np.array([r["sd_rms"] / r["true_rmse"] for r in d])
-    cov = np.array([r["cov95"] for r in d])
-    print(f"{b:9s} {a:7s} n={len(d)} CV/true {np.median(rc):.2f} SD/true {np.median(rs):.2f} "
-          f"cov95 {np.median(cov):.0%} | CV>=true {int((rc >= 1).sum())}/30, "
-          f"CV<0.5 true {int((rc < 0.5).sum())}/30")
-    if b == "plume":
-        pr = d[0]["p_idlh_ref"]
-        print(f"    P(C>IDLH) reference {pr:.3f}; median |error| "
-              f"{np.median([abs(r['p_idlh'] - pr) for r in d]):.3f}")
+head("Section III.D / Table IV: validating the surrogate contribution (results_cov_*.json)")
+for b, a in [("physics", "gp_m52"), ("plume", "gp_log"), ("borehole", "gp_log"),
+             ("ishigami", "gp_m52")]:
+    d = json.load(open(os.path.join(RES, f"results_cov_{b}_{a}.json")))
+    m = lambda k: 100 * np.mean([r[k] for r in d])
+    print(f"{b:9s} {a:7s} n={len(d)} pointwise GP {m('pw_gp_cov'):.0f} J+ {m('pw_jkplus_cov'):.0f} | "
+          f"GUM S1 exact {m('ci_plain_cov'):.0f} +LOO {m('ci_normal_cov'):.0f} | "
+          f"y95 GP {m('dq_q95_gp_cov'):.0f} J {m('dq_q95_jack_cov'):.0f}")
+
+head("Section III.E: CFD dispersion case (results_gen_cfd_*.json, cfd_reference.json)")
+g = {a: json.load(open(os.path.join(RES, f"results_gen_cfd_{a}.json")))
+     for a in ("gp_m52", "gp_log", "pas_ard")}
+med = lambda a, k: float(np.median([r[k] for r in g[a]]))
+sd = {r["seed"]: r["nrmse"] for r in g["gp_m52"]}
+print(f"nRMSE: GP log {med('gp_log', 'nrmse'):.3f}, GP Matern {med('gp_m52', 'nrmse'):.2f}; "
+      f"log better in {sum(r['nrmse'] < sd[r['seed']] for r in g['gp_log'])}/30 seeds; "
+      f"median ratio {np.median([r['nrmse'] / sd[r['seed']] for r in g['gp_log']]):.3f} "
+      f"(1/ratio = {1 / np.median([r['nrmse'] / sd[r['seed']] for r in g['gp_log']]):.1f}-fold)")
+print(f"y95 rel. error: GP log {100 * med('gp_log', 'relerr_q95'):.1f} %, "
+      f"GP Matern {100 * med('gp_m52', 'relerr_q95'):.1f} %, "
+      f"committee {100 * float(np.median([r['cv_relerr_q95'] for r in g['pas_ard']])):.0f} %")
+print(f"P(C > IDLH) abs. error: GP log {med('gp_log', 'thr_abserr'):.3f}")
+ref = json.load(open(os.path.join(RES, "cfd_reference.json")))
+print(f"reference standard uncertainty: y95 {100 * ref['u_reference']['q95'] / ref['reference']['q95']:.1f} %, "
+      f"P(C > IDLH) {ref['u_reference']['p_idlh']:.3f}; runs {ref['n_runs_cached']}")
