@@ -15,6 +15,13 @@ This script runs hard LCS with a configurable MINIMUM committee size, which
 removes the confound: the acquisition signal stays alive and the final
 ensemble retains diversity.
 
+Each trial scores the SAME final survivors on the SAME data under two
+aggregation rules, so the comparison isolates the aggregation rule exactly:
+  rmse_uniform     uniform mean of the survivors (hard LCS as published)
+  rmse_cvweighted  CV inverse-error weights over the survivors
+                   (uq_extension.SoftLCS, same settings as campaign.py soft)
+"rmse" is kept equal to rmse_uniform for backward compatibility.
+
 Usage: python campaign_hardmin.py <min_active> <start_trial> <n_trials>
    e.g. python campaign_hardmin.py 3 0 30
 Appends to results_hardmin<min_active>.json (resumable).
@@ -34,6 +41,7 @@ except Exception:
     torch = None
 
 from framework_core import ToyProblem, ActiveLearner
+from uq_extension import SoftLCS, make_bound_penalty
 
 min_active, start, n = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
 OUT = _os.path.join(RESULTS_DIR, f"results_hardmin{min_active}.json")
@@ -83,9 +91,17 @@ def run_trial(seed):
     for _ in range(MAX_STEPS):
         a.step(); a.train()
     survivors = [m for m in a.models if m not in a.rejected]
-    pred = np.mean([m.predict(X_test) for m in survivors], axis=0)
-    rmse = float(np.sqrt(np.mean((y_test - pred) ** 2)))
-    return {"seed": seed, "min_active": min_active, "rmse": rmse,
+    P = np.array([m.predict(X_test) for m in survivors])
+    rmse_u = float(np.sqrt(np.mean((y_test - P.mean(axis=0)) ** 2)))
+    # same survivors, same final data: CV inverse-error weights instead
+    lcs = SoftLCS(n_folds=3, physics_penalty=make_bound_penalty(lower=-1.0))
+    X_probe = np.random.uniform(np.array(domain)[:, 0], np.array(domain)[:, 1],
+                                size=(200, 3))
+    w, _ = lcs.weights(survivors, a.X, a.y, X_probe=X_probe)
+    rmse_w = float(np.sqrt(np.mean((y_test - np.average(P, axis=0, weights=w)) ** 2)))
+    return {"seed": seed, "min_active": min_active, "rmse": rmse_u,
+            "rmse_uniform": rmse_u, "rmse_cvweighted": rmse_w,
+            "cv_weights": [float(x) for x in w],
             "n_survivors": len(survivors),
             "survivor_names": [m.name for m in survivors]}
 
@@ -101,7 +117,8 @@ for t in range(start, start + n):
     r["runtime_s"] = round(time.time() - t0, 1)
     results.append(r)
     json.dump(results, open(OUT, "w"))
-    print(f"[hardmin{min_active}] trial {t:2d} seed {seed} | RMSE={r['rmse']:9.3f} "
+    print(f"[hardmin{min_active}] trial {t:2d} seed {seed} | uniform={r['rmse_uniform']:9.3f} "
+          f"| CV-weighted={r['rmse_cvweighted']:9.3f} "
           f"| survivors={r['n_survivors']} {r['survivor_names']} | {r['runtime_s']}s",
           flush=True)
 print(f"total recorded: {len(results)}")
