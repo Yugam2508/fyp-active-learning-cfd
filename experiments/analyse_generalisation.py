@@ -115,8 +115,78 @@ def latex_propagation_table(S):
     return "\n".join(lines)
 
 
+NRMSE_ROWS = [("gp_orig", "GP, original kernel (amp. fixed)"),
+              ("gp_amp", "GP, + amplitude"),
+              ("gp_ardnoamp", "GP, + ARD"),
+              ("gp_ard", "GP, + amplitude + ARD"),
+              ("gp_m52", "GP, Mat\\'ern-5/2, amp. + ARD"),
+              ("gp_log", "GP, Mat\\'ern-5/2, log variables"),
+              ("al_gp", "GP, adaptive (posterior SD)"),
+              ("pas_orig:uni", "Committee (orig. GPs), uniform"),
+              ("pas_orig:cv", "Committee (orig. GPs), CV"),
+              ("pas_ard:uni", "Committee, uniform"),
+              ("pas_ard:cv", "Committee, CV"),
+              ("al_var:cv", "Committee, adaptive (variance)"),
+              ("al_ueigv:cv", "Committee, adaptive (UEigV)")]
+
+
+def latex_nrmse_table(S):
+    """Median nRMSE with interquartile range, every strategy x model."""
+    lines = []
+    for m, label in NRMSE_ROWS:
+        cells = []
+        for b in BENCHES:
+            arm, _, agg = m.partition(":")
+            f = os.path.join(RES, f"results_gen_{b}_{arm}.json")
+            if not os.path.exists(f):
+                cells.append("--"); continue
+            key = f"{agg}_nrmse" if agg else "nrmse"
+            v = np.array([r[key] for r in json.load(open(f))])
+            q1, q2, q3 = np.quantile(v, [0.25, 0.5, 0.75])
+            cells.append(f"{q2:.3g} ({q1:.2g}--{q3:.2g})")
+        lines.append(f"{label} & " + " & ".join(cells) + r" \\")
+    return "\n".join(lines)
+
+
+TEST_LABELS = {
+    "gp_m52 vs gp_orig": "GP Mat\\'ern ARD + amp. vs original",
+    "gp_amp vs gp_orig": "GP + amp. vs original",
+    "pas_orig:cv vs pas_orig:uni": "CV vs uniform (orig. GPs)",
+    "pas_ard:cv vs pas_ard:uni": "CV vs uniform",
+    "pas_ard:cv vs gp_m52": "Committee (CV) vs GP Mat\\'ern",
+    "al_gp vs gp_m52": "Adaptive vs passive GP",
+    "al_var:cv vs pas_ard:cv": "Adaptive vs passive committee",
+    "al_ueigv:cv vs al_var:cv": "UEigV vs variance acquisition",
+    "gp_log vs gp_m52": "GP log variables vs raw",
+    "gp_log vs pas_ard:cv": "GP log variables vs committee",
+}
+
+
+def latex_tests_table(S):
+    """Median paired ratio, wins/30 and Holm-adjusted p for each comparison."""
+    lines = []
+    for a, c, _ in COMPARISONS:
+        label = TEST_LABELS[f"{a} vs {c}"]
+        key = f"{a} vs {c}"
+        cells = []
+        for b in BENCHES:
+            t = S["tests"][b].get(key)
+            if t is None:
+                cells.append("--"); continue
+            p = t["p_holm"]
+            ptxt = "<10^{-6}" if p < 1e-6 else (f"{p:.1e}" if p < 1e-2 else f"{p:.2f}")
+            ptxt = ptxt.replace("e-0", "\\times10^{-").replace("e-", "\\times10^{-")
+            if "times10" in ptxt:
+                ptxt += "}"
+            cells.append(f"{t['median_ratio']:.3g}; {t['wins']}; ${ptxt}$")
+        lines.append(f"{label} & " + " & ".join(cells) + r" \\")
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
     S = summarise()
+    open(os.path.join(RES, "table_nrmse.tex"), "w").write(latex_nrmse_table(S) + "\n")
+    open(os.path.join(RES, "table_tests.tex"), "w").write(latex_tests_table(S) + "\n")
     tex = latex_propagation_table(S)
     open(os.path.join(RES, "table_propagation.tex"), "w").write(tex + "\n")
     print(tex)
