@@ -32,7 +32,7 @@ What the experiments currently support (physics benchmark unless stated;
 | Uniform averaging over a heterogeneous committee is catastrophic in the prior-reversion regime | supported | `campaign_hardmin.py 3`: 0/30 success (median RMSE 1556) though PCE-d2 survives in 27/30 |
 | CV inverse-error weighting is the causal ingredient | supported | same survivors and data: 27/30 success, exactly the 27 trials that retain PCE-d2; paired p < 1e-8 |
 | UEigV (spectral) beats plain ensemble-variance acquisition | **refuted** | `campaign_ablations.py varacq`: 30/30 vs 27/30 success, variance better (p = 0.047) |
-| Soft weighting beats hard LCS rejection *as a manager* | **confounded** | hard collapses to one model and then samples at random; see `results/results_decompose.json` |
+| Soft weighting beats hard LCS rejection *as a manager* | **confounded** | hard collapses to one model in 30/30 trials (median iteration 10) and spends 31 % of queries at random; predictor swap null (p = 0.90); `results/results_decompose.json` |
 | Forward-UQ stage recovers ground-truth MC | supported | `results/representative_run_seed1000.json`: mean 0.21 %, SD 0.14 %, quantiles ≤ 0.66 % |
 | Member envelopes (p-box, exceedance interval) are calibrated | **not supported** | exceedance coverage 62 %; conformal calibration is future work |
 

@@ -79,3 +79,8 @@ Stated in the Conclusions; the reviewers will expect them:
 - a benchmark with **no** anchor member in the committee;
 - a dispersion-type test model;
 - conformal calibration of the member envelopes (exceedance coverage is 62 %).
+
+## Built PDF
+
+`extended_abstract.pdf` is the build of the current source (4 pages). This
+is the file to upload; rebuild it after any edit.

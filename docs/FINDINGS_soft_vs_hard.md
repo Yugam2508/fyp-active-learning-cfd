@@ -123,3 +123,16 @@ consistent with the true surrogate error share RMSE²/Var Y ≈ 2e-8. The p-box
 and exceedance interval are **unweighted** member envelopes, so they remain
 wide ([0, 0.058] around the true 0.05). The earlier text's "0.76 → ≈ 0" had
 no stored record; it is replaced by these values.
+
+### Decomposition rerun with PyTorch (`results/results_decompose.json`)
+Confirms the sklearn-backend record in `results/reference_sklearn/`: hard
+rejection collapses to one member in 30/30 trials, at median iteration 10 of
+15; 139 of 450 queries (31 %) are then random. The sole survivor is PCE-d2 in
+27/30 (PCE-d3 2, DNN-H64 1). The predictor swap (hard trajectory, CV-weighted
+predictor) changes nothing: p = 0.90, 26/30 pairs within 1 %.
+
+### Extended abstract changes
+- The Sobol sentence was removed from the IMEKO abstract: no Sobol result is
+  shown or validated there.
+- Table III median-quantile error for the weighted committee is 0.23 %
+  (0.235 %); earlier drafts rounded it to 0.24 %.

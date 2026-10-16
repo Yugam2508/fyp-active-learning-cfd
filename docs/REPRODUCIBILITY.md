@@ -59,6 +59,7 @@ per-seed values exactly, only statistically.
 |---|---|---|
 | `results/results_domain_{phys2,phys10,phys50,phys100,phys200,schwefel}.json`, `results/summary_domain.json` | `python experiments/campaign_domain.py <config> 0 30` | domain-size sweep and Schwefel control; replaces thesis numbers that had no record in this repo |
 | `results/results_hardmin3.json` | `python experiments/campaign_hardmin.py 3 0 30` | fair hard-rejection baseline; uniform and CV-weighted aggregation scored on the same survivors and data |
+| `results/results_decompose.json` | `python experiments/decompose_soft_vs_hard.py 0 30` | collapse of hard rejection and predictor swap, PyTorch backend (the sklearn record stays in `results/reference_sklearn/`) |
 | `results/representative_run_seed1000.json` | `python experiments/make_paper_figures.py pbox` | the "representative run" quoted in the paper (seed 1000 = first campaign seed, not selected) |
 | `figures/fig_*.pdf` | `python experiments/make_paper_figures.py` | paper figures, regenerated from the JSON records |
 
