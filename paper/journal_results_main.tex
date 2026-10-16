@@ -114,15 +114,16 @@ $1.6\times10^{-4}$, against 0.97 for the Mat\'ern GP) and worse than the GP
 on most of the others.
 
 The verdict on space-filling adaptive designs depends on the budget. At
-$N=10$ and 20 they never helped significantly. At $N=40$ and 80, adding
-runs at the largest GP posterior SD reduced the nRMSE on the physics
+$N=10$ and 20, adding runs at the largest GP posterior SD never helped
+significantly. At $N=40$ and 80 it reduced the nRMSE on the physics
 (0.22--0.43), borehole (0.77), OTL (0.75 at $N=80$) and piston
 (0.81--0.88) models, which are smooth and on which the GP's uncertainty is
 informative once its hyperparameters are well determined, but increased it
 on the plume model (1.19 at $N=40$), whose error concentrates in the
 high-concentration corner that the posterior SD does not single out. The
 adaptive committee was better than the passive one at $N=40$ on the
-physics and borehole models (0.94 and 0.50) and no different elsewhere.
+physics and borehole models (0.94 and 0.50), no different elsewhere, and
+no better at $N=10$.
 Adaptive selection is thus worth considering when the budget is several
 times the number of inputs, but not as a remedy for very small budgets,
 when the surrogate's own uncertainty is itself poorly estimated.
