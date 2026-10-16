@@ -1,0 +1,89 @@
+% journal_discussion.tex — Sections 6-8 of the journal manuscript.
+
+\section{Discussion}
+\subsection{Relation to the earlier analysis}
+\label{sec:earlier}
+The earlier analysis made five claims. Three are withdrawn or revised. The
+catastrophic GP failure on large domains is a kernel-specification artefact:
+with the amplitude estimated, the GP no longer reverts to the mean
+(Fig.~\ref{fig:dom}). The spectral acquisition criterion gives no advantage
+over plain committee variance on any of the six models on which it was
+tested, and is worse on three. The committee's advantage is not general but
+comes from a member that matches the dominant term, which a GP with a
+quadratic trend or a sparse PCE reproduces on its own. Two claims survive:
+aggregation must be error-weighted, and an adaptive committee can help on
+smooth models, at budgets of 20 runs or more. The records of the earlier
+campaigns are kept in the repository~\cite{repo}.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=0.62\textwidth]{fig_domain_sweep}
+\caption{Physics model on $[-h,h]^3$, $N=20$: median nRMSE over 30 seeds
+against the domain half-width, for the GP with the original kernel
+(amplitude fixed), the Mat\'ern ARD GP with amplitude, and the committee of
+the earlier analysis. Open markers: Schwefel function on $[-500,500]^3$.
+Dashed line: constant predictor.}
+\label{fig:dom}
+\end{figure}
+
+\subsection{What the surrogate contribution should be}
+The coverage results separate two uses of a surrogate's uncertainty.
+Pointwise, the GP posterior is a useful but uncalibrated description: it
+locates where the surrogate is uncertain, which is why it drives good
+adaptive designs at larger budgets, but its scale is set by a covariance
+model fitted to 20 runs and is too small wherever that model is wrong. For
+an uncertainty statement the scale is what matters, and the leave-one-out
+residuals estimate it directly, without trusting the covariance model; the
+jackknife+ turns them into intervals with a guarantee. The difference is
+largest for the reported quantities. A GUM~S1 coverage interval of $Y$ is
+fairly robust, because surrogate error that varies across the input space
+partly averages out in the distribution of $Y$, and adding the LOO error
+to each trial restores its nominal coverage. A 95th percentile or an
+exceedance probability is not robust: it depends on the surrogate in a
+small region. Intervals from the GP posterior contained the true value in
+only about half of the seeds (median over model and surrogate), whereas the
+jackknife over LOO fits did so in a median 97\% of seeds. We therefore recommend the LOO error as the
+surrogate contribution, and the jackknife over LOO fits for the uncertainty
+of quantities derived from the propagated distribution.
+
+\subsection{Limitations}
+The study covers ten models with up to eight inputs and budgets of 10 to
+80 runs; higher-dimensional problems, where sparse and additive structures
+matter more, may rank the surrogates differently. Two models were run with
+a single budget per input distribution, and the adaptive committees were
+run only up to $N=40$ because of their cost. The CFD case is
+two-dimensional and steady, with a standard $k$--$\varepsilon$ model; it is a
+benchmark with the features a dispersion simulation has, not a validated
+prediction for a site, and its reference distribution is built from 800
+runs rather than $2\times10^5$. The coverage results are averages over
+seeds: an individual evaluation can still be unlucky, and the jackknife+
+guarantee (at least 90\% for nominal 95\%) holds on average over designs,
+not for every design. The log transformation applies only to positive
+outputs, and its back-transformation to the predictive median slightly
+underestimates the mean of a skewed output; the bias is included in the
+validation errors reported. Finally, the paired tests are exploratory: all
+$p$-values were Holm-adjusted together, and nominal differences that do not
+survive the adjustment are not claimed.
+
+\section{A procedure for surrogate-based GUM~S1 evaluations}
+\label{sec:procedure}
+Fig.~\ref{fig:flowchart} condenses the results into a procedure that needs
+only the $N$ runs. Its two key steps were validated on the ten models: the
+selection of the surrogate by its LOO error recovered practically all the
+benefit of the best specification (Section~\ref{sec:res-select}), and the
+LOO error as surrogate contribution restored the nominal coverage of the
+GUM~S1 coverage interval (Section~\ref{sec:res-coverage}). Candidates should
+include a GP with an estimated amplitude, one length scale per input and a
+quadratic trend, and a sparse PCE, each on the log scale when the output
+is positive. Adaptive designs are optional: a targeted design such as
+AK-MCS is worthwhile when a threshold decision is the purpose, and
+variance-driven designs when the budget is several times the number of
+inputs and the model is smooth.
+
+\begin{figure}[tb]
+\centering
+\input{fig_flowchart}
+\caption{Procedure for a GUM~S1 evaluation with a surrogate fitted to $N$
+runs of an expensive model.}
+\label{fig:flowchart}
+\end{figure}
