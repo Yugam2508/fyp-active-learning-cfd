@@ -1,13 +1,15 @@
-\documentclass[10pt,twocolumn]{article}
+\documentclass[11pt]{article}
 
-% Journal draft (long form) of the study summarised in
-% paper/imeko2027/extended_abstract.tex. Build from paper/:
+% Journal manuscript of the study whose N = 20 core is summarised in the
+% IMEKO 2027 extended abstract (paper/imeko2027/). Build from paper/:
 %   pdflatex paper && bibtex paper && pdflatex paper && pdflatex paper
-% Tables marked "generated" are \input from ../results/, written by
-% experiments/analyse_generalisation.py. Bibliography: imeko2027/references.bib
-% (every entry verified; see docs/REFERENCES_VERIFICATION.md).
+% Sections are in journal_*.tex; tables are \tabinput from
+% ../results/journal/, written by experiments/analyse_journal.py; every
+% number is traced in paper/NUMBERS_journal.md. Bibliography:
+% imeko2027/references.bib + journal.bib (verified, see
+% docs/REFERENCES_VERIFICATION.md).
 
-\usepackage[a4paper,margin=18mm]{geometry}
+\usepackage[a4paper,margin=25mm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage{newtxtext,newtxmath}
 \usepackage{amsmath}
@@ -15,21 +17,25 @@
 \usepackage{booktabs}
 \usepackage{caption}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric}
 \usepackage[hidelinks]{hyperref}
 \usepackage{cite}
 \usepackage{url}
+\usepackage{setspace}
 
 \captionsetup{font=small,labelfont=bf}
 \graphicspath{{../figures/}}
-\setlength{\columnsep}{6mm}
+\setstretch{1.12}
 % \input inside tabular breaks booktabs rules; use TeX's primitive input.
 \makeatletter\newcommand\tabinput[1]{\@@input #1 }\makeatother
 
-\title{\vspace{-2.5em}\bfseries Surrogates for Monte Carlo uncertainty
-propagation with twenty model runs: a controlled comparison}
+\title{\bfseries Surrogate models for Monte Carlo uncertainty propagation
+with few runs of an expensive model: specification, selection and a valid
+surrogate contribution}
 
 \author{%
-Yugam Jinesh Vora$^{1}$ and Wee Hoe Ng$^{2}$\\[2pt]
+Yugam Jinesh Vora$^{1}$ and Wee Hoe Ng$^{2}$\\[4pt]
 \small $^{1}$Department of Engineering Science, National University of
 Singapore, Singapore\\
 \small $^{2}$National Metrology Centre, Agency for Science, Technology and
@@ -42,450 +48,111 @@ Research (A*STAR), Singapore\\
 
 \begin{abstract}
 \noindent
-Monte Carlo propagation of distributions (GUM Supplement~1) needs
-$10^5$--$10^6$ evaluations of the measurement model. When the model is an
-expensive simulation, it is replaced by a surrogate trained on a handful of
-runs, and the surrogate's own error enters the uncertainty budget. We compare
-surrogate strategies for a budget of twenty runs on four test models: a
-benchmark from an earlier analysis whose dominant term matches one candidate
-surrogate, a Gaussian plume model of an ammonia release, and the borehole and
-Ishigami functions. Strategies cover single Gaussian processes (GPs) with five
-kernel specifications and log-transformed variables, nine-member committees
-of different surrogates combined uniformly or by cross-validation (CV) error
-weights, and adaptive designs. Each is run with 30 paired seeds and scored on
-the propagated mean, 95th percentile and exceedance probabilities against
-reference Monte Carlo evaluations. Kernel specification changed the error up
-to eighteen-fold: an amplitude hyperparameter held fixed produced an apparent
-GP failure that the earlier analysis had attributed to domain size.
-Logarithmic transformation of positive variables reduced the error up to
-eightfold. A committee beat a well-specified GP only where one member matched
-the response structure, and only with CV weighting; on the borehole model it
-was 2.3 times worse. The adaptive designs tested gave no consistent gain, and
-a spectral acquisition criterion was never better than plain variance.
-Five-fold CV estimated the surrogate error conservatively, whereas the GP's
-own predictive standard deviation understated it by up to 2.8 times where the
-GP was weakest. We give practical rules for surrogate-based uncertainty
-evaluation and a conservative way to include the surrogate contribution.
+\input{journal_abstract}
 \end{abstract}
 
-\section{Introduction}
-Evaluating measurement uncertainty by the propagation of distributions,
-following Supplement~1 to the Guide to the Expression of Uncertainty in
-Measurement (GUM~S1)~\cite{jcgm100,jcgm101}, requires the measurement model
-$Y=f(\mathbf{X})$ to be evaluated once per Monte Carlo trial, typically
-$10^5$ to $10^6$ times~\cite{cox2006,harris2014}. For many quantities of
-practical interest $f$ is a numerical simulation. A computational fluid
-dynamics (CFD) model of an accidental ammonia release~\cite{tan2017}, for
-example, takes hours to days per run, and a practical budget is often fewer
-than twenty runs.
+\noindent\textbf{Keywords:} measurement uncertainty; GUM Supplement 1;
+Monte Carlo method; surrogate model; Gaussian process; polynomial chaos;
+conformal prediction; gas dispersion.
 
-The usual remedy is a \emph{surrogate} (emulator) trained on the available
-runs and used in place of $f$~\cite{heidenreich2017,wang2022,ohagan2006}. Its
-error is then a contribution to the uncertainty budget that must be evaluated,
-not assumed negligible; Kennedy and O'Hagan~\cite{kennedy2001} treat such
-model inadequacy as an explicit uncertainty source. Gaussian process (GP)
-regression~\cite{sacks1989,rw2006} is the standard surrogate for computer
-experiments. A widely used guideline asks for about ten runs per
-input~\cite{loeppky2009}, and GP results are known to depend on modelling
-choices that are easy to get wrong~\cite{chen2016}. For smaller budgets,
-alternatives include weighted committees of different
-surrogates~\cite{goel2007,viana2009}, adaptive selection of runs where the
-surrogate is uncertain~\cite{gramacy2009}, and, recently, spectral measures of
-disagreement~\cite{lin2024}.
-
-An earlier analysis by the first author combined these ideas: a heterogeneous
-committee, a spectral acquisition criterion (UEigV) and dynamic model
-management. It reported that a passively sampled GP fails catastrophically on
-large input domains with a high output dynamic range, and that the committee
-recovers accuracy at the same budget. This paper re-examines those claims with
-correctly specified baselines and extends the comparison to models where no
-committee member matches the response. Its contributions are:
-\begin{enumerate}\setlength\itemsep{1pt}
-\item a controlled, paired comparison of single-GP, committee and adaptive
-strategies at a budget of twenty runs on four models, scored on the
-quantities a GUM~S1 evaluation reports;
-\item the finding that the reported GP failure is a kernel-specification
-artefact, and that kernel specification and variable transformation matter
-more than the choice of strategy;
-\item a characterisation of when a committee helps (a member matching the
-dominant structure, combined by error weights) and when adaptive designs help
-(inconsistently, for the criteria tested);
-\item an assessment of how far the surrogate's error can be estimated from the
-training runs alone, and a conservative way to include it in a GUM~S1
-evaluation.
-\end{enumerate}
-
-\section{Problem and protocol}
-\subsection{Surrogate-based propagation}
-Given input distributions $g_{\mathbf X}$ and $N$ runs
-$\{(\mathbf{x}_i,f(\mathbf{x}_i))\}$, a surrogate $\hat f$ is fitted and the
-Monte Carlo method of GUM~S1 is applied to $\hat f$ instead of $f$. Here
-$N=20$, and the propagated mean, standard deviation (SD), 95th percentile
-$y_{0.95}$ and exceedance probabilities are compared with those obtained from
-$f$ itself. All input distributions are uniform over the ranges given below.
-
-\subsection{Test models}
-\emph{Physics} is the benchmark of the earlier analysis,
-$f(\mathbf{x})=\sin 2x_1\cos 2x_2+\mathrm{e}^{-x_3^2}+0.2\lVert\mathbf{x}\rVert^2$
-on $[-h,h]^3$ with $h=200$ unless stated, observed with noise of SD 0.1. Its
-quadratic term carries 44\% of the output variance at $h=2$ and practically
-all of it for $h\ge10$, and lies exactly in the class of a degree-2 polynomial
-chaos expansion.
-
-\emph{Plume} is the ground-level concentration of a continuous release from a
-Gaussian plume model with ground reflection,
-\begin{equation}
-C=\frac{10^3\,Q}{2\uppi\,u\,\sigma_y\sigma_z}
-\exp\!\left(-\frac{y^2}{2\sigma_y^2}\right)
-2\exp\!\left(-\frac{H^2}{2\sigma_z^2}\right),
-\end{equation}
-in mg\,m$^{-3}$, with Briggs rural dispersion coefficients for neutral
-stability, $\sigma_y=0.08x(1+10^{-4}x)^{-1/2}$ and
-$\sigma_z=0.06x(1+1.5\times10^{-3}x)^{-1/2}$. Inputs: emission rate
-$Q\in[100,2000]$\,g\,s$^{-1}$, wind speed $u\in[1,6]$\,m\,s$^{-1}$, release
-height $H\in[1,20]$\,m, downwind distance $x\in[200,1000]$\,m and crosswind
-offset $y\in[-30,30]$\,m. The output spans 1.8 to 2400\,mg\,m$^{-3}$, and the
-probability of exceeding the level immediately dangerous to life or health
-(IDLH) for ammonia, 210\,mg\,m$^{-3}$ (about 300\,ppm), is 0.123. The plume
-model is an analytical proxy for dispersion problems, cheap enough for exact
-reference values; it is not a CFD simulation.
-
-\emph{Borehole} (water flow through a borehole, eight inputs, standard ranges)
-and \emph{Ishigami} ($\sin x_1+7\sin^2x_2+0.1x_3^4\sin x_1$ on
-$[-\uppi,\uppi]^3$) are standard test functions for computer experiments. No
-candidate surrogate matches the plume, borehole or Ishigami response.
-
-\subsection{Strategies}
-\paragraph{Single GPs.} Each is fitted to a 20-point Latin hypercube. Five
-kernel specifications are compared: (i) the original kernel of the earlier
-analysis, a squared exponential with one length scale and an amplitude that
-is \emph{fixed} at 1 on the standardised output rather than estimated; (ii)
-with the amplitude estimated; (iii) with one length scale per input
-(automatic relevance determination, ARD) but the amplitude fixed; (iv) with
-both; (v) a Mat\'ern-5/2 ARD kernel with amplitude. Hyperparameters are
-estimated by maximising the log marginal likelihood (L-BFGS-B, five random
-restarts) on standardised inputs and outputs, with length scales in
-$[10^{-2},10^3]$, amplitude in $[10^{-3},10^3]$ and a nugget variance in
-$[10^{-8},10^{-1}]$. A sixth variant fits (v) to $\log Y$, with logarithmic
-transformation of inputs whose range is strictly positive (plume and
-borehole); predictions are back-transformed as $\exp$ of the latent mean,
-i.e.\ the predictive median, without bias correction. The adaptive GP starts
-from five Latin hypercube runs and adds 15 at its largest posterior SD over a
-random candidate pool~\cite{gramacy2009}.
-
-\paragraph{Committees.} Nine members: two GPs (squared exponential and
-Mat\'ern-3/2, with amplitude and ARD), polynomial chaos expansions
-(PCE)~\cite{xiu2002,sudret2008} of degrees 2 and 3 (Bayesian ridge
-regression), random forests of 50 and 100 trees, a support vector regressor
-and two neural networks (two hidden layers of 64 and 128 units). Members are
-combined uniformly or with weights
-\begin{equation}
-w_k\propto\left[\mathrm{MSE}_{\mathrm{CV},k}\,(1+\pi_k)\right]^{-1},
-\label{eq:w}
-\end{equation}
-where $\mathrm{MSE}_{\mathrm{CV},k}$ is the three-fold cross-validation error
-of member $k$ (a single 80/20 hold-out for the networks) and $\pi_k\ge0$
-penalises predictions below a known physical bound~\cite{goel2007,viana2009}.
-A committee with the original GP kernel is included for reference. The
-passive committee is fitted to the same 20-point design as the single GPs.
-Adaptive committees start from five runs and add 15 where the active members
-disagree most, scored by the variance of their predictions or by UEigV.
-
-\paragraph{UEigV.} Lin et al.~\cite{lin2024} proposed this measure for
-black-box language models, from the normalised graph Laplacian of pairwise
-similarities between sampled outputs. Here the graph is built from the $K$
-standardised member predictions $\hat y_k$ at a candidate input, with
-$A_{ij}=\exp(-(\hat y_i-\hat y_j)^2/2)$,
-$\mathbf L=\mathbf I-\mathbf D^{-1/2}\mathbf A\mathbf D^{-1/2}$ and
-$\mathrm{UEigV}=\sum_k\max(0,1-\lambda_k)$, a continuous count of agreement
-clusters.
-
-\subsection{Evaluation}
-Each strategy is run with seeds 1000--1029. Seeds are shared and the Latin
-hypercube is seeded from the global random state, so passive strategies use
-the identical design and adaptive ones the identical start. Accuracy over the
-input domain is the root mean square error (RMSE) on 5000 test points divided
-by the output SD (normalised RMSE; 1 corresponds to a constant predictor).
-The surrogate propagates $3\times10^4$ input draws; the reference uses
-$2\times10^5$ draws of $f$. Two exceedance assessments are distinguished:
-$P(Y>y_{0.95})$ at the reference 95th percentile, whose true value is 0.05 by
-construction, tests tail accuracy on every model; $P(C>\mathrm{IDLH})$ at a
-fixed physical threshold is the quantity a risk decision uses. Strategies are
-compared by two-sided Wilcoxon signed-rank tests on paired $\log$ normalised
-RMSE. The 36 tests are treated as exploratory and their $p$-values are
-Holm-adjusted. All errors above are \emph{validation} errors, which need the
-reference model; Section~\ref{sec:estimate} examines what can be estimated
-without it.
-
-\section{Results}
-\subsection{Kernel specification and variable transformation}
-Table~\ref{tab:nrmse} lists every strategy on every model and
-Table~\ref{tab:tests} the paired comparisons. On the physics model the
-original kernel reaches a normalised RMSE of 0.59; estimating the amplitude
-alone reduces it to 0.033, an eighteen-fold improvement in all 30 seeds
-(adjusted $p<10^{-6}$). ARD alone does not help (0.61). With the amplitude
-fixed at the sample variance of the standardised output, the GP cannot
-represent a quadratic bowl whose values far exceed one SD and reverts towards
-the mean between the runs.
-
-Fig.~\ref{fig:dom} repeats this over the domain sweep of the earlier analysis.
-With the original kernel the normalised RMSE is 0.60 at every half-width from
-10 to 200, which the earlier analysis read as a failure of GPs on large
-domains. A Mat\'ern-5/2 ARD GP with amplitude reaches 0.17 at $h=10$ and 0.08
-from 50 to 200. The committee of the earlier analysis remains more accurate,
-falling to $1.7\times10^{-4}$ at $h=200$, but because its degree-2 PCE
-represents the quadratic term exactly: its median RMSE stays at 0.62--0.68,
-close to the RMS of the oscillatory and exponential terms (0.50--0.61) that no
-member can learn from twenty runs.
-
-On the borehole model ARD is what matters (0.30 to 0.09), and on the plume and
-Ishigami models no kernel specification helps. Logarithmic transformation
-gives the largest single improvement where it applies: 0.089 to 0.011 on the
-borehole model (eightfold, all 30 seeds) and 0.60 to 0.42 on the plume (27 of
-30 seeds). No strategy does better than 0.89 on the Ishigami function, for
-which the ten-runs-per-input guideline~\cite{loeppky2009} would ask for 30
-runs.
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=\columnwidth]{fig_domain_sweep}
-\caption{Physics model on $[-h,h]^3$: median normalised RMSE over 30 seeds
-against the domain half-width, for a GP with the original kernel (amplitude
-fixed), a Mat\'ern-5/2 ARD GP with amplitude, and the committee of the
-earlier analysis. Open markers: Schwefel function on $[-500,500]^3$. Dashed
-line: constant predictor.}
-\label{fig:dom}
-\end{figure}
-
-\begin{table*}[tb]
-\centering
-\caption{Normalised RMSE, median (interquartile range) over 30 seeds; $N=20$
-runs. Committees use GP members with amplitude and ARD unless marked
-``orig.~GPs''. Generated from the result records.}
-\label{tab:nrmse}
-\small
-\begin{tabular}{lllll}
-\toprule
-Strategy & Physics & Plume & Borehole & Ishigami\\
-\midrule
-\tabinput{../results/table_nrmse.tex}
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\begin{table*}[tb]
-\centering
-\caption{Paired comparisons over 30 seeds: median ratio of normalised RMSE
-(first / second; below 1 favours the first), number of seeds where the first
-is better, and Holm-adjusted $p$ (two-sided Wilcoxon signed-rank on $\log$
-normalised RMSE, 36 tests). Generated from the result records.}
-\label{tab:tests}
-\small
-\begin{tabular}{lllll}
-\toprule
-Comparison & Physics & Plume & Borehole & Ishigami\\
-\midrule
-\tabinput{../results/table_tests.tex}
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\subsection{Committees, aggregation and adaptive runs}
-Fig.~\ref{fig:strategies} summarises all strategies. A committee outperforms
-the best single GP only on the physics model, by more than two orders of
-magnitude, and only through its degree-2 PCE, on which the CV weights
-concentrate. On the borehole model the CV-weighted committee is 2.3 times
-worse than the Mat\'ern-5/2 GP on the identical design (0 of 30 seeds better,
-adjusted $p<10^{-6}$); on the plume and Ishigami models the two tie.
-
-Aggregation matters wherever a committee helps. Uniform averaging is worse
-than CV weighting on the physics model by a factor of about 2000 and on the
-borehole model by about 20\% (adjusted $p\le0.002$), with either GP specification,
-and is never better. On the physics model a prior-reverted or otherwise poor
-member is enough to move a uniform mean by orders of magnitude even when an
-exact member is present.
-
-Within the designs tested (five initial runs; 15 adaptive runs chosen by GP
-posterior SD, committee variance or UEigV over a random candidate pool),
-adaptive selection gave no consistent benefit. For the single GP it was never
-significantly better and was worse on the plume before adjustment. For the
-committee it helped on the physics and borehole models (median ratios 0.80
-and 0.61), hurt on the plume (1.25, adjusted $p=0.005$; median error of the
-propagated mean 55\%) and made no difference on the Ishigami function. UEigV
-was never better than variance acquisition after adjustment and was 1.7
-times worse on the borehole model (adjusted $p<10^{-6}$). Criteria aimed at a
-particular quantile or threshold~\cite{gramacy2009} may behave differently.
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=\columnwidth]{fig_strategies}
-\caption{Normalised RMSE of each strategy on each model: median (marker) and
-interquartile range (bar) over 30 seeds. Dashed line: constant predictor.}
-\label{fig:strategies}
-\end{figure}
-
-\subsection{Propagated quantities}
-Table~\ref{tab:prop} gives validation errors of the propagated quantities.
-They follow the normalised RMSE. With the best strategy for each model, the
-95th percentile is within 0.41\% (physics), 6.9\% (plume), 0.60\% (borehole)
-and 16\% (Ishigami) of the reference, and $P(Y>y_{0.95})$ within 0.0015,
-0.0076, 0.0018 and 0.029 of 0.05. At the fixed IDLH threshold (reference
-$P(C>\mathrm{IDLH})=0.123$), the log-variable GP has a median absolute error
-of 0.009 over 30 seeds against 0.023 for the raw-variable GP;
-Fig.~\ref{fig:plume} shows the first seed, for which the log-variable GP gives
-0.119, the raw-variable GP 0.158 and the CV-weighted committee 0.142.
-
-\begin{table*}[tb]
-\centering
-\caption{Validation error of propagated quantities, median over 30 seeds:
-relative error (\%) of the mean and of $y_{0.95}$, and absolute error
-($\times100$) of $P(Y>y_{0.95})=0.05$. Bold: best per column. Generated from
-the result records.}
-\label{tab:prop}
-\small
-\begin{tabular}{l rrr rrr rrr rrr}
-\toprule
-& \multicolumn{3}{c}{Physics} & \multicolumn{3}{c}{Plume} &
-\multicolumn{3}{c}{Borehole} & \multicolumn{3}{c}{Ishigami}\\
-\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
-Strategy & mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$ &
-mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$\\
-\midrule
-\tabinput{../results/table_propagation.tex}
-\bottomrule
-\end{tabular}
-\end{table*}
-
-\begin{figure}[tb]
-\centering
-\includegraphics[width=\columnwidth]{fig_plume_cdf}
-\caption{Plume model, first seed: distribution of the ground-level
-concentration propagated through three surrogates fitted to the same 20 runs,
-and the reference Monte Carlo distribution. Dotted: IDLH level for ammonia.}
-\label{fig:plume}
-\end{figure}
-
-\subsection{Estimating the surrogate contribution}
-\label{sec:estimate}
-In practice the reference is unavailable and the surrogate's contribution
-must be estimated from the training runs. Table~\ref{tab:est} compares, for
-the recommended GPs, the true error with two estimates available in practice:
-the five-fold CV RMSE with hyperparameters re-fitted in every fold, and the
-root mean square of the GP's own predictive SD over the domain.
-
-CV was conservative. It was at least the true error in 28 and 30 of 30 seeds
-on the physics and borehole models, where the GP is accurate and the
-held-out folds are relatively harder, close to it on the plume and Ishigami
-models, and below half the true error in at most 6 of 30 seeds (plume, log
-variables). The GP's own uncertainty was unreliable in the unsafe direction
-where the GP is weakest: on the plume and Ishigami models it understated the
-error 1.7--2.8 times and the nominal 95\% predictive intervals covered
-73--77\% of test points; on the physics model and the log-variable borehole GP
-it overstated the error. The member envelope of a committee, read as an
-interval for $P(Y>y_{0.95})$~\cite{ferson1996}, contained the reference value
-in 0 to 100\% of seeds depending on model and strategy, and is not a
-substitute.
+\input{journal_intro}
+\input{journal_methods}
 
 \begin{table}[tb]
 \centering
-\caption{Estimating the surrogate error from 20 runs, median over 30 seeds:
-ratio of the five-fold CV RMSE and of the GP's root-mean-square predictive SD
-to the true RMSE, and coverage of the nominal 95\% predictive interval.
-M: Mat\'ern-5/2 ARD GP with amplitude; L: the same on log variables.}
-\label{tab:est}
-\small
-\begin{tabular}{llrrr}
+\caption{Median nRMSE over 30 seeds with $N=20$ runs; bold: best per model.
+AK-MCS on the log scale for positive outputs. Generated from the result
+records; 95\% bootstrap intervals are in the supplementary summary.}
+\label{tab:n20}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{l ccccc cc ccc c}
 \toprule
-Model & GP & CV/true & SD/true & Coverage\\
+& \multicolumn{5}{c}{GP} & \multicolumn{2}{c}{Sparse PCE} &
+\multicolumn{3}{c}{Committee / adaptive} & Targeted\\
+\cmidrule(lr){2-6}\cmidrule(lr){7-8}\cmidrule(lr){9-11}\cmidrule(lr){12-12}
+Model & orig. & Mat\'ern & +trend & log & log+tr. & raw & log &
+CV & GP-SD & adapt. & AK-MCS\\
 \midrule
-Physics  & M & 9.06 & 1.58 & 100\%\\
-Plume    & M & 0.99 & 0.36 & 77\%\\
-Plume    & L & 0.81 & 0.42 & 73\%\\
-Borehole & M & 2.11 & 0.79 & 90\%\\
-Borehole & L & 2.61 & 1.45 & 99\%\\
-Ishigami & M & 1.07 & 0.58 & 73\%\\
+\tabinput{../results/journal/tab_n20.tex}
 \bottomrule
 \end{tabular}
 \end{table}
 
-These results suggest a simple, conservative treatment within GUM~S1:
-propagate $Y=\hat f(\mathbf X)+E_{\mathrm s}$, where the surrogate error
-$E_{\mathrm s}$ is an additional input with expectation zero and standard
-uncertainty equal to the CV RMSE, independent of $\mathbf X$. It ignores the
-spatial variation and correlation of the surrogate error and inflates the
-uncertainty where the surrogate is accurate. Calibrated alternatives, for
-example conformal prediction~\cite{angelopoulos2023}, need validation on a
-CFD case.
+\begin{table}[tb]
+\centering
+\caption{Paired comparisons at $N=20$: median over 30 seeds of the ratio of
+the first strategy's error to the second's (nRMSE; for the exceedance rows,
+the absolute error of $P(Y>T)$). Below 1 favours the first. Bold: Holm-adjusted
+$p<0.05$ (two-sided Wilcoxon signed-rank test on log ratios, all comparisons
+of the study adjusted together). Generated from the result records.}
+\label{tab:tests}
+\scriptsize
+\setlength{\tabcolsep}{2.6pt}
+\begin{tabular}{l cccccccccc}
+\toprule
+Comparison & Phys. & Plume & Bore. & Ishi. & OTL & Pist. & Bore.G & Plume.G & Flood & CFD\\
+\midrule
+\tabinput{../results/journal/tab_tests.tex}
+\bottomrule
+\end{tabular}
+\end{table}
 
-\section{Relation to the earlier analysis}
-The earlier analysis made five claims. Three are withdrawn or revised. The
-catastrophic GP failure on large domains is a kernel-specification artefact
-(Section~3.1). The spectral acquisition criterion gives no advantage over
-plain committee variance; on the physics model the earlier paired campaign
-already favoured variance ($p=0.047$, 30 versus 27 of 30 successes), and
-here UEigV is never better. The committee's advantage is not general but
-comes from a member matching the dominant term. Two claims survive and are
-strengthened: aggregation must be error-weighted, and hard rejection of
-members is a degenerate baseline (in the earlier campaign it collapsed to one
-member in all 30 trials and then sampled at random for 31\% of the budget).
-The records of those campaigns are kept in the repository~\cite{repo}.
+\input{journal_results_main}
 
-\section{Discussion and limitations}
-The study is deliberately narrow: four analytical models, uniform inputs, one
-budget ($N=20$), one design size for adaptive starts, and acquisition by
-variance-type criteria. The plume model represents the structure of a
-dispersion problem but not the irregularities of a CFD solution, such as
-recirculation, regime changes or numerical noise; a CFD case is the
-necessary next step. Results at larger budgets may differ, in particular for
-adaptive designs. The paired tests are exploratory and Holm-adjusted; several
-nominal differences (uniform versus CV weighting on the plume, adaptive
-versus passive GP on the plume, UEigV versus variance on three models) do not
-survive the adjustment and are not claimed. The log transformation applies
-only to positive outputs, and its back-transformation to the predictive
-median slightly underestimates the mean of a skewed output. Finally, the
-committee's components and hyperparameters were not tuned per model, which
-reflects practice at this budget but may understate what a tuned committee
-could achieve.
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\textwidth]{journal/fig_relative_nrmse}
+\caption{nRMSE of each strategy relative to the Mat\'ern ARD GP on the same
+design, $N=20$: median over 30 seeds of the paired ratio with 95\%
+bootstrap interval. Star: the candidate chosen per seed by the smallest
+LOO error (the procedure of Fig.~\ref{fig:flowchart}).}
+\label{fig:relative}
+\end{figure}
 
-\section{Practical rules}
-For surrogate-based GUM~S1 evaluations with about twenty runs:
-\begin{enumerate}\setlength\itemsep{1pt}
-\item \emph{Specify the GP fully}: estimate an amplitude and one length scale
-per input; inspect the fitted hyperparameters.
-\item \emph{Transform the variables} when the model is multiplicative or
-positive, for example concentrations and flows.
-\item \emph{Use a committee only with error weighting}, and expect a gain only
-when a member can represent the dominant structure.
-\item \emph{Prefer a space-filling design} unless an adaptive criterion has
-been shown to help for the quantity of interest.
-\item \emph{Estimate the surrogate contribution by cross-validation} and
-include it in the budget; do not rely on the GP's own predictive variance or
-on committee spread.
-\end{enumerate}
+\begin{table}[tb]
+\centering
+\caption{Validation error of the reported quantities, median over 30 seeds,
+$N=20$: relative error (\%) of the mean, SD and $y_{0.95}$ and absolute
+error ($\times100$) of $P(Y>T)$ for the recommended GP (log scale for
+positive outputs), the same with an AK-MCS design, and the CV-weighted
+committee. Generated from the result records.}
+\label{tab:prop}
+\small
+\begin{tabular}{l rrrr r rr}
+\toprule
+& \multicolumn{4}{c}{GP (passive)} & AK-MCS & \multicolumn{2}{c}{Committee}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-6}\cmidrule(lr){7-8}
+Model & mean & SD & $y_{0.95}$ & $P$ & $P$ & $y_{0.95}$ & $P$\\
+\midrule
+\tabinput{../results/journal/tab_prop.tex}
+\bottomrule
+\end{tabular}
+\end{table}
 
-\section{Conclusion}
-For Monte Carlo uncertainty propagation with twenty runs of an expensive
-model, the kernel specification of a GP surrogate and the transformation of
-the variables mattered more than the choice between single surrogates,
-committees and the adaptive designs tested. A GP failure reported in an
-earlier analysis was caused by one hyperparameter held fixed. Committees
-helped only when a member matched the response structure and only with CV
-error weighting. Cross-validation gave a conservative estimate of the
-surrogate's error; the GP's own uncertainty did not. A CFD dispersion case,
-other budgets and a calibrated surrogate contribution are the next steps.
+\input{journal_results_coverage}
+\input{journal_results_cfd}
+\input{journal_discussion}
+\input{journal_conclusion}
 
 \section*{Data and code availability}
-All code, per-seed records, figure scripts and an audit script that
-recomputes every reported number are available at
-\url{https://github.com/Yugam2508/fyp-active-learning-cfd}~\cite{repo}.
+All code, the per-seed records of every strategy, the cached CFD runs,
+figure scripts and an analysis script that recomputes every table and
+figure are available at
+\url{https://github.com/Yugam2508/fyp-active-learning-cfd}~\cite{repo};
+\texttt{docs/REPRODUCIBILITY.md} lists the commands and the software
+versions.
 
-\section*{Authors' contribution}
+\section*{CRediT authorship contribution statement}
 Yugam Jinesh Vora: conceptualisation, methodology, software, investigation,
 formal analysis, visualisation, writing -- original draft. Wee Hoe Ng:
 conceptualisation, supervision, writing -- review and editing.
 
+\section*{Declaration of competing interest}
+The authors declare no competing interests.
+
 \small
 \bibliographystyle{ieeetr}
-\bibliography{imeko2027/references}
+\bibliography{imeko2027/references,journal}
 
 \end{document}
