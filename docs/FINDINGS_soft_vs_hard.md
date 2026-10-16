@@ -184,7 +184,9 @@ Summary in `results/summary_generalisation.json`; audit in
 - **Adaptive runs**: single GP never better (plume worse, p = 0.008).
   Committee: better on physics (0.80) and borehole (0.61), worse on plume
   (1.25, adaptive committee mean error 55 %), neutral on Ishigami.
-- **Spectral vs variance acquisition**: see `check_numbers.py` (UEigV arm).
+- **Spectral vs variance acquisition**: UEigV worse on physics (1.02, p = 0.021),
+  borehole (1.67, p = 2.6e-8) and Ishigami (1.07, p = 0.004); better only on
+  plume (0.90, p = 0.009).
 - **Member envelopes** as model-form intervals for P(Y > y95): coverage
   0–100 % depending on model and strategy; not calibrated.
 

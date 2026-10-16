@@ -33,7 +33,7 @@ runs; physics, Gaussian plume, borehole and Ishigami models; see
 | A committee beats a well-specified GP | **only with a matching member** | physics > 100× (PCE-d2); borehole 2.3× worse; plume, Ishigami tie |
 | CV inverse-error weighting is necessary for committees | supported | never worse than uniform; significantly better on 3 of 4 models |
 | Adaptive selection of runs helps at N = 20 | **not supported** | single GP never better; committee mixed (better 2, worse 1, tie 1) |
-| UEigV (spectral) beats variance acquisition | **refuted** | physics campaign (p = 0.047, variance better); generalisation study, see `check_numbers.py` |
+| UEigV (spectral) beats variance acquisition | **refuted** | generalisation study: worse on 3 of 4 models (borehole 1.7×, p = 3e-8), better only on plume (0.90, p = 0.009) |
 | Committee member envelopes are calibrated model-form intervals | **not supported** | coverage 0–100 % |
 | Forward-UQ propagation reproduces reference Monte Carlo | supported where the surrogate is accurate | Table III of the extended abstract |
 

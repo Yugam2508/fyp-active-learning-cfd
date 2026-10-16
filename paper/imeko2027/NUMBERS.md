@@ -40,7 +40,7 @@ Paired tests: two-sided Wilcoxon signed-rank on log nRMSE.
 | III.B | uniform worse than CV: physics (~2000×), plume, borehole (p ≤ 0.023), never better | ratios 4.7e-4, 0.98, 0.84; Ishigami p = 0.18 | test `pas_ard:cv vs pas_ard:uni` |
 | III.B | adaptive GP never better; worse on plume p = 0.008 | p = 0.21, 0.0081, 0.44, 0.21 | test `al_gp vs gp_m52` |
 | III.B | adaptive committee: 0.80, 0.61, 1.25, n.s. | as stated | test `al_var:cv vs pas_ard:cv` |
-| III.B | spectral vs variance acquisition | see `check_numbers.py` | test `al_ueigv:cv vs al_var:cv` |
+| III.B | spectral worse on three models (borehole 1.7×, p < 1e-7), better only on plume (0.90, p = 0.009) | physics 1.02 p=0.021; plume 0.90 p=0.0087; borehole 1.67 p=2.6e-8; Ishigami 1.07 p=0.0043 | test `al_ueigv:cv vs al_var:cv` |
 | Table III | all entries | generated | `results/table_propagation.tex` |
 | III.C | best-strategy errors: y95 0.41 / 6.9 / 0.60 / 16 %; P within 0.0015 / 0.0076 / 0.0018 / 0.029 | as stated | Table III (bold entries) |
 | III.C | adaptive committee plume mean error 55 % | 55.1 % | `al_var:cv` plume `relerr_mean` |
