@@ -10,7 +10,8 @@ python paper/imeko2027/check_numbers.py
 to recompute all of them from the raw records (it uses
 `experiments/analyse_generalisation.py`). Medians are over the 30 seeds
 1000–1029. Normalised RMSE (nRMSE) = test RMSE / reference output SD.
-Paired tests: two-sided Wilcoxon signed-rank on log nRMSE.
+Paired tests: two-sided Wilcoxon signed-rank on log nRMSE; the paper quotes
+Holm-adjusted p-values over the 36 tests (`p_holm` in the summary).
 
 ## Sources
 
@@ -20,6 +21,7 @@ Paired tests: two-sided Wilcoxon signed-rank on log nRMSE.
 | `results/summary_generalisation.json`, `results/table_propagation.tex` | `experiments/analyse_generalisation.py` |
 | `results/results_domain_<config>.json` (fields `rmse_lhsgp`, `rmse_lhsgp_m52`) | `experiments/campaign_domain.py <config> 0 30 [--add-m52]` |
 | `figures/fig_strategies.pdf` | `experiments/make_paper_figures.py strategies` |
+| `results/results_err_<model>_<gp_m52|gp_log>.json` | `experiments/campaign_error_estimation.py <model> <arm> 0 30` |
 
 ## Statement → value → source
 
@@ -42,6 +44,13 @@ Paired tests: two-sided Wilcoxon signed-rank on log nRMSE.
 | III.B | adaptive committee: 0.80, 0.61, 1.25, n.s. | as stated | test `al_var:cv vs pas_ard:cv` |
 | III.B | spectral worse on three models (borehole 1.7×, p < 1e-7), better only on plume (0.90, p = 0.009) | physics 1.02 p=0.021; plume 0.90 p=0.0087; borehole 1.67 p=2.6e-8; Ishigami 1.07 p=0.0043 | test `al_ueigv:cv vs al_var:cv` |
 | Table III | all entries | generated | `results/table_propagation.tex` |
+| III.B | uniform worse on physics and borehole (adjusted p ≤ 0.002); plume not significant after adjustment | holm 6.7e-8, 0.0016; plume 0.28 | test `pas_ard:cv vs pas_ard:uni` |
+| III.B | adaptive committee hurt plume (adjusted p = 0.005); adaptive GP never significantly better | holm 0.0046; GP min holm 0.12 | tests `al_var:cv vs pas_ard:cv`, `al_gp vs gp_m52` |
+| III.B | UEigV never better after adjustment; borehole 1.7× worse (adjusted p < 1e-6) | holm 7e-7; plume 0.12 | test `al_ueigv:cv vs al_var:cv` |
+| III.C | fixed threshold: reference P(C > IDLH) = 0.123; median abs. error 0.009 (log GP), 0.023 (raw GP) | as stated | `results_err_plume_*.json` (`p_idlh`) |
+| III.D, Table IV | CV/true, SD/true, coverage | as tabulated | `results_err_*.json` |
+| III.D | CV ≥ true in 28/30 (physics), 30/30 (borehole); CV < ½ true in at most 6/30 | as stated | `results_err_*.json` |
+| III.D | GP SD understates by 1.7–2.8× on plume and Ishigami; coverage 73–77 % | 1/0.58, 1/0.42, 1/0.36 | `results_err_*.json` |
 | III.C | best-strategy errors: y95 0.41 / 6.9 / 0.60 / 16 %; P within 0.0015 / 0.0076 / 0.0018 / 0.029 | as stated | Table III (bold entries) |
 | III.C | adaptive committee plume mean error 55 % | 55.1 % | `al_var:cv` plume `relerr_mean` |
 | III.C | envelope coverage 0–100 % | physics `pas_ard:cv` 0 %, `al_var:cv` 100 % | `exc_covered` |

@@ -466,56 +466,64 @@
     "n": 30,
     "p": 9.313225746154785e-09,
     "wins": 28,
-    "median_ratio": 0.13789725785835333
+    "median_ratio": 0.13789725785835333,
+    "p_holm": 2.60770320892334e-07
    },
    "gp_amp vs gp_orig": {
     "label": "amplitude hyperparameter alone",
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 30,
-    "median_ratio": 0.055370782426488116
+    "median_ratio": 0.055370782426488116,
+    "p_holm": 6.705522537231445e-08
    },
    "pas_orig:cv vs pas_orig:uni": {
     "label": "aggregation, original members",
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 30,
-    "median_ratio": 0.0003807157107642954
+    "median_ratio": 0.0003807157107642954,
+    "p_holm": 6.705522537231445e-08
    },
    "pas_ard:cv vs pas_ard:uni": {
     "label": "aggregation, corrected members",
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 30,
-    "median_ratio": 0.0004734959792987213
+    "median_ratio": 0.0004734959792987213,
+    "p_holm": 6.705522537231445e-08
    },
    "pas_ard:cv vs gp_m52": {
     "label": "CV-weighted committee vs best single GP (same design)",
     "n": 30,
     "p": 3.725290298461914e-09,
     "wins": 29,
-    "median_ratio": 0.0022547879882152955
+    "median_ratio": 0.0022547879882152955,
+    "p_holm": 1.0803341865539551e-07
    },
    "al_gp vs gp_m52": {
     "label": "adaptive vs passive, single GP",
     "n": 30,
     "p": 0.21293285302817822,
     "wins": 15,
-    "median_ratio": 1.0078937500605756
+    "median_ratio": 1.0078937500605756,
+    "p_holm": 1.0
    },
    "al_var:cv vs pas_ard:cv": {
     "label": "adaptive vs passive, committee",
     "n": 30,
     "p": 1.6838312149047852e-06,
     "wins": 26,
-    "median_ratio": 0.7959157431480971
+    "median_ratio": 0.7959157431480971,
+    "p_holm": 4.0411949157714844e-05
    },
    "al_ueigv:cv vs al_var:cv": {
     "label": "spectral vs variance acquisition",
     "n": 30,
     "p": 0.02084985189139843,
     "wins": 10,
-    "median_ratio": 1.0242475922958472
+    "median_ratio": 1.0242475922958472,
+    "p_holm": 0.2710480745881796
    }
   },
   "plume": {
@@ -524,70 +532,80 @@
     "n": 30,
     "p": 0.9838335812091827,
     "wins": 18,
-    "median_ratio": 0.9726999259538852
+    "median_ratio": 0.9726999259538852,
+    "p_holm": 1.0
    },
    "gp_amp vs gp_orig": {
     "label": "amplitude hyperparameter alone",
     "n": 30,
     "p": 0.0018640067428350449,
     "wins": 24,
-    "median_ratio": 0.9684737536638859
+    "median_ratio": 0.9684737536638859,
+    "p_holm": 0.03168811462819576
    },
    "pas_orig:cv vs pas_orig:uni": {
     "label": "aggregation, original members",
     "n": 30,
     "p": 0.0001528710126876831,
     "wins": 24,
-    "median_ratio": 0.9745948962569846
+    "median_ratio": 0.9745948962569846,
+    "p_holm": 0.002904549241065979
    },
    "pas_ard:cv vs pas_ard:uni": {
     "label": "aggregation, corrected members",
     "n": 30,
     "p": 0.023410143330693245,
     "wins": 23,
-    "median_ratio": 0.9832943397819076
+    "median_ratio": 0.9832943397819076,
+    "p_holm": 0.28092171996831894
    },
    "pas_ard:cv vs gp_m52": {
     "label": "CV-weighted committee vs best single GP (same design)",
     "n": 30,
     "p": 0.20540969260036945,
     "wins": 16,
-    "median_ratio": 0.9877561167280681
+    "median_ratio": 0.9877561167280681,
+    "p_holm": 1.0
    },
    "al_gp vs gp_m52": {
     "label": "adaptive vs passive, single GP",
     "n": 30,
     "p": 0.008142979815602303,
     "wins": 11,
-    "median_ratio": 1.182630684001579
+    "median_ratio": 1.182630684001579,
+    "p_holm": 0.12214469723403454
    },
    "al_var:cv vs pas_ard:cv": {
     "label": "adaptive vs passive, committee",
     "n": 30,
     "p": 0.0002562887966632843,
     "wins": 6,
-    "median_ratio": 1.2521747415964868
+    "median_ratio": 1.2521747415964868,
+    "p_holm": 0.004613198339939117
    },
    "al_ueigv:cv vs al_var:cv": {
     "label": "spectral vs variance acquisition",
     "n": 30,
     "p": 0.008705463260412216,
     "wins": 20,
-    "median_ratio": 0.8999911373890935
+    "median_ratio": 0.8999911373890935,
+    "p_holm": 0.12214469723403454
    },
    "gp_log vs gp_m52": {
     "label": "log-transformed variables vs raw, single GP",
     "n": 30,
     "p": 1.597777009010315e-05,
     "wins": 27,
-    "median_ratio": 0.6911498424711584
+    "median_ratio": 0.6911498424711584,
+    "p_holm": 0.00036748871207237244
    },
    "gp_log vs pas_ard:cv": {
     "label": "log-transformed GP vs CV-weighted committee",
     "n": 30,
     "p": 8.856505155563354e-05,
     "wins": 24,
-    "median_ratio": 0.7349900295391437
+    "median_ratio": 0.7349900295391437,
+    "p_holm": 0.0018598660826683044
    }
   },
   "borehole": {
@@ -596,70 +614,80 @@
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 30,
-    "median_ratio": 0.30794248959768383
+    "median_ratio": 0.30794248959768383,
+    "p_holm": 6.705522537231445e-08
    },
    "gp_amp vs gp_orig": {
     "label": "amplitude hyperparameter alone",
     "n": 30,
     "p": 2.551823854446411e-07,
     "wins": 26,
-    "median_ratio": 0.8287691351336339
+    "median_ratio": 0.8287691351336339,
+    "p_holm": 6.634742021560669e-06
    },
    "pas_orig:cv vs pas_orig:uni": {
     "label": "aggregation, original members",
     "n": 30,
     "p": 0.00012333691120147705,
     "wins": 26,
-    "median_ratio": 0.9332844092111388
+    "median_ratio": 0.9332844092111388,
+    "p_holm": 0.002466738224029541
    },
    "pas_ard:cv vs pas_ard:uni": {
     "label": "aggregation, corrected members",
     "n": 30,
     "p": 7.056817412376404e-05,
     "wins": 25,
-    "median_ratio": 0.844215107402945
+    "median_ratio": 0.844215107402945,
+    "p_holm": 0.0015524998307228088
    },
    "pas_ard:cv vs gp_m52": {
     "label": "CV-weighted committee vs best single GP (same design)",
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 0,
-    "median_ratio": 2.3250438036933128
+    "median_ratio": 2.3250438036933128,
+    "p_holm": 6.705522537231445e-08
    },
    "al_gp vs gp_m52": {
     "label": "adaptive vs passive, single GP",
     "n": 30,
     "p": 0.4399667661637068,
     "wins": 15,
-    "median_ratio": 0.9449566484982777
+    "median_ratio": 0.9449566484982777,
+    "p_holm": 1.0
    },
    "al_var:cv vs pas_ard:cv": {
     "label": "adaptive vs passive, committee",
     "n": 30,
     "p": 6.910413503646851e-07,
     "wins": 26,
-    "median_ratio": 0.6096987956713883
+    "median_ratio": 0.6096987956713883,
+    "p_holm": 1.7276033759117126e-05
    },
    "al_ueigv:cv vs al_var:cv": {
     "label": "spectral vs variance acquisition",
     "n": 30,
     "p": 2.60770320892334e-08,
     "wins": 1,
-    "median_ratio": 1.6658024327613619
+    "median_ratio": 1.6658024327613619,
+    "p_holm": 7.040798664093018e-07
    },
    "gp_log vs gp_m52": {
     "label": "log-transformed variables vs raw, single GP",
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 30,
-    "median_ratio": 0.10947598153542
+    "median_ratio": 0.10947598153542,
+    "p_holm": 6.705522537231445e-08
    },
    "gp_log vs pas_ard:cv": {
     "label": "log-transformed GP vs CV-weighted committee",
     "n": 30,
     "p": 1.862645149230957e-09,
     "wins": 30,
-    "median_ratio": 0.054143268159167854
+    "median_ratio": 0.054143268159167854,
+    "p_holm": 6.705522537231445e-08
    }
   },
   "ishigami": {
@@ -668,56 +696,64 @@
     "n": 30,
     "p": 0.13473508320748806,
     "wins": 18,
-    "median_ratio": 0.9506325340457358
+    "median_ratio": 0.9506325340457358,
+    "p_holm": 1.0
    },
    "gp_amp vs gp_orig": {
     "label": "amplitude hyperparameter alone",
     "n": 30,
     "p": 0.07672121562063694,
     "wins": 12,
-    "median_ratio": 1.0002958538952054
+    "median_ratio": 1.0002958538952054,
+    "p_holm": 0.8439333718270063
    },
    "pas_orig:cv vs pas_orig:uni": {
     "label": "aggregation, original members",
     "n": 30,
     "p": 0.6263462882488966,
     "wins": 15,
-    "median_ratio": 1.0003178592840396
+    "median_ratio": 1.0003178592840396,
+    "p_holm": 1.0
    },
    "pas_ard:cv vs pas_ard:uni": {
     "label": "aggregation, corrected members",
     "n": 30,
     "p": 0.17719271034002304,
     "wins": 18,
-    "median_ratio": 0.9905632196237425
+    "median_ratio": 0.9905632196237425,
+    "p_holm": 1.0
    },
    "pas_ard:cv vs gp_m52": {
     "label": "CV-weighted committee vs best single GP (same design)",
     "n": 30,
     "p": 1.0,
     "wins": 16,
-    "median_ratio": 0.9877432262928386
+    "median_ratio": 0.9877432262928386,
+    "p_holm": 1.0
    },
    "al_gp vs gp_m52": {
     "label": "adaptive vs passive, single GP",
     "n": 30,
     "p": 0.21293285302817822,
     "wins": 12,
-    "median_ratio": 1.0568368160867425
+    "median_ratio": 1.0568368160867425,
+    "p_holm": 1.0
    },
    "al_var:cv vs pas_ard:cv": {
     "label": "adaptive vs passive, committee",
     "n": 30,
     "p": 0.6120056137442589,
     "wins": 16,
-    "median_ratio": 0.9814378407924699
+    "median_ratio": 0.9814378407924699,
+    "p_holm": 1.0
    },
    "al_ueigv:cv vs al_var:cv": {
     "label": "spectral vs variance acquisition",
     "n": 30,
     "p": 0.004338232800364494,
     "wins": 9,
-    "median_ratio": 1.0718409109308573
+    "median_ratio": 1.0718409109308573,
+    "p_holm": 0.06941172480583191
    }
   }
  },
@@ -780,5 +816,6 @@
    "al_var:cv": 30,
    "al_ueigv:cv": 30
   }
- }
+ },
+ "n_tests": 36
 }

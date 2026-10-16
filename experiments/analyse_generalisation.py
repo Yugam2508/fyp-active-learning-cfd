@@ -73,6 +73,14 @@ def summarise():
                 "label": label, "n": len(seeds), "p": p,
                 "wins": int((x < y).sum()),
                 "median_ratio": float(np.median(np.exp(x - y)))}
+    # Holm adjustment over every paired test reported
+    flat = [(b, k) for b in S["tests"] for k in S["tests"][b]]
+    order = sorted(flat, key=lambda bk: S["tests"][bk[0]][bk[1]]["p"])
+    m, running = len(flat), 0.0
+    for r, (b, k) in enumerate(order):
+        running = max(running, min(1.0, (m - r) * S["tests"][b][k]["p"]))
+        S["tests"][b][k]["p_holm"] = running
+    S["n_tests"] = m
     return S
 
 
@@ -123,4 +131,4 @@ if __name__ == "__main__":
                   f"{v['relerr_sd']:7.2%} {v['relerr_q95']:7.2%} {v['exc_abserr']:7.4f} {cov:>5s}")
         for k, t in S["tests"][b].items():
             print(f"  {k:28s} ratio {t['median_ratio']:8.3g}  wins {t['wins']:2d}/{t['n']}"
-                  f"  p={t['p']:.2g}   ({t['label']})")
+                  f"  p={t['p']:.2g} holm={t['p_holm']:.2g}   ({t['label']})")

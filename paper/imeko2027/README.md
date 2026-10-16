@@ -21,7 +21,7 @@ Compliance of `extended_abstract.tex`:
 |---|---|
 | Official class `imeko_wc`, no layout changes | yes (class files unmodified) |
 | Sections: title, authors/affiliation, abstract, introduction + state of the art, proposed contribution, preliminary results + potential applications, conclusions, references | yes |
-| Abstract ≤ ~150 words, no equations or references | yes (150 words as typeset) |
+| Abstract ≤ ~150 words, no equations or references | yes (149 words as typeset) |
 | Keywords separated by semicolons | yes |
 | British English | yes |
 | Units via `siunitx`; leading zeros | yes |
@@ -31,7 +31,7 @@ Compliance of `extended_abstract.tex`:
 | BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 22 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
 | Authors' contribution section (more than one author) | yes |
 | Compiles without errors, undefined references or overfull boxes | yes |
-| Length | 4 pages |
+| Length | 5 pages (4 pages of text + references) |
 
 Review criteria: relevance, technical quality and clarity, scientific
 relevance, originality.
