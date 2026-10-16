@@ -37,7 +37,8 @@ crosswind) in the cell containing (-20, 0.5) m. As the scalar is passive,
 C = 1000 Q s exactly, so Q needs no separate run. Domain: x from -80 m to
 250 m (windward face at x = 0), height 150 m, 7776 cells.
 
-run_case(U_ref, z0, H, Sc_t, workdir) runs blockMesh and the solver and
+run_case(U_ref, z0, H, Sc_t, workdir, refine=1) runs blockMesh and the solver
+(refine multiplies the cell counts in both directions, for grid checks) and
 returns s(x) at z = 1.5 m downstream of the building (cell-centre columns,
 linear interpolation in z); receptor_concentration(profile, x_r, Q)
 interpolates it in x.
@@ -72,7 +73,7 @@ def _w(path, cls, obj, body):
         f.write(HEADER.format(cls=cls, obj=obj) + body)
 
 
-def _block_mesh(H):
+def _block_mesh(H, refine=1):
     xs = (X_IN, X_WW, X_WW + W_B, X_OUT)
     zs = (0.0, H, Z_TOP)
     v = lambda i, k, j: (k * 4 + i) + 12 * j
@@ -84,7 +85,7 @@ def _block_mesh(H):
                 continue                                          # the building
             hexv = (v(i, k, 0), v(i + 1, k, 0), v(i + 1, k, 1), v(i, k, 1),
                     v(i, k + 1, 0), v(i + 1, k + 1, 0), v(i + 1, k + 1, 1), v(i, k + 1, 1))
-            blocks.append(f"    hex ({' '.join(map(str, hexv))}) ({NX[i]} 1 {NZ[k]}) "
+            blocks.append(f"    hex ({' '.join(map(str, hexv))}) ({NX[i] * refine} 1 {NZ[k] * refine}) "
                           f"simpleGrading ({GX[i]} 1 {GZ[k]})")
     P = np.array(verts)
 
@@ -269,10 +270,10 @@ FVOPTIONS = f"""release
 """
 
 
-def write_case(d, U_ref, z0, H, Sc_t, max_iter=4000):
+def write_case(d, U_ref, z0, H, Sc_t, max_iter=4000, refine=1):
     if os.path.exists(d):
         shutil.rmtree(d)
-    _w(f"{d}/system/blockMeshDict", "dictionary", "blockMeshDict", _block_mesh(H))
+    _w(f"{d}/system/blockMeshDict", "dictionary", "blockMeshDict", _block_mesh(H, refine))
     _w(f"{d}/system/controlDict", "dictionary", "controlDict", CONTROL.format(max_iter=max_iter))
     _w(f"{d}/system/fvSchemes", "dictionary", "fvSchemes", SCHEMES)
     _w(f"{d}/system/fvSolution", "dictionary", "fvSolution", SOLUTION)
@@ -336,9 +337,19 @@ def read_internal_scalar(path):
     return np.array(text[m.end():].split(")")[0].split()[:n], dtype=float)
 
 
-def run_case(U_ref, z0, H, Sc_t, workdir, keep=False, max_iter=4000):
+def _levels(v, tol=1e-6):
+    """Distinct coordinate levels of a tensor grid (to tol) and each value's index."""
+    u = np.sort(v)
+    start = np.r_[True, np.diff(u) > tol]
+    grp = np.cumsum(start) - 1
+    levels = np.bincount(grp, u) / np.bincount(grp)
+    idx = np.searchsorted((levels[1:] + levels[:-1]) / 2, v)
+    return levels, idx
+
+
+def run_case(U_ref, z0, H, Sc_t, workdir, keep=False, max_iter=4000, refine=1):
     """Run one case; returns the receptor-height profile and run diagnostics."""
-    write_case(workdir, U_ref, z0, H, Sc_t, max_iter)
+    write_case(workdir, U_ref, z0, H, Sc_t, max_iter, refine)
     env = dict(os.environ, OMP_NUM_THREADS="1")
     env.setdefault("WM_PROJECT_DIR", "/usr/share/openfoam")   # Debian/Ubuntu package
     for cmd in ("blockMesh", "buoyantBoussinesqSimpleFoam"):
@@ -352,11 +363,11 @@ def run_case(U_ref, z0, H, Sc_t, workdir, keep=False, max_iter=4000):
     s = read_internal_scalar(os.path.join(workdir, t_end, "T"))
     # wake columns below roof height: a tensor grid of cell centres
     sel = (C[:, 0] > X_WW + W_B) & (C[:, 2] < H)
-    xs = np.unique(np.round(C[sel, 0], 9)); zs = np.unique(np.round(C[sel, 2], 9))
+    xs, ix = _levels(C[sel, 0]); zs, iz = _levels(C[sel, 2])
     grid = np.full((len(xs), len(zs)), np.nan)
-    ix = np.searchsorted(xs, np.round(C[sel, 0], 9)); iz = np.searchsorted(zs, np.round(C[sel, 2], 9))
     grid[ix, iz] = s[sel]
-    assert not np.isnan(grid).any(), "wake cells do not form a tensor grid"
+    assert sel.sum() == grid.size and not np.isnan(grid).any(), \
+        "wake cells do not form a tensor grid"
     prof = np.array([np.interp(Z_REC, zs, col) for col in grid])
     out = {"x": (xs - (X_WW + W_B)).tolist(), "s": prof.tolist(),
            "iterations": int(float(t_end)),

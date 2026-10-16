@@ -33,7 +33,10 @@ for name, F in groups:
     print(f"{name}: {len(F)} flow states, {len(todo)} to run", flush=True)
     # in chunks, so that progress is visible in the log
     for i in range(0, len(todo), 40):
-        run_flows(np.array(todo[i:i + 40]))
+        try:
+            run_flows(np.array(todo[i:i + 40]))
+        except Exception as e:          # report and go on; rerun to retry
+            print(f"  FAILED in chunk {i // 40}: {e!r}", flush=True)
         print(f"  {name}: {min(i + 40, len(todo))}/{len(todo)} done, "
               f"{time.time() - t0:.0f} s", flush=True)
 print("ALL CFD RUNS DONE")
