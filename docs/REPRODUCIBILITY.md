@@ -145,3 +145,11 @@ Notes.
   journal prose; `.github/workflows/ci.yml` runs it together with
   `check_benchmarks.py`, `test_reproducibility.py --quick`, the extended
   abstract's `check_numbers.py` and `analyse_journal.py --check`.
+- Cross-machine reproducibility (checked by the CI on GitHub's runners,
+  same pinned packages, different processor): the regenerated records
+  agree with the published ones to a relative deviation of at most
+  8.7e-6 (physics/gp_amp nRMSE); committees 2.8e-6, all other cases
+  below 2e-8. On the reference environment the deviation is exactly zero.
+  The difference comes from processor-dependent BLAS and PyTorch kernels,
+  amplified by the hyperparameter optimisation; it is five orders of
+  magnitude below any effect reported in the papers.
