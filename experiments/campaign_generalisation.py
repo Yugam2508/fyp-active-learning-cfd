@@ -56,9 +56,11 @@ Results: results/results_gen_<benchmark>_<arm>.json for N = 20, else
 results_gen_<benchmark>_<arm>_N<N>.json (resumable). RESULTS_DIR may be
 overridden by the environment variable of the same name (used by tests).
 
---augment   recompute every existing record, assert that all stored fields
+--augment   recompute every existing record, check that all stored fields
             are reproduced (relative tolerance 1e-9), and add fields that the
             record lacks (e.g. thr_* for records made before they existed).
+            A record that is not reproduced is reported and left unchanged;
+            the exit status is then 1.
 """
 
 import os as _os, sys as _sys
@@ -266,17 +268,21 @@ def _same(a, b):
 
 if __name__ == "__main__" and AUGMENT:
     results = json.load(open(OUT))
+    n_bad = 0
     for r in results:
         new = run(r["seed"])
         bad = [k for k, v in new.items() if k in r and not _same(r[k], v)]
-        assert not bad, f"seed {r['seed']}: stored fields not reproduced: {bad}"
+        if bad:                     # leave the record untouched, report, go on
+            n_bad += 1
+            print(f"[{bench}/{arm}] seed {r['seed']}: MISMATCH in {bad}", flush=True)
+            continue
         added = [k for k in new if k not in r]
         r.update({k: new[k] for k in added})
         json.dump(results, open(OUT, "w"))
         print(f"[{bench}/{arm}] seed {r['seed']}: reproduced, added {len(added)} fields",
               flush=True)
-    print(f"augmented: {len(results)}")
-    sys.exit(0)
+    print(f"augmented: {len(results) - n_bad}, mismatched: {n_bad}")
+    sys.exit(1 if n_bad else 0)
 
 if __name__ == "__main__":
     results = json.load(open(OUT)) if os.path.exists(OUT) else []
