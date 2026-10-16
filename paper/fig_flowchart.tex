@@ -1,0 +1,45 @@
+% fig_flowchart.tex — decision procedure for surrogate-based GUM S1
+% propagation (Section "Practical procedure"). \input inside a figure;
+% needs \usetikzlibrary{positioning,arrows.meta,shapes.geometric}.
+\begin{tikzpicture}[
+  node distance=3.2mm and 6mm,
+  box/.style={draw, rounded corners=1.5pt, align=center, font=\footnotesize,
+              text width=#1, inner sep=2.5pt, fill=white},
+  box/.default=54mm,
+  dec/.style={draw, diamond, aspect=2.6, align=center, font=\footnotesize,
+              inner sep=0.5pt, fill=gray!8},
+  side/.style={draw, dashed, rounded corners=1.5pt, align=left, font=\scriptsize,
+               text width=30mm, inner sep=2pt},
+  arr/.style={-{Latex[length=1.6mm]}, semithick},
+  lab/.style={font=\scriptsize}]
+\node[box] (start) {Model $Y=f(\mathbf X)$ too costly for $10^5$ Monte Carlo
+  trials; budget of $N$ runs};
+\node[box, below=of start] (design) {Run $f$ on an $N$-point Latin hypercube
+  drawn in the input distribution (inverse-CDF map)};
+\node[dec, below=of design] (pos) {$Y>0$, multiplicative?};
+\node[box, below=of pos] (fit) {Fit candidates on the log scale if \emph{yes}:
+  GP (Mat\'ern-5/2, ARD, estimated amplitude, nugget; $\pm$ quadratic
+  trend) and sparse PCE (LAR, corrected LOO)};
+\node[box, below=of fit] (sel) {Keep the candidate with the smallest
+  leave-one-out (LOO) error};
+\node[dec, below=of sel] (ok) {LOO error fit\\for purpose?};
+\node[box, below=of ok] (prop) {GUM S1 propagation through the surrogate,
+  adding to every trial a draw of the LOO residuals};
+\node[box, below=of prop] (rep) {Report $y$, $u(y)$ and the coverage
+  interval; state the surrogate contribution; interval for derived
+  quantities by the jackknife over the LOO fits};
+\node[side, right=of ok] (more) {Add runs: extend the design (space
+  filling); a targeted design only for a threshold decision};
+\node[side, right=of prop] (no) {Not the GP posterior SD, nor a committee
+  envelope: both understate the surrogate error};
+\draw[arr] (start) -- (design);
+\draw[arr] (design) -- (pos);
+\draw[arr] (pos) -- (fit);
+\draw[arr] (fit) -- (sel);
+\draw[arr] (sel) -- (ok);
+\draw[arr] (ok) -- node[lab, right] {yes} (prop);
+\draw[arr] (prop) -- (rep);
+\draw[arr] (ok) -- node[lab, above] {no} (more);
+\draw[arr] (more.north) |- (design.east);
+\draw[dashed] (no.west) -- (prop.east);
+\end{tikzpicture}

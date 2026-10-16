@@ -74,6 +74,10 @@ the benchmarks are cross-checked against).
 | iooss2015 | Iooss, Lemaître, in Dellino, Meloni (eds.), Springer (2015) 101–122 | HAL hal-00975701, arXiv 1404.2405, UQTestFuns (flood) | yes |
 | wicaksono2023 | Wicaksono, Hecht, *J. Open Source Softw.* 8(90) 5671 (2023) | JOSS page | yes |
 | vlse | Surjanovic, Bingham, Virtual Library of Simulation Experiments | SFU website | URL |
+| richards1993 | Richards, Hoxey, *J. Wind Eng. Ind. Aerodyn.* 46–47, 145–153 (1993) | citing literature (U. Houston, U. Melbourne, Auckland repositories) | no (not confirmed) |
+| tominaga2007 | Tominaga, Stathopoulos, *Atmos. Environ.* 41(37) 8091–8099 (2007) | CiNii record, Cambridge reference list | no (not confirmed) |
+| blocken2007 | Blocken, Stathopoulos, Carmeliet, *Atmos. Environ.* 41(2) 238–252 (2007) | TU Eindhoven research portal | yes |
+| weller1998 | Weller, Tabor, Jasak, Fureby, *Comput. Phys.* 12(6) 620–631 (1998) | Scinapse, CiteDrive (DOI), OpenFOAM wiki | yes |
 
 Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
 input models), flood and Ishigami implementations in `src/benchmarks.py`
