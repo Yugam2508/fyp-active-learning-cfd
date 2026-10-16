@@ -12,6 +12,10 @@ Arms
     gp_ardnoamp  RBF, ARD, no amplitude
     gp_ard       RBF, ARD, with amplitude
     gp_m52       Matern-5/2, ARD, with amplitude (common default in practice)
+    gp_log       gp_m52 fitted to log(output) with log-transformed inputs for
+                 inputs whose range is strictly positive; prediction exp(mean)
+                 (the posterior median). Only for positive outputs
+                 (plume, borehole).
   Committees of 9 members (2 GP, 2 PCE, 2 RF, SVR, 2 DNN):
     pas_orig     passive 20-point LHS, original GP members
     pas_ard      passive 20-point LHS, GP members with amplitude + ARD
@@ -57,7 +61,7 @@ from framework_core import (ActiveLearner, GPSurrogate, PCESurrogate,
 from uq_extension import SoftActiveLearner, SoftLCS, make_bound_penalty
 from benchmarks import BENCHMARKS
 
-ARMS = ("gp_orig", "gp_amp", "gp_ardnoamp", "gp_ard", "gp_m52",
+ARMS = ("gp_orig", "gp_amp", "gp_ardnoamp", "gp_ard", "gp_m52", "gp_log",
         "pas_orig", "pas_ard", "al_gp", "al_var", "al_ueigv")
 bench, arm, start, n = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
 assert bench in BENCHMARKS and arm in ARMS, (bench, arm)
@@ -83,9 +87,17 @@ P_TRUE = float(np.mean(y_ref > REF["q95"]))
 
 
 # ── single GP with a chosen kernel specification ─────────────────────────
+POS_IN = dom[:, 0] > 0                 # inputs with strictly positive range
+
+
 class GP:
     def __init__(self, spec):
-        self.spec, self.name = spec, f"GP[{spec}]"
+        self.log = spec == "log"
+        self.spec = "m52" if self.log else spec
+        self.name = f"GP[{spec}]"
+
+    def _tin(self, X):
+        return np.where(POS_IN, np.log(np.abs(X) + 1e-300), X) if self.log else X
 
     def _kernel(self):
         ls = np.ones(d)
@@ -103,14 +115,19 @@ class GP:
         }[self.spec]()
 
     def fit(self, X, y):
-        self.sc = StandardScaler().fit(X)
+        if self.log:
+            assert np.all(y > 0), "gp_log needs a positive output"
+        self.sc = StandardScaler().fit(self._tin(X))
         self.gp = GaussianProcessRegressor(self._kernel(), normalize_y=True,
                                            n_restarts_optimizer=5,
                                            random_state=0)
-        self.gp.fit(self.sc.transform(X), y)
+        self.gp.fit(self.sc.transform(self._tin(X)), np.log(y) if self.log else y)
 
     def predict(self, X, return_std=False):
-        return self.gp.predict(self.sc.transform(X), return_std=return_std)
+        out = self.gp.predict(self.sc.transform(self._tin(X)), return_std=return_std)
+        if self.log and not return_std:
+            return np.exp(out)
+        return out
 
 
 # ── committee with correctly specified GP members ────────────────────────
