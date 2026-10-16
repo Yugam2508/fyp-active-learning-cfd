@@ -20,8 +20,11 @@ jobs:
         run: pip install -r requirements-lock.txt --extra-index-url https://download.pytorch.org/whl/cpu
       - name: Benchmarks agree with UQTestFuns
         run: python experiments/check_benchmarks.py
-      - name: Published records are reproduced
-        run: python experiments/test_reproducibility.py --quick
+      - name: Published records are reproduced (cross-machine tolerance)
+        # Bitwise (rtol 1e-9) on the reference environment; other processors
+        # change the last bits of BLAS/PyTorch results, which the
+        # hyperparameter optimisation amplifies. See docs/REPRODUCIBILITY.md.
+        run: python experiments/test_reproducibility.py --quick --rtol 1e-4
       - name: Numbers quoted in the papers are recomputed
         run: |
           python paper/imeko2027/check_numbers.py
