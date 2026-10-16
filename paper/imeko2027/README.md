@@ -28,7 +28,7 @@ Compliance of `extended_abstract.tex`:
 | Table captions above, figure captions below; "Fig." in text; every float cited before it appears | yes |
 | Axis labels in words, units in parentheses | yes |
 | Acronyms defined at first use in the body | yes |
-| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 22 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
+| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 24 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
 | Authors' contribution section (more than one author) | yes |
 | Compiles without errors, undefined references or overfull boxes | yes |
 | Length | 5 pages (4 pages of text + references) |
@@ -84,14 +84,26 @@ editing). Adjust if the roles differ.
    `extended_abstract.pdf` in the Extended Abstract row (blue cloud icon).
    Add Wee Hoe Ng as co-author in EDAS as well.
 
+## Revision of 2026-10-16 (journal-study results folded in)
+
+Section III.D now validates the surrogate contribution against the true
+models (coverage of GP, jackknife+ and LOO-error intervals, Table IV,
+`results_cov_*.json`) instead of comparing error estimates, and a new
+Section III.E reports a CFD dispersion case (OpenFOAM; `results_gen_cfd_*.json`).
+These answer the two main reviewer concerns on the earlier version (a
+metrological validation of the uncertainty contribution; the plume model is
+not CFD). The abstract and conclusions were updated accordingly; still 149
+words and 5 pages.
+
 ## Plan for the final paper (May 2027, max. 6 pages)
 
-Stated in the Conclusions; the reviewers will expect them:
-- a CFD-based dispersion case (the plume model here is analytical);
-- calibrated (conformal) intervals for the surrogate contribution;
-- budgets other than N = 20, and non-uniform input distributions.
+Stated in the Conclusions: further models with GUM-type input
+distributions, budgets from 10 to 80 runs, and targeted (AK-MCS) designs for
+exceedance probabilities. All are already run in the journal study
+(`paper/paper.tex`), so the final paper can draw on them directly.
 
 ## Built PDF
 
-`extended_abstract.pdf` is the build of the current source (4 pages). This
-is the file to upload; rebuild it after any edit.
+`extended_abstract.pdf` is the build of the current source (5 pages: 4 of
+text, references on the fifth). This is the file to upload; rebuild it after
+any edit.

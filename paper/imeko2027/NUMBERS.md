@@ -1,10 +1,8 @@
 # Number provenance — IMEKO WC 2027 extended abstract (and `paper/paper.tex`)
 
-The journal draft `paper/paper.tex` reports the same results from the same
-records; its Tables 1–3 are generated (`results/table_nrmse.tex`,
-`table_tests.tex`, `table_propagation.tex`). Statements specific to it
-(earlier-campaign facts in its Section 4) come from
-`results/results_{varacq,hard,decompose}.json`, see `docs/FINDINGS_soft_vs_hard.md`.
+The journal manuscript `paper/paper.tex` extends this study (ten models,
+budgets 10–80, coverage validation, CFD case); its numbers are traced by
+`paper/check_numbers_journal.py` and `paper/NUMBERS_journal.md`.
 
 Every quantitative statement in `extended_abstract.tex`, where it comes from,
 and how it is computed. Run
@@ -54,9 +52,9 @@ Holm-adjusted p-values over the 36 tests (`p_holm` in the summary).
 | III.B | adaptive committee hurt plume (adjusted p = 0.005); adaptive GP never significantly better | holm 0.0046; GP min holm 0.12 | tests `al_var:cv vs pas_ard:cv`, `al_gp vs gp_m52` |
 | III.B | UEigV never better after adjustment; borehole 1.7× worse (adjusted p < 1e-6) | holm 7e-7; plume 0.12 | test `al_ueigv:cv vs al_var:cv` |
 | III.C | fixed threshold: reference P(C > IDLH) = 0.123; median abs. error 0.009 (log GP), 0.023 (raw GP) | as stated | `results_err_plume_*.json` (`p_idlh`) |
-| III.D, Table IV | CV/true, SD/true, coverage | as tabulated | `results_err_*.json` |
-| III.D | CV ≥ true in 28/30 (physics), 30/30 (borehole); CV < ½ true in at most 6/30 | as stated | `results_err_*.json` |
-| III.D | GP SD understates by 1.7–2.8× on plume and Ishigami; coverage 73–77 % | 1/0.58, 1/0.42, 1/0.36 | `results_err_*.json` |
+| Abstract, III.D, Table IV | coverage (%) of the nominal 95 % intervals: pointwise GP / jackknife+; GUM S1 interval exact / + LOO error; y95 interval GP posterior / jackknife | as tabulated; GP 71 % on plume and Ishigami, J+ 97 % on all four, exact 86–95 %, +LOO 95–97 %, y95 J 83–100 %, GP 73–97 % | `results_cov_<model>_<gp_m52|gp_log>.json` (`experiments/campaign_coverage.py`) |
+| Abstract, III.E | CFD: log GP nRMSE 0.080 vs Matérn 0.53, better in 30/30 seeds; "sixfold" = 1 / median paired ratio (0.165) | as stated | `results_gen_cfd_{gp_log,gp_m52}.json` |
+| III.E | CFD: y95 within 6.9 % (log GP), 18.5 % (Matérn), 27 % (committee); P(C > IDLH) within 0.009; reference uncertainty 3.3 % and 0.007 from 800 runs | as stated | `results_gen_cfd_*.json`, `results/cfd_reference.json` |
 | III.C | best-strategy errors: y95 0.41 / 6.9 / 0.60 / 16 %; P within 0.0015 / 0.0076 / 0.0018 / 0.029 | as stated | Table III (bold entries) |
 | III.C | adaptive committee plume mean error 55 % | 55.1 % | `al_var:cv` plume `relerr_mean` |
 | III.C | envelope coverage 0–100 % | physics `pas_ard:cv` 0 %, `al_var:cv` 100 % | `exc_covered` |
