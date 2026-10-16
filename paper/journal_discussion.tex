@@ -11,8 +11,11 @@ over plain committee variance on any of the six models on which it was
 tested, and is worse on three. The committee's advantage is not general but
 comes from a member that matches the dominant term, which a GP with a
 quadratic trend or a sparse PCE reproduces on its own. Two claims survive:
-aggregation must be error-weighted, and an adaptive committee can help on
-smooth models, at budgets of 20 runs or more. The records of the earlier
+aggregation must be error-weighted, and an adaptive committee can be more
+accurate than a passive one: it was on four of the seven models on which it
+was run, including the CFD case, although it remained less accurate than
+the log-variable GP wherever the output is positive, and its exceedance
+probabilities were worse on the plume and CFD cases. The records of the earlier
 campaigns are kept in the repository~\cite{repo}.
 
 \begin{figure}[tb]
@@ -76,7 +79,8 @@ GUM~S1 coverage interval (Section~\ref{sec:res-coverage}). Candidates should
 include a GP with an estimated amplitude, one length scale per input and a
 quadratic trend, and a sparse PCE, each on the log scale when the output
 is positive. Adaptive designs are optional: a targeted design such as
-AK-MCS is worthwhile when a threshold decision is the purpose, and
+AK-MCS is worthwhile when a threshold decision is the purpose and the
+threshold lies in a tail of the distribution, and
 variance-driven designs when the budget is several times the number of
 inputs and the model is smooth.
 

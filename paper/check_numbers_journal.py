@@ -202,5 +202,95 @@ check(F, "contained the true value in a median\n97\\% of seeds", cr["dq_q95_jack
       lambda v: f"contained the true value in a median\n{100 * v:.0f}\\% of seeds")
 check_true("jackknife p_thr median equals q95 median (both quantities)",
            round(cr["dq_p_thr_jack_cov"]["median"], 2) == round(cr["dq_q95_jack_cov"]["median"], 2))
+# ── CFD case ─────────────────────────────────────────────────────────────
+F = "journal_results_cfd.tex"
+ref = json.load(open(os.path.join(ROOT, "results", "cfd_reference.json")))
+grid = json.load(open(os.path.join(ROOT, "results", "cfd_grid_check.json")))
+itc = json.load(open(os.path.join(ROOT, "results", "cfd_iteration_check.json")))
+check(F, "Of the 2900 CFD runs", ref["n_runs_cached"], lambda v: f"Of the {v} CFD runs")
+check(F, "adaptive designs), 80\\%", ref["share_converged"], lambda v: f"adaptive designs), {100 * v:.0f}\\%")
+check(F, "(median 1322\niterations)", ref["iterations_median"], lambda v: f"(median {v:.0f}\niterations)")
+check(F, "less than\n0.16\\%", max(x for c in itc["cases"] for x in c["rel_range_2000_4000"]),
+      lambda v: f"less than\n{np.ceil(100 * v * 100) / 100:.2f}\\%")
+gd = np.abs([x for c in grid["cases"] for x in c["rel_diff"]])
+check(F, "0.9--6.5\\% (median 3.7\\%)", gd.min(),
+      lambda v: f"{100 * v:.1f}--{100 * gd.max():.1f}\\% (median {100 * np.median(gd):.1f}\\%)")
+r_, u_ = ref["reference"], ref["u_reference"]
+check(F, "a mean of 434\\,mg", r_["mean"], lambda v: f"a mean of {v:.0f}\\,mg")
+check(F, "an SD of 413\\,mg", r_["sd"], lambda v: f"an SD of {v:.0f}\\,mg")
+check(F, "of 1252\\,mg", r_["q95"], lambda v: f"of {v:.0f}\\,mg")
+check(F, "$P(C>\\mathrm{IDLH})=0.673$", r_["p_idlh"], "$P(C>\\mathrm{{IDLH}})={:.3f}$")
+check(F, "2.3\\%,\n3.4\\%, 3.3\\% and 0.007", u_["mean"] / r_["mean"],
+      lambda v: f"{100 * v:.1f}\\%,\n{100 * u_['sd'] / r_['sd']:.1f}\\%, "
+                f"{100 * u_['q95'] / r_['q95']:.1f}\\% and {u_['p_idlh']:.3f}")
+check(F, "(ratio 0.96)", R("cfd", "gp_m52", "gp_orig"), "(ratio {:.2f})")
+check(F, "median nRMSE of 0.080 against 0.53", med("cfd", "gp_log"),
+      "median nRMSE of {:.3f} against " + f"{med('cfd', 'gp_m52'):.2f}")
+check(F, "(ratio 0.17, better\nin all 30 seeds)", R("cfd", "gp_log", "gp_m52"),
+      lambda v: f"(ratio {v:.2f}, better\nin all {T('cfd', 'gp_log', 'gp_m52')['wins']} seeds)")
+check(F, "to 0.060 (ratio 0.76)", med("cfd", "gp_quadlog"),
+      "to {:.3f} (ratio " + f"{R('cfd', 'gp_quadlog', 'gp_log'):.2f})")
+check(F, "1.4 times worse than the GP on the raw", R("cfd", "spce", "gp_m52"),
+      "{:.1f} times worse than the GP on the raw")
+check(F, "scale and 2.3 times on the log scale", R("cfd", "spce_log", "gp_log"),
+      "scale and {:.1f} times on the log scale")
+check(F, "GP with trend (ratio 1.08)", R("cfd", "pas_ard:cv", "gp_quad"), "GP with trend (ratio {:.2f})")
+sc = S["selection"]["cfd"]
+check_true("CFD selection chose a log-scale GP in all 30 seeds",
+           sum(v for k, v in sc["chosen"].items() if k in ("gp_log", "gp_quadlog")) == 30)
+check(F, "within 0.1\\% of the best", sc["ratio_to_oracle_ci"][1] - 1,
+      lambda v: "within 0.1\\% of the best" if v < 0.001 else f"within {100 * v:.1f}\\% of the best")
+check(F, "within 6.9\\% of the reference", prop("cfd", "gp_log", "relerr_q95"),
+      lambda v: f"within {100 * v:.1f}\\% of the reference")
+check(F, "within 0.009, against\n18.5\\% and 0.019", prop("cfd", "gp_log", "thr_abserr"),
+      lambda v: f"within {v:.3f}, against\n{100 * prop('cfd', 'gp_m52', 'relerr_q95'):.1f}\\% and "
+                f"{prop('cfd', 'gp_m52', 'thr_abserr'):.3f}")
+check(F, "27\\% and 0.059 for the committee", prop("cfd", "pas_ard:cv", "relerr_q95"),
+      lambda v: f"{100 * v:.0f}\\% and {prop('cfd', 'pas_ard:cv', 'thr_abserr'):.3f} for the committee")
+check(F, "change the nRMSE (ratio 0.93)", R("cfd", "al_gp", "gp_m52"), "change the nRMSE (ratio {:.2f})")
+check(F, "(ratio 0.94)", R("cfd", "ak_log", "gp_log", "thr_abserr"), "(ratio {:.2f})")
+check_true("CFD: AK and GP-SD not significant", not sig("cfd", "ak_log", "gp_log", "thr_abserr")
+           and not sig("cfd", "al_gp", "gp_m52"))
+check(F, "the passive one (ratio 0.84)", R("cfd", "al_var:cv", "pas_ard:cv"), "the passive one (ratio {:.2f})")
+check_true("CFD adaptive committee significant", sig("cfd", "al_var:cv", "pas_ard:cv"))
+ex = S["exceedance"]["cfd"]
+check(F, "median of\n0.11, against 0.06", ex["al_var:cv"]["median_abserr"],
+      lambda v: f"median of\n{v:.2f}, against {ex['pas_ard:cv']['median_abserr']:.2f}")
+cc = S["coverage"]["cfd"]
+gpk = [k for k in cc if k.startswith("gp_")]
+check(F, "covered 69--92\\% of\ntest points", min(cc[k]["pw_gp_cov"] for k in gpk),
+      lambda v: f"covered {100 * v:.0f}--{100 * max(cc[k]['pw_gp_cov'] for k in gpk):.0f}\\% of\ntest points")
+check(F, "intervals 94.8--99.1\\%", min(cc[k]["pw_jkplus_cov"] for k in cc),
+      lambda v: f"intervals {100 * v:.1f}--{100 * max(cc[k]['pw_jkplus_cov'] for k in cc):.1f}\\%")
+check(F, "of 90.8--94.6\\%; adding the LOO error gave 93.8--95.7\\%",
+      min(cc[k]["ci_plain_cov"] for k in cc),
+      lambda v: f"of {100 * v:.1f}--{100 * max(cc[k]['ci_plain_cov'] for k in cc):.1f}\\%; adding the LOO error gave "
+                f"{100 * min(cc[k]['ci_normal_cov'] for k in cc):.1f}--{100 * max(cc[k]['ci_normal_cov'] for k in cc):.1f}\\%")
+check(F, "in only 10\\% of seeds, against 87--93\\%", cc["gp_m52"]["dq_q95_gp_cov"],
+      lambda v: f"in only {100 * v:.0f}\\% of seeds, against {100 * cc['gp_m52']['dq_q95_jack_cov']:.0f}--"
+                f"{100 * cc['gp_quad']['dq_q95_jack_cov']:.0f}\\%")
+check_true("CFD raw GPs both 10 %", round(cc["gp_quad"]["dq_q95_gp_cov"], 2) == 0.10)
+check(F, "were 80\\% and 97\\%", cc["gp_log"]["dq_q95_gp_cov"],
+      lambda v: f"were {100 * v:.0f}\\% and {100 * cc['gp_log']['dq_q95_jack_cov']:.0f}\\%")
+# ── discussion: adaptive committee on four of seven models ───────────────
+avb = [b for b in S["n20"] if "al_var:cv" in S["n20"][b]]
+check_true("adaptive committee better on four of seven models",
+           len(avb) == 7 and sum(sig(b, "al_var:cv", "pas_ard:cv") and R(b, "al_var:cv", "pas_ard:cv") < 1
+                                 for b in avb) == 4)
+# ── abstract ─────────────────────────────────────────────────────────────
+F = "journal_abstract.tex"
+logs = [R(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd")]
+check(F, "to 18, 400 and 9", med("physics", "gp_orig") / med("physics", "gp_amp"),
+      lambda v: f"to {v:.0f}, {int(round(1 / R('physics', 'gp_quad', 'gp_m52'), -2))} and {1 / min(logs):.0f}")
+check(F, "up\nto ninefold", 1 / min(t["ratio"] for t in aks),
+      lambda v: "up\nto ninefold" if round(v) == 9 else f"up\nto {v:.0f}-fold")
+allc = {k: [r[k] for row in S["coverage"].values() for r in row.values() if k in r]
+        for k in ("ci_normal_cov", "pw_jkplus_cov", "pw_gp_cov")}
+check(F, "to 91--97\\% on all models", min(allc["ci_normal_cov"]),
+      lambda v: f"to {100 * v:.0f}--{100 * max(allc['ci_normal_cov']):.0f}\\% on all models")
+check(F, "covered 95--99\\% of test points", min(allc["pw_jkplus_cov"]),
+      lambda v: f"covered {100 * v:.0f}--{100 * max(allc['pw_jkplus_cov']):.0f}\\% of test points")
+check(F, "as few as 68\\%", min(allc["pw_gp_cov"]), lambda v: f"as few as {100 * v:.0f}\\%")
+check(F, "median of\nonly 53\\%", cr["dq_q95_gp_cov"]["median"], lambda v: f"median of\nonly {100 * v:.0f}\\%")
 print("all numbers reproduced" if ok else "MISMATCHES FOUND")
 sys.exit(0 if ok else 1)

@@ -8,8 +8,10 @@
 for the centre of the input box: the plume is lifted over the building,
 part of it is trapped in a recirculating wake that extends several building
 heights downstream, and the concentration at breathing height is nearly
-uniform inside the wake and decays beyond it. Of the 1550 CFD runs of the
-study, 81\% met the residual criteria within 4000 iterations (median 1305
+uniform inside the wake and decays beyond it. Of the 2900 CFD runs of the
+study (1550 for the designs and the reference, the rest added by the
+adaptive designs), 80\% met the residual criteria within 4000
+iterations (median 1322
 iterations); for the others, mostly tall buildings whose steady wake keeps
 the residuals oscillating, the receptor concentration varied by less than
 0.16\% over the last 2000 iterations, so the iteration error is negligible.
@@ -36,6 +38,16 @@ candidate in hindsight. With the log-variable GP, the 95th percentile was
 within 6.9\% of the reference and $P(C>\mathrm{IDLH})$ within 0.009, against
 18.5\% and 0.019 for the Mat\'ern GP and 27\% and 0.059 for the committee.
 
+\emph{Adaptive designs.} Adding runs at the largest GP posterior SD did not
+change the nRMSE (ratio 0.93), and AK-MCS did not improve
+$P(C>\mathrm{IDLH})$ (ratio 0.94): the IDLH is exceeded in two thirds of the
+cases, so the threshold lies in the bulk of the distribution rather than in
+a tail, where a targeted design has most to gain. The adaptive committee
+reduced the nRMSE relative to the passive one (ratio 0.84) but, as on the
+plume model, its estimate of $P(C>\mathrm{IDLH})$ was off by a median of
+0.11, against 0.06 for the passive committee and 0.009 for the log-variable
+GP.
+
 \emph{Surrogate contribution.} The coverage results carry over to the CFD
 case (Table~\ref{tab:coverage}, last row; diamonds in
 Fig.~\ref{fig:coverage}). Pointwise, the GP intervals covered 69--92\% of
@@ -54,7 +66,7 @@ log-variable GP the figures were 80\% and 97\%.
 the centre of the input box; white line: zero streamwise velocity,
 enclosing the recirculating wake; star: release. (b) Concentration at
 1.5\,m height against distance from the leeward face for eight reference
-runs. (c) Iterations of the 1550 runs; the runs at 4000 did not meet the
+runs. (c) Iterations of the 2900 runs; the runs at 4000 did not meet the
 residual criteria but changed by less than 0.16\% over their last 2000
 iterations.}
 \label{fig:cfd}

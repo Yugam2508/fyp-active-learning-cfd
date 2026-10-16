@@ -13,8 +13,8 @@
   "q95": 40.897746838178875,
   "p_idlh": 0.006857723781255701
  },
- "n_runs_cached": 1550,
- "share_converged": 0.8090322580645162,
- "iterations_median": 1305.0,
- "iterations_q90": 1457.0
+ "n_runs_cached": 2900,
+ "share_converged": 0.7979310344827586,
+ "iterations_median": 1322.0,
+ "iterations_q90": 1464.0
 }
