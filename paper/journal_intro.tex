@@ -1,0 +1,97 @@
+% journal_intro.tex — Section 1 of the journal manuscript (paper.tex).
+
+\section{Introduction}
+Evaluating measurement uncertainty by the propagation of distributions,
+following Supplement~1 to the Guide to the Expression of Uncertainty in
+Measurement (GUM~S1)~\cite{jcgm100,jcgm101}, requires the measurement model
+$Y=f(\mathbf X)$ to be evaluated once per Monte Carlo trial, typically
+$10^5$ to $10^6$ times~\cite{cox2006,harris2014}. For a growing class of
+quantities $f$ is a numerical simulation. A computational fluid dynamics
+(CFD) model of an accidental ammonia release in a factory~\cite{tan2017}
+can take hours to days per run, so that a practical budget is a few tens of
+runs, three or four orders of magnitude short of what the Monte Carlo
+method needs. The same gap arises in scatterometry, where it has been
+studied in detail~\cite{heidenreich2017}, and in many inverse and
+model-based measurements.
+
+The usual remedy is a \emph{surrogate} (emulator, metamodel) fitted to the
+available runs and evaluated in place of $f$~\cite{ohagan2006,wang2022}.
+Two questions then decide whether the resulting uncertainty statement can
+be trusted: which surrogate reproduces the reported quantities best for a
+given number of runs, and how the surrogate's own error is to be included
+in the uncertainty budget, since it is not negligible at such budgets.
+This paper answers both with a controlled comparison on ten models,
+including a CFD dispersion case, and validates the answers against the
+true models.
+
+\subsection{Related work}
+\emph{Gaussian process emulators.} Gaussian process (GP) regression, or
+kriging, is the standard surrogate for deterministic computer
+experiments~\cite{sacks1989,rw2006}. The Bayesian treatment of O'Hagan and
+co-workers~\cite{ohagan2006,kennedy2001} reads the GP posterior as the
+uncertainty about $f$ itself, which suggests using the posterior variance
+as the surrogate contribution to an uncertainty budget. A common guideline
+asks for about ten runs per input~\cite{loeppky2009}, and the effect of
+modelling choices such as the correlation family, the mean function and
+the treatment of the hyperparameters on GP accuracy has been assessed
+systematically~\cite{chen2016}.
+
+\emph{Polynomial chaos.} Polynomial chaos expansions (PCE) represent $Y$ in
+polynomials orthonormal with respect to $g_{\mathbf X}$~\cite{xiu2002},
+from which the moments and sensitivity indices follow
+directly~\cite{sudret2008}. With few runs, sparse expansions selected by
+least-angle regression~\cite{efron2004} and a corrected leave-one-out
+error are the method of choice~\cite{blatman2011}.
+
+\emph{Ensembles and committees.} Combining several surrogates with weights
+derived from their cross-validation errors protects against choosing a poor
+surrogate~\cite{goel2007,viana2009}; the spread of the members has also
+been used as an interval for the output, in the spirit of probability
+boxes~\cite{ferson1996}.
+
+\emph{Adaptive designs.} Instead of fixing all runs in advance, runs can be
+added where the surrogate is most uncertain, by its posterior
+variance~\cite{gramacy2009}, by the disagreement of a committee, or by
+measures such as the spectral uncertainty of Lin et al.~\cite{lin2024}. For
+the probability of exceeding a threshold, the AK-MCS method of Echard et
+al.~\cite{echard2011} places runs where the sign of $f-T$ is most
+uncertain.
+
+\emph{Validity of the surrogate contribution.} Whether any of these
+uncertainty descriptions has the coverage it claims is rarely checked
+against the true model. Conformal prediction~\cite{angelopoulos2023}, and
+in particular the jackknife+~\cite{barber2021}, gives prediction intervals
+with a coverage guarantee that holds for any fitted model, using only
+leave-one-out fits. To our knowledge it has not been compared with GP
+posterior intervals as the surrogate contribution in a GUM~S1 evaluation.
+
+\emph{Benchmarks.} Comparisons of surrogates are sensitive to the test
+functions and to the number of repetitions. We use standard functions from
+the literature~\cite{vlse,wicaksono2023}, GUM-type input distributions, a
+physical dispersion formula and a CFD case, with 30 paired repetitions and
+statistics adjusted for multiple comparisons.
+
+\subsection{Earlier analysis and contributions}
+An earlier analysis by the first author combined a heterogeneous committee,
+the spectral acquisition criterion and dynamic model management, and
+reported that a passively sampled GP fails catastrophically on large input
+domains, a failure the committee avoided. The present study re-examines
+these claims with correctly specified baselines and extends them to the
+general question above. Its contributions are:
+\begin{enumerate}\setlength\itemsep{1pt}
+\item a paired comparison, on ten models with uniform and GUM-type inputs
+and a CFD dispersion case, of GP specifications, sparse PCE, committees and
+adaptive and targeted designs at budgets of 10 to 80 runs, scored on the
+quantities a GUM~S1 evaluation reports;
+\item the finding that the GP failure of the earlier analysis is a
+kernel-specification artefact, and that specification (amplitude,
+anisotropy, trend) and variable transformation matter more than the choice
+between single surrogates, committees and adaptive designs;
+\item a validation, against the true models, of three ways to include the
+surrogate error in GUM~S1: the GP posterior, a cross-validation (CV)
+normal error and resampled leave-one-out residuals, with jackknife+
+intervals as a distribution-free reference;
+\item a procedure for surrogate-based GUM~S1 evaluations
+(Fig.~\ref{fig:flowchart}), and code, per-seed records and an audit script
+that recompute every number reported~\cite{repo}.
+\end{enumerate}
