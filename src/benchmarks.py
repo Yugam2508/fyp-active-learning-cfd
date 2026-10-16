@@ -56,6 +56,8 @@ flood         Maximal annual underflow (m) of a river (Iooss & Lemaitre 2015),
               below 1e-5 for this input model, so the exceedance assessment
               uses the alert level "underflow below its reference 5 %
               quantile": threshold None, tail "lower".
+cfd           OpenFOAM RANS dispersion behind a building, 6 inputs; see
+              src/cfd_benchmark.py and src/cfd_dispersion.py.
 Formulas and input models were cross-checked numerically against
 UQTestFuns v0.7.0 (tests in experiments/check_benchmarks.py).
 """
@@ -260,3 +262,7 @@ class Flood(_Bench):
 
 BENCHMARKS = {c.name: c for c in (Physics, Plume, Borehole, Ishigami, OTL,
                                   Piston, BoreholeGUM, PlumeGUM, Flood)}
+
+# CFD dispersion case (OpenFOAM; runs cached in results/cfd_runs/)
+from cfd_benchmark import CFDDispersion            # noqa: E402
+BENCHMARKS[CFDDispersion.name] = CFDDispersion

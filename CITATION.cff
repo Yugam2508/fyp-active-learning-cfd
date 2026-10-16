@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this code or the result records, please cite them as below."
+title: "Surrogate models for GUM Supplement 1 uncertainty propagation with small budgets of model runs: code, per-seed records and figure scripts"
+type: software
+authors:
+  - family-names: Vora
+    given-names: Yugam Jinesh
+    email: yugam@u.nus.edu
+    affiliation: "Department of Engineering Science, National University of Singapore"
+  - family-names: Ng
+    given-names: Wee Hoe
+    affiliation: "National Metrology Centre, Agency for Science, Technology and Research (A*STAR), Singapore"
+repository-code: "https://github.com/Yugam2508/fyp-active-learning-cfd"
+license: MIT
+keywords:
+  - measurement uncertainty
+  - GUM Supplement 1
+  - Monte Carlo method
+  - surrogate model
+  - Gaussian process
+  - polynomial chaos
+  - active learning
+  - gas dispersion

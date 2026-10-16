@@ -33,7 +33,8 @@ nrmse equals that study's value):
 
 3. Uncertainty of derived quantities (mean, SD, 95th percentile, exceedance
    probability) of the output over 2000 fixed input draws (the first 2000 of
-   the propagation sample), compared with the same quantities of the true
+   the propagation sample; for the CFD case the 1600 "q" points of
+   src/cfd_benchmark.py, which reuse the reference runs), compared with the same quantities of the true
    model on the same draws, so that only the emulator error is assessed:
      gpjoint  95 % interval of the quantity over 1000 joint GP posterior
               sample paths (GP only)
@@ -80,10 +81,17 @@ def fixed(n_pts, rs):
     return problem.ppf(rs.uniform(0, 1, (n_pts, d)))
 
 
-X_test = fixed(5000, np.random.RandomState(7)); y_test = problem.evaluate(X_test)
-y_ref = problem.evaluate(fixed(200_000, np.random.RandomState(8)))
 X_mc = fixed(30_000, np.random.RandomState(9))
-X_q = X_mc[:N_Q]; y_q = problem.evaluate(X_q)
+HAS_SETS = hasattr(problem, "reference_sets")
+if HAS_SETS:                             # CFD: reference built from cached runs
+    _sets = problem.reference_sets()
+    X_test, y_ref, X_q = _sets["test"], problem.evaluate(_sets["ref"]), _sets["q"]
+    N_Q = len(X_q)
+else:
+    X_test = fixed(5000, np.random.RandomState(7))
+    y_ref = problem.evaluate(fixed(200_000, np.random.RandomState(8)))
+    X_q = X_mc[:N_Q]
+y_test = problem.evaluate(X_test); y_q = problem.evaluate(X_q)
 REF_SD = float(y_ref.std())
 REF_LO, REF_HI = np.quantile(y_ref, [ALPHA / 2, 1 - ALPHA / 2])
 LOWER = problem.tail == "lower"
@@ -181,7 +189,7 @@ def run(seed):
 
     # 3. derived quantities over the same N_Q draws
     truth = quantities(y_q)
-    est = quantities(m(mu_mc[:N_Q]))
+    est = quantities(m(s.latent(X_q)[0] if HAS_SETS else mu_mc[:N_Q]))
     jk = quantities(m(mu_loo_q))
     for k in truth:
         se = np.sqrt((N - 1) / N * np.sum((jk[k] - jk[k].mean()) ** 2))
