@@ -1,0 +1,1 @@
+[{"seed": 1000, "benchmark": "cfd", "N": 20, "loo_rmse_gp_m52": 156.77616641360444, "loo_rmse_gp_quad": 157.7002696072961, "loo_rmse_spce": 260.00186862248495, "loo_rmse_gp_log": 30.707840449861862, "loo_rmse_gp_quadlog": 22.855578212209107, "loo_rmse_spce_log": 93.0749911068846, "runtime_s": 44.0}]
