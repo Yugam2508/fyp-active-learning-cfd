@@ -1,6 +1,50 @@
-% journal_results_cfd.tex — results on the CFD dispersion case (Section 5.6).
-% Filled in from results/journal/summary.json once the CFD campaign ends.
+% journal_results_cfd.tex — results on the CFD dispersion case (Section 5.7).
+% Numbers: results/journal/summary.json, results/cfd_reference.json,
+% results/cfd_grid_check.json, results/cfd_iteration_check.json.
 
 \subsection{CFD dispersion case}
 \label{sec:res-cfd}
-\textit{[Results of the CFD campaign to be inserted.]}
+\emph{The case.} Fig.~\ref{fig:cfd} shows the flow and concentration field
+for the centre of the input box: the plume is lifted over the building,
+part of it is trapped in a recirculating wake that extends several building
+heights downstream, and the concentration at breathing height is nearly
+uniform inside the wake and decays beyond it. Of the 1550 CFD runs of the
+study, 81\% met the residual criteria within 4000 iterations (median 1305
+iterations); for the others, mostly tall buildings whose steady wake keeps
+the residuals oscillating, the receptor concentration varied by less than
+0.16\% over the last 2000 iterations, so the iteration error is negligible.
+Refining the mesh twice in each direction changed the receptor
+concentration by 0.9--6.5\% (median 3.7\%) in six flow states spread over
+the input box: a discretisation error that is part of the model as
+defined, as it would be for any production CFD model. The reference gives
+a mean of 434\,mg\,m$^{-3}$, an SD of 413\,mg\,m$^{-3}$, a 95th percentile
+of 1252\,mg\,m$^{-3}$ and $P(C>\mathrm{IDLH})=0.673$, with standard
+uncertainties from a bootstrap over the 800 reference runs of 2.3\%,
+3.4\%, 3.3\% and 0.007; validation errors of the propagated quantities
+below about 5\% are therefore not resolved.
+
+\emph{Specification and selection.} The CFD case confirms the analytical
+results (Table~\ref{tab:n20}, last row). Kernel specification did not
+matter (ratio 0.96), but the log scale did: the log-variable GP had a
+median nRMSE of 0.080 against 0.53 for the Mat\'ern GP (ratio 0.17, better
+in all 30 seeds), and a quadratic trend on the log scale reduced it further
+to 0.060 (ratio 0.76). Sparse PCE was 1.4 times worse than the GP on the raw
+scale and 2.3 times on the log scale, and the CV-weighted committee was no
+better than the GP with trend (ratio 1.08). The selection by LOO error
+chose a log-scale GP in all 30 seeds and was within 0.1\% of the best
+candidate in hindsight. With the log-variable GP, the 95th percentile was
+within 6.9\% of the reference and $P(C>\mathrm{IDLH})$ within 0.009, against
+18.5\% and 0.019 for the Mat\'ern GP and 27\% and 0.059 for the committee.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\textwidth]{journal/fig_cfd_case}
+\caption{CFD dispersion case. (a) Concentration at a unit release rate for
+the centre of the input box; white line: zero streamwise velocity,
+enclosing the recirculating wake; star: release. (b) Concentration at
+1.5\,m height against distance from the leeward face for eight reference
+runs. (c) Iterations of the 1550 runs; the runs at 4000 did not meet the
+residual criteria but changed by less than 0.16\% over their last 2000
+iterations.}
+\label{fig:cfd}
+\end{figure}
