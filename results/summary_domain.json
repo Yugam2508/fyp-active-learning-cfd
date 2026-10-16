@@ -1,0 +1,80 @@
+{
+ "phys10": {
+  "function": "physics",
+  "half_width": 10,
+  "n": 30,
+  "rho_mean": 0.50963676057209,
+  "rho_median": 0.3199236120440206,
+  "mean_al": 3.162738669533452,
+  "mean_lhsgp": 6.2058684031802125,
+  "median_al": 1.9869468802948385,
+  "median_lhsgp": 6.210691569778351,
+  "al_wins": 25,
+  "output_std": 10.14825323656738
+ },
+ "phys100": {
+  "function": "physics",
+  "half_width": 100,
+  "n": 30,
+  "rho_mean": 0.04757644297540755,
+  "rho_median": 0.0011113740982924682,
+  "mean_al": 28.741026408194568,
+  "mean_lhsgp": 604.1020431697872,
+  "median_al": 0.6790637129450585,
+  "median_lhsgp": 611.0127219883766,
+  "al_wins": 29,
+  "output_std": 1018.274305284459
+ },
+ "phys2": {
+  "function": "physics",
+  "half_width": 2,
+  "n": 30,
+  "rho_mean": 1.037198366764575,
+  "rho_median": 0.9897199433332463,
+  "mean_al": 0.6201029624176339,
+  "mean_lhsgp": 0.59786341965807,
+  "median_al": 0.6152348919358535,
+  "median_lhsgp": 0.6216252345727453,
+  "al_wins": 15,
+  "output_std": 0.6205206994072943
+ },
+ "phys200": {
+  "function": "physics",
+  "half_width": 200,
+  "n": 30,
+  "rho_mean": 0.029842898496657427,
+  "rho_median": 0.000277714102629637,
+  "mean_al": 72.1144067751332,
+  "mean_lhsgp": 2416.467917257113,
+  "median_al": 0.6788723442410183,
+  "median_lhsgp": 2444.500793488226,
+  "al_wins": 30,
+  "output_std": 4073.100264622307
+ },
+ "phys50": {
+  "function": "physics",
+  "half_width": 50,
+  "n": 30,
+  "rho_mean": 0.08808153242677891,
+  "rho_median": 0.004285253162705438,
+  "mean_al": 13.30912592608255,
+  "mean_lhsgp": 151.10007239197685,
+  "median_al": 0.6549414495244882,
+  "median_lhsgp": 152.8361160139719,
+  "al_wins": 28,
+  "output_std": 254.57266965170373
+ },
+ "schwefel": {
+  "function": "schwefel",
+  "half_width": 500,
+  "n": 30,
+  "rho_mean": 1.0965816243504696,
+  "rho_median": 1.0625742394535906,
+  "mean_al": 371.60918755673424,
+  "mean_lhsgp": 338.87964133709323,
+  "median_al": 359.5899705845251,
+  "median_lhsgp": 338.4139735680376,
+  "al_wins": 3,
+  "output_std": 338.05422974999027
+ }
+}

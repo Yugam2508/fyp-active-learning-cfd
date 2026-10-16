@@ -4,6 +4,7 @@
 % Official class imeko_wc v2.5. Build:
 %   pdflatex extended_abstract && bibtex extended_abstract
 %   pdflatex extended_abstract && pdflatex extended_abstract
+% Every number in this file is traced to its source in NUMBERS.md.
 
 \documentclass{imeko_wc}
 \usepackage[british]{babel}
@@ -12,17 +13,11 @@
 
 \graphicspath{{../../figures/}{figures/}}
 
-% Use the figure file if it exists, else a labelled placeholder of similar size.
-\newcommand{\figslot}[2]{\IfFileExists{#1}%
-  {\includegraphics[width=0.95\columnwidth]{#1}}%
-  {\fbox{\parbox[c][0.55\columnwidth][c]{0.9\columnwidth}{\centering\small
-  Figure placeholder: \texttt{\detokenize{#1}}\\[2pt] #2}}}}
-
 \begin{document}
 
 \title{Surrogate-based Monte Carlo propagation for expensive measurement
-models: when Gaussian processes fail and why committee aggregation must be
-error-weighted}
+models: when passive Gaussian processes fail and what a surrogate committee
+needs}
 
 \author[a1]{Vora Yugam Jinesh}
 \affiliation[a1]{Department of Engineering Science, National University of
@@ -35,19 +30,20 @@ Singapore, Singapore}
 
 \begin{abstract}
 Monte Carlo propagation of distributions needs thousands of evaluations of the
-measurement model, which is infeasible when the model is a fluid dynamics
-simulation costing hours per run. A surrogate trained on about twenty runs
-makes propagation cheap, but it adds a model-form uncertainty component that
-is rarely evaluated. We show that a passively sampled Gaussian process fails
-catastrophically only when a large input domain coincides with a high output
-dynamic range. In that regime, a committee of structurally different
-surrogates restores accuracy. Paired 30-seed ablations show, however, that the
-run-selection metric is not the cause. The decisive ingredients are a member
-matching the dominant response structure and error-weighted aggregation;
-uniform averaging fails in every trial. The weighted committee yields a
-probability box, bounded exceedance probabilities and a model-form variance
-share, and it reproduces a reference Monte Carlo evaluation to within about
-\qty{1}{\percent}.
+measurement model, which is infeasible when each evaluation is a fluid
+dynamics simulation lasting hours. A surrogate trained on about twenty runs
+makes propagation cheap but adds a rarely evaluated model-form uncertainty
+component. On a benchmark with a controllable domain, a passively
+sampled Gaussian process becomes no better than a constant predictor once the
+run spacing is large. A committee of structurally different surrogates
+recovers accuracy only when one member represents the dominant response
+component; paired 30-seed ablations show that the run-selection metric does
+not matter. Aggregation is decisive: uniform averaging failed in all 30
+trials, while cross-validation error weighting succeeded whenever the
+matching member was retained. The weighted committee reproduced a reference
+Monte Carlo evaluation to within \qty{0.7}{\percent} and supplies a
+model-form variance share and probability-box bounds for the uncertainty
+budget.
 \end{abstract}
 
 \begin{keywords}
@@ -75,24 +71,25 @@ point of view, this contribution must be evaluated and reported, not assumed
 to be negligible. The standard surrogate, Gaussian process (GP)
 regression~\cite{sacks1989,rw2006}, provides a predictive variance, but that
 variance is conditional on the GP being an adequate model. Where it is not,
-the GP is confidently wrong~\cite{huellermeier2021}.
+the GP can be confidently wrong~\cite{huellermeier2021}.
 
 Committee-based schemes respond by training several structurally different
 surrogates, choosing new runs where they disagree, and combining their
 predictions. Weighted combinations of surrogates are established in design
 optimisation~\cite{goel2007,viana2009}, and spectral measures of disagreement
 have recently been proposed for uncertainty quantification of language
-models~\cite{lin2024}. Their behaviour as tools for uncertainty
-\emph{evaluation} of expensive measurement models has not been dissected.
+models~\cite{lin2024}. Which ingredients of such schemes matter when they are
+used for uncertainty \emph{evaluation} of an expensive measurement model has
+not been isolated.
 
-This contribution addresses two questions. First, when does a passively
-sampled GP surrogate fail as a stand-in for an expensive measurement model?
-Second, when it fails, which ingredients of an adaptive multi-surrogate scheme
-actually restore a trustworthy propagation, with the surrogate (model-form)
-contribution quantified?
+This contribution addresses three questions. When does a passively sampled
+GP fail as a stand-in for an expensive model? When it fails, which
+ingredients of an adaptive multi-surrogate scheme restore an accurate
+propagation? And what does the scheme contribute to the uncertainty budget
+beyond a central estimate?
 
 \section{Proposed contribution}
-\subsection{Failure criterion for passive GP surrogates}
+\subsection{Prior reversion of passive GP surrogates}
 For a GP with prior mean $\mu$, the posterior mean at an input $\mathbf{x}$ is
 \begin{equation}
 \hat f(\mathbf{x})=\mu+\mathbf{k}_\ast^{\top}
@@ -105,11 +102,9 @@ $\mathbf{k}_\ast$ the covariance between $\mathbf{x}$ and the training inputs,
 $\mathbf{y}$ the training outputs and $\sigma_\varepsilon^2$ the noise
 variance. When the distance from $\mathbf{x}$ to every training point greatly
 exceeds the kernel length scale, $\mathbf{k}_\ast\to\mathbf{0}$ and
-$\hat f\to\mu$. We call this \emph{prior reversion}. We show empirically that
-it is harmful only when two conditions hold together: the input domain is
-large compared with the spacing of the runs, \emph{and} the output dynamic
-range is high, so that the prior mean is far from the response. Domain size
-alone is not sufficient.
+$\hat f\to\mu$: the GP reverts to a constant. We quantify when this happens
+with a domain-size sweep, and ask whether, and why, an adaptive committee
+avoids it.
 
 \subsection{Committee scheme under study}
 A committee of $K=9$ surrogates with different inductive biases is used: two
@@ -132,7 +127,7 @@ where $\mathrm{MSE}_{\mathrm{CV},k}$ is the cross-validation mean squared
 error of member $k$ and $\pi_k\ge0$ optionally penalises violations of known
 physical bounds, such as a non-negative concentration. Eq.~\eqref{eq:w} is the
 weighted-average surrogate of~\cite{goel2007,viana2009}. We do not propose it
-as new; we characterise when it is \emph{necessary}.
+as new; we test when it is \emph{necessary}.
 
 \begin{algorithm}[tb]
 \caption{Adaptive committee surrogate for propagation}
@@ -152,9 +147,9 @@ as new; we characterise when it is \emph{necessary}.
 \end{algorithm}
 
 \subsection{Propagation with a model-form component}
-The trained committee replaces $f$ in a GUM~S1 Monte Carlo evaluation with
-$M=\num{5e4}$ trials, which takes seconds of computing time. By the law of
-total variance,
+The trained committee replaces $f$ in a GUM~S1 Monte Carlo evaluation, here
+with $M=\num{3e4}$ trials, which takes seconds of computing time. By the law
+of total variance,
 \begin{equation}
 \operatorname{Var}[Y]=\operatorname{Var}_{\mathbf{X}}\left[\mu_w(\mathbf{X})\right]
 +\mathrm{E}_{\mathbf{X}}\left[\sigma^2_{\mathrm{mf}}(\mathbf{X})\right],
@@ -162,51 +157,65 @@ total variance,
 \end{equation}
 the output variance splits into an input-driven part, carried by the weighted
 committee mean $\mu_w$, and a model-form part $\sigma^2_{\mathrm{mf}}$, the
-weighted spread between members. The ratio of the second term to the total is
-a stopping diagnostic: further simulator runs are worthwhile while it is
-large. The members' individual output cumulative distribution functions
-(CDFs) form a probability box (p-box)~\cite{ferson1996}, from which an
-exceedance probability $P(Y>y_{\mathrm c})$ is reported as an interval. Sobol
-indices~\cite{saltelli2010,jansen1999} computed per member give bars on the
-sensitivity ranking.
+weighted spread between members. The second term's share of the total is a
+stopping diagnostic: further simulator runs are worthwhile while it is large.
+Independently of the weights, the members' output cumulative distribution
+functions (CDFs) span a probability box (p-box)~\cite{ferson1996}, from which
+an exceedance probability $P(Y>y_{\mathrm c})$ is reported as an interval.
+Sobol indices~\cite{saltelli2010,jansen1999} computed per member give bars on
+the sensitivity ranking.
 
 \section{Preliminary results and potential applications}
 \subsection{Protocol}
-All results use the test model
-$f(\mathbf{x})=\sin 2x_1\cos 2x_2+\mathrm{e}^{-x_3^2}+0.2\lVert\mathbf{x}\rVert^2$
-on $[-200,200]^3$ with a budget of $N=20$ runs. Each configuration (arm) is
-run with 30 paired seeds, so the same seed gives every arm the same initial
-design. The root mean square error (RMSE) is evaluated on one fixed set of
-5000 test points, and arms are compared by a Wilcoxon signed-rank test on
-$\log$ RMSE. A trial counts as a success if RMSE $<200$, an order of magnitude
-below the value of about 2000 reached by a prior-reverted GP.
+The test model is
+$f(\mathbf{x})=\sin 2x_1\cos 2x_2+\mathrm{e}^{-x_3^2}+0.2\lVert\mathbf{x}\rVert^2$,
+observed with noise of standard deviation 0.1, on $[-h,h]^3$ with $h=200$
+unless stated. The budget is $N=20$ runs. Each configuration (arm) is run with
+30 seeds shared by all arms. The root mean square error (RMSE) is evaluated on
+one fixed set of 5000 test points, and arms are compared by a two-sided
+Wilcoxon signed-rank test on $\log$ RMSE. A trial counts as a success if
+RMSE $<200$; at $h=200$ the output standard deviation (SD) is about 4100 and a
+prior-reverted GP reaches about 2400, so successes and failures differ by
+more than two orders of magnitude (Fig.~\ref{fig:strip}). Code, per-seed
+records and the scripts that produce every number and figure are openly
+available~\cite{repo}.
 
-\subsection{Failure criterion}
-A sweep over domain half-widths $h\in\{2,10,50,100,200\}$ shows a sharp
-crossover between $h=2$, where the ratio of adaptive to passive-GP RMSE is
-$\rho=1.06$, and $h=10$, where $\rho=0.38$ (Fig.~\ref{fig:dom}). The Schwefel
-function on the larger domain $[-500,500]^3$, but with a small dynamic range,
-gives $\rho=1.09$: passive GP sampling is adequate there. Across nine standard
-benchmarks, only the problem that meets both conditions favours the adaptive
-scheme; on seven of the nine, a well-specified passive GP ties or wins by
-\qty{9}{\percent} to \qty{17}{\percent}.
+\subsection{When the passive GP fails}
+Fig.~\ref{fig:dom} compares a GP fitted to a 20-point Latin hypercube with the
+adaptive committee (UEigV, hard rejection) as the half-width $h$ grows. The
+passive GP's median RMSE is 1.00 output SD at $h=2$ and 0.60 SD for every
+$h\ge10$: it reproduces little more than the mean. The committee's error falls
+from 0.99 SD at $h=2$ to \num{1.7e-4} SD at $h=200$, and the ratio of mean
+RMSEs from 1.04 to 0.030. The mechanism is visible in absolute terms. The
+quadratic term carries \qty{44}{\percent} of the output variance at $h=2$ and
+practically all of it for $h\ge10$, and the degree-2 PCE represents it
+exactly. The committee's median RMSE is 0.62 to 0.68 at $h=2$ and
+$h\ge50$, close to the RMS of the oscillatory and exponential terms (0.50 to
+0.61), which no member can learn from 20 runs. At $h=10$ the median is 1.99,
+because hard rejection retains the degree-2 PCE in only 15 of 30 trials. On
+the Schwefel function on $[-500,500]^3$, which no member represents, both
+methods stay at about one SD (ratio 1.10). A passive GP therefore fails
+whenever the run spacing is large compared with the length scale of the
+response, and a committee helps only to the extent that one member represents
+the dominant component.
 
 \begin{figure}[tb]
 \centering
-\figslot{fig_ablation.pdf}{domain-size sweep (thesis runs)}
-\caption{Domain-size sweep (30 trials per point, $N=20$): ratio $\rho$ of
-adaptive to passive-GP RMSE against domain half-width. The shaded band marks
-the crossover between $h=2$ and $h=10$.}
+\includegraphics[width=\columnwidth]{fig_domain_sweep}
+\caption{Median test RMSE divided by the output SD against domain half-width
+(30 seeds per point). Open markers: Schwefel control on $[-500,500]^3$. The
+dashed line marks a constant predictor.}
 \label{fig:dom}
 \end{figure}
 
 \subsection{What restores accuracy}
-Table~\ref{tab:abl} and Fig.~\ref{fig:strip} give the paired ablations.
+Table~\ref{tab:abl} and Fig.~\ref{fig:strip} give the paired ablations at
+$h=200$.
 
 \begin{table}[tb]
 \centering
-\caption{Paired ablations, $N=20$, 30 seeds. $p$: Wilcoxon signed-rank test on
-$\log$ RMSE against the first row.}
+\caption{Paired ablations, $h=200$, $N=20$, 30 seeds. $p$: Wilcoxon
+signed-rank test on $\log$ RMSE against the first row.}
 \label{tab:abl}
 \begin{tabular}{lrrr}
 \toprule
@@ -223,11 +232,10 @@ UEigV, Eq.~\eqref{eq:w} & 0.646 & 29/30 & 0.004\\
 
 \begin{figure}[tb]
 \centering
-\figslot{fig_ablation_strip.pdf}{per-seed RMSE by arm
-(experiments/plot\_ablation\_strip.py)}
-\caption{Per-seed test RMSE for each arm of Table~\ref{tab:abl} (logarithmic
-scale, one dot per seed, bar at the median). Successes and failures are
-separated by more than two orders of magnitude.}
+\includegraphics[width=\columnwidth]{fig_ablation_strip}
+\caption{Per-seed test RMSE for each arm of Table~\ref{tab:abl} (one dot per
+seed, bar at the median). Successes and failures are separated by more than
+two orders of magnitude.}
 \label{fig:strip}
 \end{figure}
 
@@ -236,54 +244,53 @@ plain variance succeeds in all 30 trials and has the lower paired RMSE in 18
 of 30 ($p=0.047$). \emph{Second}, success depends on an \emph{anchor} member.
 Without the PCE members the scheme fails in every trial, as does the
 conventional adaptive design with a single GP. With them, hard rejection ends
-with the degree-2 PCE alone in 26 of 30 trials; that PCE is the exact model
-class of the dominant quadratic term, which carries more than \qty{99.9}{\percent} of the
-output variance. \emph{Third}, hard rejection collapses to one member in all
-30 trials, at a median of iteration 10 of 15. After that the disagreement is
-identically zero, and about \qty{31}{\percent} of its run budget is silently spent on
-random points.
+with the degree-2 PCE alone in most trials. \emph{Third}, hard rejection
+collapses the committee to one member in \COLLAPSEN{} trials, at a median of
+iteration \COLLAPSEIT{} of 15. After that the disagreement is identically zero,
+and \COLLAPSEPCT{} of the run budget is silently spent on random points.
 
 \begin{table}[tb]
 \centering
-\caption{Aggregation under a fair baseline: hard rejection forced to keep at
-least $K_{\min}$ members; CV: error weighting without rejection. First two
-rows: 30 seeds; third row: 12 seeds.}
+\caption{Aggregation, $h=200$, 30 seeds. Rows 2 and 3 score the same final
+survivors and data of hard rejection forced to keep $K_{\min}=3$ members.}
 \label{tab:agg}
 \begin{tabular}{llrr}
 \toprule
 Manager & Aggregation & Med. RMSE & Succ.\\
 \midrule
-Hard, $K_{\min}=1$ & 1 left & 0.695 & \qty{93}{\percent}\\
-Hard, $K_{\min}=3$ & uniform & 1763  & \qty{0}{\percent}\\
-Hard, $K_{\min}=3$ & Eq.~\eqref{eq:w} & 0.729 & \qty{100}{\percent}\\
-CV, $K_{\min}=2$ & Eq.~\eqref{eq:w} & 0.646 & \qty{97}{\percent}\\
+Hard, $K_{\min}=1$ & 1 left           & 0.682 & 27/30\\
+Hard, $K_{\min}=3$ & uniform          & 1556  & 0/30\\
+Hard, $K_{\min}=3$ & Eq.~\eqref{eq:w} & 0.701 & 27/30\\
+Weighting only     & Eq.~\eqref{eq:w} & 0.646 & 29/30\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:agg} isolates the aggregation rule. With three survivors that
-include the correct member, a uniform mean fails in every trial, because the
-error of the prior-reverted GP, of order $10^3$, dominates it. The same three
-members weighted by Eq.~\eqref{eq:w} succeed in every trial. Making rejection
-reversible has no measurable effect: the aggregation rule is the causal
-ingredient.
+Table~\ref{tab:agg} isolates the aggregation rule. With $K_{\min}=3$ the
+degree-2 PCE survives in 27 of 30 trials, yet the uniform mean fails in all
+30, because the error of the prior-reverted members, of order $10^3$,
+dominates it. Weighting the same survivors on the same data by
+Eq.~\eqref{eq:w} succeeds in all 27 trials that retain the degree-2 PCE and
+fails in exactly the three that do not (paired $p<10^{-8}$). The aggregation
+rule, not the reversibility of rejection, is the causal ingredient, and it can
+only exploit an anchor that is present.
 
 \subsection{Propagation}
 Table~\ref{tab:uq} compares the propagated output distribution with a
 reference Monte Carlo evaluation of the true model ($M=\num{2e5}$) over all
 successful seeds. The central estimates of the two managers are
-indistinguishable; the difference lies entirely in whether the model-form
-component can be evaluated.
+indistinguishable; the difference lies in whether a model-form component can
+be evaluated at all.
 
 \begin{table}[tb]
 \centering
 \caption{Propagation against the reference Monte Carlo evaluation, median over
-successful seeds (weighted: 29, hard: 27). Coverage is the share of seeds whose
-interval contains the reference value.}
+successful seeds (weighting: 29, hard: 27). Coverage is the share of seeds
+whose member envelope contains the reference value.}
 \label{tab:uq}
 \begin{tabular}{lrr}
 \toprule
-Quantity & Weighted & Hard\\
+Quantity & Weighting & Hard\\
 \midrule
 Rel. error, 5th percentile  & \qty{0.68}{\percent} & \qty{0.67}{\percent}\\
 Rel. error, median          & \qty{0.24}{\percent} & \qty{0.24}{\percent}\\
@@ -297,21 +304,28 @@ Mean p-box share of CDF     & \qty{69}{\percent} & \qty{0}{\percent}\\
 \end{tabular}
 \end{table}
 
-In a representative run, the weighted committee agrees with the reference to
-within \qty{1}{\percent} in mean, standard deviation and the 5th, 50th and 95th
-percentiles (Fig.~\ref{fig:pbox}), and the model-form share of
-Eq.~\eqref{eq:lotv} falls from 0.76 to almost zero over the budget. The
-model-form intervals are committee envelopes rather than calibrated coverage
-intervals, and they under-cover. A committee reduced to one member by hard
-rejection gives zero-width intervals by construction, so its model-form
-component cannot be evaluated at all.
+For a representative run (seed 1000, the first seed), the weighted committee
+matches the reference mean to \qty{0.21}{\percent}, the SD to
+\qty{0.14}{\percent} and the 5th, 50th and 95th percentiles to
+\qty{0.66}{\percent}, \qty{0.24}{\percent} and \qty{0.41}{\percent}
+(Fig.~\ref{fig:pbox}). Its model-form share in Eq.~\eqref{eq:lotv} falls from
+0.50 at five runs to \num{7e-8} at twenty, as the weights concentrate on the
+degree-2 PCE. This is consistent with the actual surrogate error, whose share
+of the output variance is $\mathrm{RMSE}^2/\operatorname{Var}[Y]\approx
+\num{2e-8}$. The p-box and exceedance interval are unweighted member
+envelopes. They remain wide and are not calibrated coverage intervals: the
+exceedance interval contains the reference value in only
+\qty{62}{\percent} of seeds. A committee reduced to one member by hard
+rejection gives zero-width intervals and a model-form share of exactly zero
+by construction, so it cannot report this component at all.
 
 \begin{figure}[tb]
 \centering
-\figslot{fig_uq_pbox.pdf}{probability box (experiments/demo\_uq.py)}
-\caption{Output CDF p-box from the weighted committee (representative seed).
-Band: member envelope; solid: weighted mixture; dashed: reference Monte Carlo.
-The annotated interval bounds $P(Y>y_{0.95})$.}
+\includegraphics[width=\columnwidth]{fig_uq_pbox}
+\caption{Output CDF from the weighted committee (seed 1000) against the
+reference Monte Carlo CDF. Shaded: envelope of all nine members' CDFs; the
+near-vertical edge is a prior-reverted member predicting an almost constant
+output. Dotted: 95th percentile $y_{0.95}$.}
 \label{fig:pbox}
 \end{figure}
 
@@ -320,47 +334,44 @@ The results suggest four practical rules for using a surrogate inside a
 GUM~S1 evaluation of an expensive model, such as a dispersion simulation in
 a risk assessment.
 
-\emph{Check the two failure conditions before trusting a GP.} If the input
-ranges are wide compared with the spacing of the available runs, and the
-output spans orders of magnitude, a passively sampled GP reproduces its prior
-mean over most of the domain, and its own predictive variance does not reveal
-this. Where either condition is absent, a GP fitted to a space-filling design
-was as good as any adaptive scheme in our tests.
+\emph{Check for prior reversion before trusting a GP.} If the input ranges are
+wide compared with the spacing of the available runs, a passively sampled GP
+reproduces little more than its mean, and its own predictive variance does
+not reveal this. Comparing its cross-validation error with the output SD is a
+cheap check.
 
-\emph{Report the surrogate as an uncertainty component.} Eq.~\eqref{eq:lotv}
-gives a variance share for the surrogate that can be entered in the
-uncertainty budget alongside the input contributions. A single surrogate, or a
-committee reduced to one member, sets this share to zero by construction; that
-is an omission, not a demonstration of accuracy.
+\emph{Include members that can represent the expected structure.} A committee
+helps only through a member whose hypothesis class matches the dominant
+response component, for example a low-order polynomial for a smooth trend.
+The choice of run-selection metric is secondary.
 
 \emph{Weight members by out-of-sample error, never uniformly.} One
 prior-reverted member is enough to move a uniform mean by orders of magnitude,
 even when an exact member is present. Cross-validation error is cheap at
-$N\approx20$ and separates good and bad members by orders of magnitude, which
-is all Eq.~\eqref{eq:w} needs.
+$N\approx20$ and separates good and bad members by orders of magnitude.
 
-\emph{Treat committee envelopes as lower bounds on model-form uncertainty.}
-The exceedance intervals in Table~\ref{tab:uq} contain the reference value in
-only \qty{62}{\percent} of seeds. They show \emph{that} the surrogate is uncertain, not with
-what probability. Calibrated coverage needs a further step, such as conformal
+\emph{Report the model-form component, and treat envelopes as indicative.}
+The weighted share in Eq.~\eqref{eq:lotv} can be entered in the uncertainty
+budget alongside the input contributions; a single surrogate sets it to zero
+by construction, which is an omission rather than evidence of accuracy.
+Member envelopes show \emph{that} the surrogate is uncertain, not with what
+probability; calibrated coverage needs a further step, such as conformal
 prediction~\cite{angelopoulos2023}.
 
 \section{Conclusions}
 For an expensive measurement model evaluated about twenty times, a passively
-sampled GP surrogate is safe for Monte Carlo propagation unless the input
-domain is large and the output dynamic range is high. When both hold, a
-heterogeneous committee restores accuracy, but the reason is a member matching
-the dominant response structure, combined with weighting by
-cross-validation error. A sophisticated run-selection metric is not
-responsible, and uniform averaging fails even with the right member present.
-The weighted committee also makes the surrogate's own model-form contribution
-visible in the uncertainty budget, as a p-box and a variance share. These
-results come from a single synthetic model in which an anchor member is
-available. The final paper will add test cases with no such member and a
-dispersion-type model, and will replace the uncalibrated envelopes with
-conformal intervals of guaranteed coverage. Code and every per-trial record
-are openly available at
-\url{https://github.com/Yugam2508/fyp-active-learning-cfd}.
+sampled GP surrogate reverts towards a constant once the run spacing is large
+compared with the length scale of the response. A heterogeneous committee
+restores accuracy only through a member that represents the dominant response
+component, and only if the members are combined by out-of-sample error
+weighting: uniform averaging failed in every trial even with that member
+present, and the choice of run-selection metric made no difference. The
+weighted committee reproduces a reference Monte Carlo evaluation to better
+than \qty{1}{\percent} and makes the surrogate's own contribution visible in
+the uncertainty budget. These results come from a synthetic model in which an
+anchor member is available. The final paper will add test cases with no such
+member and a dispersion-type model, and will replace the uncalibrated
+envelopes with conformal intervals.
 
 \bibliographystyle{imeko_wc}
 \bibliography{references}

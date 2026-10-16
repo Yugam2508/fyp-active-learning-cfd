@@ -70,3 +70,56 @@ result (when and why it is necessary), not a new method.
 - All of the above is one synthetic benchmark whose dominant term matches PCE-d2's
   hypothesis class exactly. `nopce` (committee without PCE) fails outright. Nothing
   here generalises until it is repeated on benchmarks with no anchor model.
+
+---
+
+## Update 2026-10-16 — reruns for the IMEKO WC 2027 extended abstract
+
+All runs below use PyTorch DNNs and the fixed Latin-hypercube seeding
+(`docs/REPRODUCIBILITY.md` §3); 30 seeds each. Numbers are recomputed by
+`paper/imeko2027/check_numbers.py`.
+
+### Fair baseline, now complete (`results/results_hardmin3.json`)
+`campaign_hardmin.py` now scores **both** aggregation rules on the **same**
+final survivors and data in every trial, replacing the 12-seed sklearn row.
+
+| K_min = 3 survivors, same data | Median RMSE | Success |
+|---|---:|---:|
+| uniform mean | 1556 | 0/30 |
+| CV inverse-error weights | 0.701 | 27/30 |
+
+PCE-d2 survives in 27/30 trials. Weighting succeeds in all 27 and fails in
+exactly the 3 without it (seeds 1006, 1012, 1014); uniform averaging fails in
+all 30. Paired Wilcoxon p = 5.6e-9. The aggregation rule is causal, but it
+can only exploit an anchor that is present.
+
+### Domain sweep reproduced, interpretation revised (`results/results_domain_*.json`)
+The thesis ratios reproduce approximately: ρ = 1.04 at h = 2 (thesis 1.06),
+0.51 at h = 10 (0.384), 0.030 at h = 200 (0.044), Schwefel 1.10 (1.09). The
+thesis's "peak advantage at h = 50" does not: here ρ falls monotonically up
+to h = 200.
+
+Normalised by output SD, however, the **passive GP sits at 0.60 SD for every
+h ≥ 10 and at 1.00 SD for Schwefel**: it is close to a constant predictor in
+both. The committee's absolute median RMSE stays at 0.62–0.68 (h = 2 and
+h ≥ 50), which is the RMS of the sin·cos + exp terms (0.50–0.61) that no
+member learns from 20 runs. The quadratic term (44 % of the variance at h = 2,
+≈ 100 % for h ≥ 10) is captured exactly by PCE-d2. At h = 10 hard rejection
+keeps PCE-d2 in only 15/30 trials (median RMSE 1.99).
+
+**Consequence:** the old "large domain **and** high dynamic range"
+criterion is not isolated by the Schwefel control, because there the GP also
+fails and no committee member matches the response either. The supported
+statement is: *a passive GP fails once run spacing is large relative to the
+response length scale; a committee helps only to the extent that a member
+represents the dominant component.* The README and the extended abstract
+use this wording.
+
+### Representative run (`results/representative_run_seed1000.json`)
+Seed 1000 (first seed, not selected): RMSE 0.633; mean 0.21 %, SD 0.14 %,
+q05/q50/q95 0.66/0.24/0.41 % from the 2×10⁵ reference. The final weights put
+0.999999 on PCE-d2, so the weighted model-form share falls from 0.50 to 7e-8,
+consistent with the true surrogate error share RMSE²/Var Y ≈ 2e-8. The p-box
+and exceedance interval are **unweighted** member envelopes, so they remain
+wide ([0, 0.058] around the true 0.05). The earlier text's "0.76 → ≈ 0" had
+no stored record; it is replaced by these values.
