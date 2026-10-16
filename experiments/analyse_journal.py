@@ -363,10 +363,13 @@ def tab_coverage(S):
     return "\n".join(lines) + "\n"
 
 
-def coverage_ranges(S):
-    """Range over all model x surrogate combinations of each coverage key."""
+def coverage_ranges(S, exclude=("cfd",)):
+    """Range over the model x surrogate combinations of each coverage key
+    (analytical models; the CFD case is reported separately)."""
     out = {}
     for b, row in S["coverage"].items():
+        if b in exclude:
+            continue
         for s, r in row.items():
             for k, v in r.items():
                 if k.endswith("_cov") and isinstance(v, float):
@@ -449,7 +452,9 @@ def fig_coverage(S):
                 for s, r in row.items():
                     if k in r:
                         c = "C3" if s == "gp_orig" else ("C0" if s.startswith("gp") else "C2")
-                        ax.plot(j + rs.uniform(-0.18, 0.18), r[k], "o", ms=2.2, color=c, alpha=0.7)
+                        mk, ms = ("D", 3.2) if b == "cfd" else ("o", 2.2)
+                        ax.plot(j + rs.uniform(-0.18, 0.18), r[k], mk, ms=ms, color=c, alpha=0.7,
+                                mec="k" if b == "cfd" else c, mew=0.4)
         ax.axhline(0.95, color="k", lw=0.7, ls="--")
         ax.set_xticks(range(len(keys))); ax.set_xticklabels([l for _, l in keys], fontsize=6.5)
         ax.set_title(title, fontsize=7.5); ax.tick_params(labelsize=7)
@@ -459,7 +464,8 @@ def fig_coverage(S):
     from matplotlib.lines import Line2D
     h = [Line2D([], [], marker="o", ls="", color=c, ms=3, label=l) for c, l in
          [("C0", "GP (Matérn, quad. trend, log)"), ("C3", "GP, original kernel"), ("C2", "sparse PCE")]]
-    fig.legend(handles=h, loc="lower center", ncol=3, fontsize=6.5, frameon=False)
+    h.append(Line2D([], [], marker="D", ls="", color="0.6", mec="k", mew=0.4, ms=3.5, label="CFD case"))
+    fig.legend(handles=h, loc="lower center", ncol=4, fontsize=6.5, frameon=False)
     fig.tight_layout(rect=(0, 0.07, 1, 1))
     os.makedirs(FIG, exist_ok=True)
     fig.savefig(os.path.join(FIG, "fig_coverage.pdf"))
