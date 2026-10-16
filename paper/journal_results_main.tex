@@ -81,3 +81,21 @@ six of the nine models. At the IDLH threshold of the plume
 model, the log-variable GP estimated $P(C>210\,\mathrm{mg\,m^{-3}})=0.123$
 with a median absolute error of 0.009, against 0.023 for the raw-variable
 GP.
+
+\subsection{Selecting the surrogate from the runs alone}
+\label{sec:res-select}
+The procedure of Fig.~\ref{fig:flowchart} fits the candidates (Mat\'ern GP,
+GP with quadratic trend and sparse PCE, and their log-scale versions for
+positive outputs) and keeps the one with the smallest LOO RMSE, computed on
+the original scale of $Y$ from the $N$ runs alone. Applied to every seed,
+this choice had a median nRMSE between 1.000 and 1.044 times that of the
+best candidate in hindsight on the nine analytical models, and was the best
+candidate itself in 27--77\% of seeds; the largest shortfalls were on the
+Ishigami and plume models, where several candidates are almost equally
+poor or equally good. Relative to always using the Mat\'ern GP, the
+selection reduced the nRMSE by a factor of 500 on the physics model (where
+it chose the sparse PCE or the trend GP), by factors of 0.12--0.84 on the
+models with positive outputs (choosing a log-scale GP in most seeds), and
+left it unchanged on the flood and Ishigami models. The selection step
+therefore recovers practically all of the benefit of the right
+specification without access to the true model.
