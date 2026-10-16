@@ -39,7 +39,10 @@ which prints each value below from the raw records.
 | no PCE | 2387, 0/30, p < 1e-4 | `nopce` |
 | GP alone | 1772, 0/30, p < 1e-4 | `gpvar` |
 | Eq. (2) weighting | 0.646, 29/30, p = 0.004 | `soft` |
-| collapse, collapse iteration, random share | see §III.C text | `results/results_decompose.json`: `n_survivors == 1`, median `collapse_iter`, Σ`random_queries_after_collapse` / (30 × 15) |
+| collapse to one member | 30/30 | `results/results_decompose.json`: `n_survivors == 1` |
+| median collapse iteration | 10 of 15 | median `collapse_iter` |
+| random share of budget | 31 % (139/450) | Σ`random_queries_after_collapse` / (30 × 15) |
+| PCE-d2 sole survivor | 27/30 | `survivor_names` (PCE-d3: 2, DNN-H64: 1) |
 
 ## Aggregation (Table II) — `results/results_hardmin3.json`, `results/results_hard.json`, `results/results_soft.json`
 

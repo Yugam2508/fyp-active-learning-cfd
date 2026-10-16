@@ -162,8 +162,6 @@ stopping diagnostic: further simulator runs are worthwhile while it is large.
 Independently of the weights, the members' output cumulative distribution
 functions (CDFs) span a probability box (p-box)~\cite{ferson1996}, from which
 an exceedance probability $P(Y>y_{\mathrm c})$ is reported as an interval.
-Sobol indices~\cite{saltelli2010,jansen1999} computed per member give bars on
-the sensitivity ranking.
 
 \section{Preliminary results and potential applications}
 \subsection{Protocol}
@@ -244,10 +242,10 @@ plain variance succeeds in all 30 trials and has the lower paired RMSE in 18
 of 30 ($p=0.047$). \emph{Second}, success depends on an \emph{anchor} member.
 Without the PCE members the scheme fails in every trial, as does the
 conventional adaptive design with a single GP. With them, hard rejection ends
-with the degree-2 PCE alone in most trials. \emph{Third}, hard rejection
-collapses the committee to one member in \COLLAPSEN{} trials, at a median of
-iteration \COLLAPSEIT{} of 15. After that the disagreement is identically zero,
-and \COLLAPSEPCT{} of the run budget is silently spent on random points.
+with the degree-2 PCE alone in 27 of 30 trials. \emph{Third}, hard rejection
+collapses the committee to one member in all 30 trials, at a median of
+iteration 10 of 15. After that the disagreement is identically zero,
+and \qty{31}{\percent} of the run budget is silently spent on random points.
 
 \begin{table}[tb]
 \centering
@@ -293,7 +291,7 @@ whose member envelope contains the reference value.}
 Quantity & Weighting & Hard\\
 \midrule
 Rel. error, 5th percentile  & \qty{0.68}{\percent} & \qty{0.67}{\percent}\\
-Rel. error, median          & \qty{0.24}{\percent} & \qty{0.24}{\percent}\\
+Rel. error, median          & \qty{0.23}{\percent} & \qty{0.24}{\percent}\\
 Rel. error, 95th percentile & \qty{0.41}{\percent} & \qty{0.41}{\percent}\\
 $|\hat P(Y>y_{0.95})-0.05|$ & 0.0015 & 0.0015\\
 Width, exceedance interval  & 0.052 & 0\\
