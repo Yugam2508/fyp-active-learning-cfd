@@ -36,6 +36,17 @@ candidate in hindsight. With the log-variable GP, the 95th percentile was
 within 6.9\% of the reference and $P(C>\mathrm{IDLH})$ within 0.009, against
 18.5\% and 0.019 for the Mat\'ern GP and 27\% and 0.059 for the committee.
 
+\emph{Surrogate contribution.} The coverage results carry over to the CFD
+case (Table~\ref{tab:coverage}, last row; diamonds in
+Fig.~\ref{fig:coverage}). Pointwise, the GP intervals covered 69--92\% of
+test points and the jackknife+ intervals 94.8--99.1\%. Treating the
+surrogate as exact gave GUM~S1 coverage intervals with an achieved coverage
+of 90.8--94.6\%; adding the LOO error gave 93.8--95.7\%. The GP posterior
+was most misleading for the 95th percentile: with the raw-scale GPs
+(Mat\'ern, with or without trend) its 95\% interval contained the true
+value in only 10\% of seeds, against 87--93\% for the jackknife; with the
+log-variable GP the figures were 80\% and 97\%.
+
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\textwidth]{journal/fig_cfd_case}
