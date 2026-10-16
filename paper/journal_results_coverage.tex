@@ -1,0 +1,84 @@
+% journal_results_coverage.tex — results subsection on the validity of the
+% surrogate contribution. Numbers: results/journal/summary.json
+% ("coverage", "coverage_ranges"); see paper/NUMBERS_journal.md.
+
+\subsection{Is the surrogate contribution valid?}
+\label{sec:res-coverage}
+Fig.~\ref{fig:coverage} and Table~\ref{tab:coverage} test the three models of
+the surrogate error of Section~\ref{sec:contrib} against the true models, for
+every surrogate fitted to 20 runs (48 combinations of model and surrogate on
+the nine analytical models, 30 seeds each).
+
+\emph{Pointwise intervals.} The jackknife+ interval covered between 95.2\%
+and 99.0\% of the test points (median 97.4\%) in every combination, in line
+with its distribution-free guarantee of at least 90\%. The CV-normal interval
+covered 89.7--97.0\% (median 94.2\%). The GP's own predictive interval
+covered 68--98\% (median 89\%) and fell below 80\% on the plume (both
+input models), Ishigami and piston models, where the GP is least accurate: its posterior SD
+reflects the fitted covariance, not the actual error. Validity has a price
+in width: jackknife+ intervals were a median 1.6 (1.2--2.9) times as wide as
+CV-normal ones, and the narrow GP intervals still had the best interval
+score~\cite{gneiting2007} in 22 of the 33 GP combinations. For a measurement
+uncertainty statement, which claims a coverage probability, the coverage is
+the property that matters.
+
+\emph{GUM S1 coverage interval.} Treating the surrogate as exact gave
+coverage intervals for $Y$ whose achieved coverage under the reference
+distribution ranged from 57\% to 96\% (median 94\%), and standard
+uncertainties $u(y)$ that were a median 0.92 times the reference (down to
+0.41). Adding the LOO error to every Monte Carlo trial,
+equation~\eqref{eq:contrib}, raised the achieved coverage to 91.5--97.3\%
+(median 95.0\%) as a normal error and to 91.0--97.0\% (median 94.9\%) by
+resampling the residuals, with $u(y)$ a median 1.00 (0.78--1.29) times the
+reference. The GP's predictive SD gave 89.8--96.0\% (median 94.5\%). The
+largest correction occurred where it is needed most: for the GP with the
+original kernel on the Ishigami model, coverage rose from 57\% to 96\%.
+Adding the error did not systematically improve exceedance probabilities,
+which depend on the tail of the surrogate rather than on its overall
+spread.
+
+\emph{Reported quantities.} The difference between the approaches is
+largest for the quantities a GUM~S1 evaluation reports. Intervals for
+$y_{0.95}$ from joint GP posterior sample paths contained the true value in
+a median 53\% of seeds (7--100\%), and those for $P(Y>T)$ in 57\%: the GP
+posterior describes the uncertainty of the interpolant as the fitted
+covariance model sees it, and is overconfident wherever that model is
+misspecified. The jackknife intervals contained the true value in a median
+97\% of seeds for both quantities, with the lowest values for the
+original-kernel GP, whose error is a bias that no resampling of its own
+fits can reveal.
+
+\begin{figure*}[tb]
+\centering
+\includegraphics[width=\textwidth]{journal/fig_coverage}
+\caption{Coverage of nominal 95\% intervals on the nine analytical models,
+mean over 30 seeds; one marker per combination of model and surrogate.
+(a) Pointwise prediction intervals on 5000 test points. (b) Achieved
+coverage of the GUM~S1 95\% coverage interval of $Y$ under the reference
+distribution, with the surrogate treated as exact or with its error added
+to each trial. (c) Share of seeds whose 95\% interval for $y_{0.95}$
+contains the true value. Dashed line: 0.95.}
+\label{fig:coverage}
+\end{figure*}
+
+\begin{table*}[tb]
+\centering
+\caption{Coverage (\%) of nominal 95\% intervals for the GP recommended for
+each model (log variables for positive outputs), 30 seeds, $N=20$.
+Pointwise: share of test points. GUM~S1: achieved coverage of the 95\%
+coverage interval of $Y$. $y_{0.95}$, $P(Y>T)$: share of seeds whose
+interval contains the true value (GP: joint posterior paths; J: jackknife).
+Generated from the result records.}
+\label{tab:coverage}
+\small
+\begin{tabular}{l rrr rrrr rr rr}
+\toprule
+& \multicolumn{3}{c}{Pointwise} & \multicolumn{4}{c}{GUM S1 interval of $Y$} &
+\multicolumn{2}{c}{$y_{0.95}$} & \multicolumn{2}{c}{$P(Y>T)$}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-8}\cmidrule(lr){9-10}\cmidrule(lr){11-12}
+Model & GP & CV & J+ & exact & +LOO N & +LOO res. & +GP & GP & J & GP & J\\
+\midrule
+\tabinput{../results/journal/tab_coverage.tex}
+\bottomrule
+\end{tabular}
+\end{table*}
