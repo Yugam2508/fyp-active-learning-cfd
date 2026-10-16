@@ -28,7 +28,7 @@ Compliance of `extended_abstract.tex`:
 | Table captions above, figure captions below; "Fig." in text; every float cited before it appears | yes |
 | Axis labels in words, units in parentheses | yes |
 | Acronyms defined at first use in the body | yes |
-| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 21 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
+| BibTeX with `imeko_wc.bst`; all authors listed (< 6); measurement journals cited | yes; 23 references, each checked in `docs/REFERENCES_VERIFICATION.md` |
 | Authors' contribution section (more than one author) | yes |
 | Compiles without errors, undefined references or overfull boxes | yes |
 | Length | 4 pages |
@@ -66,17 +66,17 @@ The class needs `newtx` (TeX Live: `texlive-fonts-extra`) and the
 | | Given names | Surname | Affiliation | E-mail |
 |---|---|---|---|---|
 | 1 (corresponding) | Yugam Jinesh | Vora | Department of Engineering Science, National University of Singapore, Singapore | yugam@u.nus.edu |
-| 2 | Wee Hoe | Ng | same (please confirm) | — |
+| 2 | Wee Hoe | Ng | National Metrology Centre, Agency for Science, Technology and Research (A*STAR), Singapore | — |
 
 The AUTHORS' CONTRIBUTION section uses CRediT roles: Vora — conceptualisation,
 methodology, software, investigation, formal analysis, visualisation, writing
 (original draft); Ng — conceptualisation, supervision, writing (review and
-editing). Adjust if your supervisor's roles differ.
+editing). Adjust if the roles differ.
 
 ## Before uploading (author)
 
-1. **Supervisor's affiliation**: confirm it is the same department; if not,
-   add a second `\affiliation` and point his `\author` entry to it.
+1. **Supervisor's affiliation**: set to A*STAR National Metrology Centre;
+   confirm the exact wording he uses (a street address can be added).
 2. **Supervisor's approval** of the text and author order.
 3. **Funding.** `\funding{}` is empty; fill it in if any applies.
 4. **Submit.** Log in to EDAS → <https://edas.info/newPaper.php?c=35447> →
@@ -87,9 +87,9 @@ editing). Adjust if your supervisor's roles differ.
 ## Plan for the final paper (May 2027, max. 6 pages)
 
 Stated in the Conclusions; the reviewers will expect them:
-- a benchmark with **no** anchor member in the committee;
-- a dispersion-type test model;
-- conformal calibration of the member envelopes (exceedance coverage is 62 %).
+- a CFD-based dispersion case (the plume model here is analytical);
+- calibrated (conformal) intervals for the surrogate contribution;
+- budgets other than N = 20, and non-uniform input distributions.
 
 ## Built PDF
 

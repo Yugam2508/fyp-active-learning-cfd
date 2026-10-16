@@ -21,6 +21,8 @@ arXiv, MLAnthology). A DOI is included only where that check confirmed it.
 | ohagan2006 | O'Hagan, *Reliab. Eng. Syst. Saf.* 91(10) 1290–1300 (2006) | IDEAS/RePEc | yes |
 | kennedy2001 | Kennedy, O'Hagan, *J. R. Stat. Soc. B* 63(3) 425–464 (2001) | IDEAS/RePEc, Lancaster eprints | yes |
 | sacks1989 | Sacks, Welch, Mitchell, Wynn, *Stat. Sci.* 4(4) 409–423 (1989) | Project Euclid | yes |
+| loeppky2009 | Loeppky, Sacks, Welch, *Technometrics* 51(4) 366–376 (2009) | UBC statistics, OSU journal-club copy | yes |
+| chen2016 | Chen, Loeppky, Sacks, Welch, *Stat. Sci.* 31(1) 40–60 (2016) | UBC statistics (author PDF), Project Euclid DOI | yes |
 | rw2006 | Rasmussen, Williams, *Gaussian Processes for Machine Learning*, MIT Press (2006) | standard | — |
 | gramacy2009 | Gramacy, Lee, *Technometrics* 51(2) 130–145 (2009) | DBLP, arXiv 0805.4359 | no (not confirmed) |
 | xiu2002 | Xiu, Karniadakis, *SIAM J. Sci. Comput.* 24(2) 619–644 (2002) | author PDF (Utah SCI) | yes |
@@ -44,6 +46,8 @@ arXiv, MLAnthology). A DOI is included only where that check confirmed it.
   method in metrology), O'Hagan 2006 and Kennedy & O'Hagan 2001 (emulators,
   model inadequacy), Gramacy & Lee 2009 (adaptive design of computer
   experiments), Xiu & Karniadakis 2002 and Sudret 2008 (polynomial chaos).
+- Added (2026-10-17, revised framing): Loeppky et al. 2009 (ten runs per input
+  guideline) and Chen et al. 2016 (assessment of GP analysis choices).
 - Considered but not added because the record could not be confirmed:
   Seung, Opper, Sompolinsky, "Query by committee" (COLT 1992);
   Wübbeler, Krystek, Elster (Meas. Sci. Technol. 2008).

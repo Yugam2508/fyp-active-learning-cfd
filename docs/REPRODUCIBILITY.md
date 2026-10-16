@@ -61,9 +61,18 @@ per-seed values exactly, only statistically.
 | `results/results_hardmin3.json` | `python experiments/campaign_hardmin.py 3 0 30` | fair hard-rejection baseline; uniform and CV-weighted aggregation scored on the same survivors and data |
 | `results/results_decompose.json` | `python experiments/decompose_soft_vs_hard.py 0 30` | collapse of hard rejection and predictor swap, PyTorch backend (the sklearn record stays in `results/reference_sklearn/`) |
 | `results/representative_run_seed1000.json` | `python experiments/make_paper_figures.py pbox` | the "representative run" quoted in the paper (seed 1000 = first campaign seed, not selected) |
+| `results/results_gen_<model>_<arm>.json`, `results/summary_generalisation.json`, `results/table_propagation.tex` (2026-10-17) | `experiments/campaign_generalisation.py`, `experiments/analyse_generalisation.py` | controlled comparison: 4 models, 11 strategies, 30 seeds |
+| `rmse_lhsgp_m52` in `results/results_domain_*.json` (2026-10-17) | `experiments/campaign_domain.py <config> 0 30 --add-m52` | well-specified GP in the domain sweep |
 | `figures/fig_*.pdf` | `python experiments/make_paper_figures.py` | paper figures, regenerated from the JSON records |
 
 Runtime: about 10–30 s per trial per arm on one core.
+
+## 4b. GP kernel note (2026-10-17)
+
+`GPSurrogate(spec="orig")`, the default and the kernel of every pre-2026-10-17
+campaign, has no amplitude hyperparameter. `spec="ard"` adds amplitude and ARD.
+The default was left unchanged (verified bit-identical on the representative
+run) so all earlier records remain reproducible.
 
 ## 5. Re-running everything
 
