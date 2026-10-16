@@ -17,9 +17,10 @@ plume (both input models) and Ishigami models, where neither kernel can resolve 
 with 20 runs. On the physics model the original kernel, with its amplitude
 fixed at the variance of the standardised output, cannot represent a
 quadratic bowl whose values far exceed one standard deviation and reverts
-towards the mean between runs; estimating the amplitude alone removes most
-of this error, which the earlier analysis had attributed to the size of the
-input domain (Section~\ref{sec:earlier}).
+towards the mean between runs. Estimating the amplitude alone reduced the
+median nRMSE from 0.59 to 0.033, eighteen-fold; the earlier analysis had
+attributed this error to the size of the input domain
+(Section~\ref{sec:earlier}).
 
 Fitting on the log scale, with log-transformed positive inputs, reduced the
 nRMSE on all six models with positive outputs, by factors of 0.11

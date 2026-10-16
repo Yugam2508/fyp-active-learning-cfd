@@ -62,6 +62,9 @@ F = "journal_results_main.tex"
 # ── 5.1 specification ────────────────────────────────────────────────────
 check(F, "factors of 0.14 (physics)", R("physics", "gp_m52", "gp_orig"), "factors of {:.2f} (physics)")
 check(F, "to 0.71 (piston)", R("piston", "gp_m52", "gp_orig"), "to {:.2f} (piston)")
+check(F, "median nRMSE from 0.59 to 0.033, eighteen-fold", med("physics", "gp_orig"),
+      lambda v: f"median nRMSE from {v:.2f} to {med('physics', 'gp_amp'):.3f}, "
+                + {18: "eighteen"}.get(round(v / med("physics", "gp_amp")), "?") + "-fold")
 spec_sig = [b for b in S["n20"] if b != "cfd" and any(t["bench"] == b and t["a"] == "gp_m52"
             and t["b"] == "gp_orig" and t["N"] == 20 and t["p_holm"] < 0.05 for t in S["tests"])]
 check_true("kernel spec significant on six models", len(spec_sig) == 6)
