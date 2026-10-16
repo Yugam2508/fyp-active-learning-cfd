@@ -55,6 +55,7 @@ COMPARISONS = [
     ("gp_m52", "gp_orig", "nrmse", "kernel: amplitude + ARD vs original"),
     ("gp_log", "gp_m52", "nrmse", "log variables vs raw"),
     ("gp_quad", "gp_m52", "nrmse", "quadratic trend vs none"),
+    ("gp_quadlog", "gp_log", "nrmse", "quadratic trend vs none (log)"),
     ("spce", "gp_m52", "nrmse", "sparse PCE vs GP"),
     ("spce_log", "gp_log", "nrmse", "sparse PCE vs GP (log)"),
     ("pas_ard:cv", "gp_quad", "nrmse", "committee vs GP + trend"),
@@ -180,7 +181,47 @@ def summarise():
     S["n_tests"] = len(S["tests"])
     S["coverage"] = coverage_summary()
     S["coverage_ranges"] = coverage_ranges(S)
+    S["selection"] = selection_summary()
     return S
+
+
+def selection_summary():
+    """Evaluate the selection step of the procedure: per seed, the candidate
+    with the smallest LOO RMSE (results_sel_*.json) is taken and its
+    validation errors are read from the campaign records of the same seed."""
+    out = {}
+    for f in sorted(glob.glob(os.path.join(RES, "results_sel_*.json"))):
+        recs = json.load(open(f))
+        if not recs or recs[0]["N"] != 20 or len(recs) < 5:
+            continue
+        b = recs[0]["benchmark"]
+        cands = [k[len("loo_rmse_"):] for k in recs[0] if k.startswith("loo_rmse_")]
+        data = {c: {m: load(b, c, metric=m) for m in ("nrmse", "relerr_q95", "thr_abserr")}
+                for c in cands}
+        chosen, rows = {}, []
+        for r in recs:
+            sd = r["seed"]
+            if not all(sd in data[c]["nrmse"] for c in cands):
+                continue
+            c = min(cands, key=lambda c: r[f"loo_rmse_{c}"])
+            chosen[c] = chosen.get(c, 0) + 1
+            oracle = min(data[k]["nrmse"][sd] for k in cands)
+            rows.append({"nrmse": data[c]["nrmse"][sd], "oracle": oracle,
+                         "gp_m52": data["gp_m52"]["nrmse"][sd],
+                         "relerr_q95": data[c]["relerr_q95"][sd],
+                         "thr_abserr": data[c]["thr_abserr"][sd]})
+        if not rows:
+            continue
+        v = lambda k: np.array([x[k] for x in rows])
+        med, lo, hi = boot_median(np.log(v("nrmse") / v("oracle")))
+        out[b] = {"n": len(rows), "chosen": chosen,
+                  "nrmse_median": float(np.median(v("nrmse"))),
+                  "ratio_to_oracle": float(np.exp(med)), "ratio_to_oracle_ci": [float(np.exp(lo)), float(np.exp(hi))],
+                  "share_oracle": float(np.mean(v("nrmse") == v("oracle"))),
+                  "ratio_to_gp_m52": float(np.median(v("nrmse") / v("gp_m52"))),
+                  "relerr_q95_median": float(np.median(v("relerr_q95"))),
+                  "thr_abserr_median": float(np.median(v("thr_abserr")))}
+    return out
 
 
 def coverage_summary():
