@@ -170,6 +170,7 @@ def summarise():
     holm(S["tests"])
     S["n_tests"] = len(S["tests"])
     S["coverage"] = coverage_summary()
+    S["coverage_ranges"] = coverage_ranges(S)
     return S
 
 
@@ -236,19 +237,45 @@ def tab_tests(S, N=20):
     return "\n".join(lines) + "\n"
 
 
+POSITIVE = {"plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd"}
+
+
+def recommended(b):
+    """The GP the paper recommends for a model: log variables if positive."""
+    return "gp_log" if b in POSITIVE else "gp_m52"
+
+
 def tab_coverage(S):
-    """Pointwise and GUM S1 interval coverage (%) per benchmark x surrogate."""
+    """Coverage (%) of nominal 95 % intervals for the recommended GP of each
+    model: pointwise (GP, CV-normal, jackknife+), GUM S1 coverage interval
+    (surrogate alone, + LOO normal error, + LOO residuals, + GP SD), and the
+    share of seeds whose interval for y_0.95 and for P(Y>T) contains the
+    true value (GP joint posterior paths, jackknife)."""
+    keys = ["pw_gp_cov", "pw_cvnorm_cov", "pw_jkplus_cov", "ci_plain_cov",
+            "ci_normal_cov", "ci_resample_cov", "ci_gp_cov",
+            "dq_q95_gp_cov", "dq_q95_jack_cov", "dq_p_thr_gp_cov", "dq_p_thr_jack_cov"]
     lines = []
     for b in BENCHES:
-        for s in ("gp_m52", "gp_log", "spce"):
-            r = S["coverage"].get(b, {}).get(s)
-            if not r:
-                continue
-            g = lambda k: f"{100 * r[k]:.0f}" if k in r else "--"
-            lines.append(f"{LABEL[b]} & {METHODS[s]} & {g('pw_gp_cov')} & {g('pw_cvnorm_cov')} & "
-                         f"{g('pw_jkplus_cov')} & {g('ci_plain_cov')} & {g('ci_normal_cov')} & "
-                         f"{g('ci_gp_cov')} & {g('dq_mean_gp_cov')} & {g('dq_mean_jack_cov')} \\\\")
+        s = recommended(b)
+        r = S["coverage"].get(b, {}).get(s)
+        if not r:
+            continue
+        cells = [f"{100 * r[k]:.0f}" if k in r else "--" for k in keys]
+        name = LABEL[b] + (" (log)" if s == "gp_log" else "")
+        lines.append(f"{name} & " + " & ".join(cells) + r" \\")
     return "\n".join(lines) + "\n"
+
+
+def coverage_ranges(S):
+    """Range over all model x surrogate combinations of each coverage key."""
+    out = {}
+    for b, row in S["coverage"].items():
+        for s, r in row.items():
+            for k, v in r.items():
+                if k.endswith("_cov") and isinstance(v, float):
+                    out.setdefault(k, []).append(v)
+    return {k: {"min": float(min(v)), "median": float(np.median(v)), "max": float(max(v)),
+                "n": len(v)} for k, v in out.items()}
 
 
 # ── figures ──────────────────────────────────────────────────────────────
@@ -293,6 +320,43 @@ def fig_sweep(S):
     fig.tight_layout(rect=(0, 0.06, 1, 1))
     os.makedirs(FIG, exist_ok=True)
     fig.savefig(os.path.join(FIG, "fig_budget_sweep.pdf"))
+    plt.close(fig)
+
+
+def fig_coverage(S):
+    """Coverage of nominal 95 % intervals over every model x surrogate."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    panels = [("(a) pointwise prediction interval",
+               [("pw_gp_cov", "GP"), ("pw_cvnorm_cov", "CV-normal"), ("pw_jkplus_cov", "jackknife+")]),
+              ("(b) GUM S1 95 % coverage interval",
+               [("ci_plain_cov", "surrogate\nonly"), ("ci_gp_cov", "+ GP SD"),
+                ("ci_normal_cov", "+ LOO\nnormal"), ("ci_resample_cov", "+ LOO\nresiduals")]),
+              ("(c) interval for $y_{0.95}$",
+               [("dq_q95_gp_cov", "GP\nposterior"), ("dq_q95_jack_cov", "jackknife")])]
+    fig, axes = plt.subplots(1, 3, figsize=(7.2, 2.6), gridspec_kw={"width_ratios": [3, 4, 2]})
+    rs = np.random.RandomState(1)
+    for ax, (title, keys) in zip(axes, panels):
+        for j, (k, lab) in enumerate(keys):
+            for b, row in S["coverage"].items():
+                for s, r in row.items():
+                    if k in r:
+                        c = "C3" if s == "gp_orig" else ("C0" if s.startswith("gp") else "C2")
+                        ax.plot(j + rs.uniform(-0.18, 0.18), r[k], "o", ms=2.2, color=c, alpha=0.7)
+        ax.axhline(0.95, color="k", lw=0.7, ls="--")
+        ax.set_xticks(range(len(keys))); ax.set_xticklabels([l for _, l in keys], fontsize=6.5)
+        ax.set_title(title, fontsize=7.5); ax.tick_params(labelsize=7)
+        ax.set_ylim(0, 1.02); ax.grid(axis="y", alpha=0.3, lw=0.5)
+    axes[0].set_ylabel("coverage", fontsize=8)
+    axes[2].set_ylabel("share of seeds covered", fontsize=7)
+    from matplotlib.lines import Line2D
+    h = [Line2D([], [], marker="o", ls="", color=c, ms=3, label=l) for c, l in
+         [("C0", "GP (Matérn, quad. trend, log)"), ("C3", "GP, original kernel"), ("C2", "sparse PCE")]]
+    fig.legend(handles=h, loc="lower center", ncol=3, fontsize=6.5, frameon=False)
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    os.makedirs(FIG, exist_ok=True)
+    fig.savefig(os.path.join(FIG, "fig_coverage.pdf"))
     plt.close(fig)
 
 
@@ -353,7 +417,7 @@ if __name__ == "__main__":
     open(os.path.join(OUT, "tab_n20.tex"), "w").write(tab_n20(S, main_methods))
     open(os.path.join(OUT, "tab_tests.tex"), "w").write(tab_tests(S))
     open(os.path.join(OUT, "tab_coverage.tex"), "w").write(tab_coverage(S))
-    fig_sweep(S); fig_n20(S)
+    fig_sweep(S); fig_n20(S); fig_coverage(S)
     print(f"{S['n_tests']} paired tests; significant after Holm: "
           f"{sum(t['p_holm'] < 0.05 for t in S['tests'])}")
     for t in S["tests"]:
