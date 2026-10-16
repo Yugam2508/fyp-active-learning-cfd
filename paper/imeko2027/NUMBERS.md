@@ -1,4 +1,10 @@
-# Number provenance — IMEKO WC 2027 extended abstract
+# Number provenance — IMEKO WC 2027 extended abstract (and `paper/paper.tex`)
+
+The journal draft `paper/paper.tex` reports the same results from the same
+records; its Tables 1–3 are generated (`results/table_nrmse.tex`,
+`table_tests.tex`, `table_propagation.tex`). Statements specific to it
+(earlier-campaign facts in its Section 4) come from
+`results/results_{varacq,hard,decompose}.json`, see `docs/FINDINGS_soft_vs_hard.md`.
 
 Every quantitative statement in `extended_abstract.tex`, where it comes from,
 and how it is computed. Run

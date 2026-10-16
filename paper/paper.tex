@@ -1,39 +1,40 @@
 \documentclass[10pt,twocolumn]{article}
 
-% ---- geometry & fonts ----
-\usepackage[letterpaper,margin=0.75in]{geometry}
+% Journal draft (long form) of the study summarised in
+% paper/imeko2027/extended_abstract.tex. Build from paper/:
+%   pdflatex paper && bibtex paper && pdflatex paper && pdflatex paper
+% Tables marked "generated" are \input from ../results/, written by
+% experiments/analyse_generalisation.py. Bibliography: imeko2027/references.bib
+% (every entry verified; see docs/REFERENCES_VERIFICATION.md).
+
+\usepackage[a4paper,margin=18mm]{geometry}
 \usepackage[T1]{fontenc}
-
-\usepackage{textcomp}
-
-% ---- maths & graphics ----
-\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{newtxtext,newtxmath}
+\usepackage{amsmath}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{algorithm}
-\usepackage{algpseudocode}
 \usepackage{caption}
-\usepackage{subcaption}
 \usepackage{xcolor}
 \usepackage[hidelinks]{hyperref}
 \usepackage{cite}
+\usepackage{url}
 
 \captionsetup{font=small,labelfont=bf}
-\graphicspath{{figures/}{../figures/}}
+\graphicspath{{../figures/}}
+\setlength{\columnsep}{6mm}
+% \input inside tabular breaks booktabs rules; use TeX's primitive input.
+\makeatletter\newcommand\tabinput[1]{\@@input #1 }\makeatother
 
-\setlength{\columnsep}{0.28in}
-
-% ---- title ----
-\title{\vspace{-3.5em}\bfseries When Passive Gaussian Processes Fail and What
-Actually Rescues Them: An Ablation Study of Committee-Based Active Learning
-and Forward UQ under Severe Simulation Budgets}
+\title{\vspace{-2.5em}\bfseries Surrogates for Monte Carlo uncertainty
+propagation with twenty model runs: a controlled comparison}
 
 \author{%
-Yugam Jinesh Vora and Wee Hoe Ng\\[2pt]
-\small Department of Engineering Science, National University of Singapore\\
-\small \texttt{yugam@u.nus.edu}\\
-\small \texttt{https://github.com/Yugam2508/fyp-active-learning-cfd}
-}
+Yugam Jinesh Vora$^{1}$ and Wee Hoe Ng$^{2}$\\[2pt]
+\small $^{1}$Department of Engineering Science, National University of
+Singapore, Singapore\\
+\small $^{2}$National Metrology Centre, Agency for Science, Technology and
+Research (A*STAR), Singapore\\
+\small Corresponding author: \texttt{yugam@u.nus.edu}}
 \date{}
 
 \begin{document}
@@ -41,523 +42,450 @@ Yugam Jinesh Vora and Wee Hoe Ng\\[2pt]
 
 \begin{abstract}
 \noindent
-Uncertainty quantification (UQ) for high-fidelity computational fluid
-dynamics (CFD) simulations of hazardous gas dispersion is constrained by a
-severe budget mismatch: each run costs hours, while classical Monte Carlo
-needs thousands of evaluations. We study surrogate-based UQ at a budget of
-$N{=}20$ evaluations and make three contributions. \textbf{First}, we
-characterise when the standard tool fails: Gaussian Process (GP) \emph{prior
-reversion} yields near-constant, physically meaningless predictions only when
-a large input domain \emph{and} a high output dynamic range coincide. A
-domain-size ablation locates a sharp crossover, and a Schwefel control
-($\rho{=}1.09$) shows that domain size alone is insufficient. \textbf{Second},
-through paired $30$-seed ablations we dissect a heterogeneous-committee active
-learning framework built on a spectral acquisition metric (UEigV). The
-evidence contradicts the natural reading of such frameworks: plain ensemble
-variance acquisition is equal-or-better than the spectral metric ($30/30$ vs
-$27/30$ successes, Wilcoxon $p{=}0.047$); removing the degree-2 polynomial
-chaos member collapses performance ($0/30$); and the choice of
-\emph{aggregation rule} is decisive---uniform averaging over a committee that
-contains the correct model fails in $30/30$ trials (median RMSE $1{,}763$),
-hard rejection recovers accuracy only by collapsing to a single model and
-silently degrading ${\approx}31\%$ of queries to random sampling, while
-cross-validation inverse-error weighting attains both accuracy and usable
-epistemic bands. \textbf{Third}, we complete the pipeline with a forward-UQ
-stage (probability box, bounded exceedance probabilities, a variance
-decomposition usable as a stopping diagnostic, and Sobol indices with
-epistemic bars) that recovers ground-truth Monte Carlo to within ${\approx}1\%$.
-All results are on a single synthetic benchmark whose dominant term lies in
-one committee member's hypothesis class; we state this limitation up front
-and release every per-trial record, including the negative results.
+Monte Carlo propagation of distributions (GUM Supplement~1) needs
+$10^5$--$10^6$ evaluations of the measurement model. When the model is an
+expensive simulation, it is replaced by a surrogate trained on a handful of
+runs, and the surrogate's own error enters the uncertainty budget. We compare
+surrogate strategies for a budget of twenty runs on four test models: a
+benchmark from an earlier analysis whose dominant term matches one candidate
+surrogate, a Gaussian plume model of an ammonia release, and the borehole and
+Ishigami functions. Strategies cover single Gaussian processes (GPs) with five
+kernel specifications and log-transformed variables, nine-member committees
+of different surrogates combined uniformly or by cross-validation (CV) error
+weights, and adaptive designs. Each is run with 30 paired seeds and scored on
+the propagated mean, 95th percentile and exceedance probabilities against
+reference Monte Carlo evaluations. Kernel specification changed the error up
+to eighteen-fold: an amplitude hyperparameter held fixed produced an apparent
+GP failure that the earlier analysis had attributed to domain size.
+Logarithmic transformation of positive variables reduced the error up to
+eightfold. A committee beat a well-specified GP only where one member matched
+the response structure, and only with CV weighting; on the borehole model it
+was 2.3 times worse. The adaptive designs tested gave no consistent gain, and
+a spectral acquisition criterion was never better than plain variance.
+Five-fold CV estimated the surrogate error conservatively, whereas the GP's
+own predictive standard deviation understated it by up to 2.8 times where the
+GP was weakest. We give practical rules for surrogate-based uncertainty
+evaluation and a conservative way to include the surrogate contribution.
 \end{abstract}
 
 \section{Introduction}
-The transition toward low-carbon energy has renewed interest in ammonia as a
-hydrogen carrier, but ammonia is toxic and accidental releases form dense,
-ground-hugging clouds whose spatial concentration must be predicted for
-quantitative risk assessment~\cite{tan2017}. CFD is the industry standard for
-such dispersion modelling, but a single high-resolution run can take hours to
-days on HPC infrastructure. This is a fundamental barrier to UQ: Monte Carlo
-(MC) converges as $N^{-1/2}$~\cite{jcgm2008}, so reducing error tenfold needs
-$100\times$ more runs, while the feasible CFD budget is often fewer than
-twenty evaluations.
+Evaluating measurement uncertainty by the propagation of distributions,
+following Supplement~1 to the Guide to the Expression of Uncertainty in
+Measurement (GUM~S1)~\cite{jcgm100,jcgm101}, requires the measurement model
+$Y=f(\mathbf{X})$ to be evaluated once per Monte Carlo trial, typically
+$10^5$ to $10^6$ times~\cite{cox2006,harris2014}. For many quantities of
+practical interest $f$ is a numerical simulation. A computational fluid
+dynamics (CFD) model of an accidental ammonia release~\cite{tan2017}, for
+example, takes hours to days per run, and a practical budget is often fewer
+than twenty runs.
 
-Surrogate models---cheap emulators trained on a handful of high-fidelity
-evaluations---are the standard remedy~\cite{wang2022,heidenreich2017}, with
-GP regression the workhorse for computer experiments~\cite{sacks1989,rw2006}.
-A surrogate that is overconfident in data-sparse regions, however,
-contributes model-form uncertainty invisible to its own variance
-estimate~\cite{huellermeier2021}. Committee-based active learning, which
-queries where structurally different surrogates disagree, is a natural
-response, and spectral disagreement measures from language-model
-UQ~\cite{lin2024} are an appealing way to score that disagreement.
+The usual remedy is a \emph{surrogate} (emulator) trained on the available
+runs and used in place of $f$~\cite{heidenreich2017,wang2022,ohagan2006}. Its
+error is then a contribution to the uncertainty budget that must be evaluated,
+not assumed negligible; Kennedy and O'Hagan~\cite{kennedy2001} treat such
+model inadequacy as an explicit uncertainty source. Gaussian process (GP)
+regression~\cite{sacks1989,rw2006} is the standard surrogate for computer
+experiments. A widely used guideline asks for about ten runs per
+input~\cite{loeppky2009}, and GP results are known to depend on modelling
+choices that are easy to get wrong~\cite{chen2016}. For smaller budgets,
+alternatives include weighted committees of different
+surrogates~\cite{goel2007,viana2009}, adaptive selection of runs where the
+surrogate is uncertain~\cite{gramacy2009}, and, recently, spectral measures of
+disagreement~\cite{lin2024}.
 
-This paper is deliberately an \emph{ablation} paper. We began from such a
-framework---heterogeneous committee, spectral UEigV acquisition, and a
-consistency-based model manager---and asked which ingredient is responsible
-for its performance. The answers were not the ones we expected, and we report
-them as found. Our contributions are:
+An earlier analysis by the first author combined these ideas: a heterogeneous
+committee, a spectral acquisition criterion (UEigV) and dynamic model
+management. It reported that a passively sampled GP fails catastrophically on
+large input domains with a high output dynamic range, and that the committee
+recovers accuracy at the same budget. This paper re-examines those claims with
+correctly specified baselines and extends the comparison to models where no
+committee member matches the response. Its contributions are:
 \begin{enumerate}\setlength\itemsep{1pt}
-\item A falsifiable two-condition criterion (large domain $\times$ high
-dynamic range) for when passive GP surrogates fail catastrophically
-(Sec.~\ref{sec:failure}).
-\item Paired ablations showing that, in this regime, (a) the spectral metric
-confers no advantage over plain ensemble variance, and (b) success depends on
-the committee containing an \emph{anchor} model whose hypothesis class matches
-the response's dominant structure (Sec.~\ref{sec:ablation}).
-\item A characterisation of committee \emph{aggregation}: uniform averaging is
-catastrophic in the prior-reversion regime, hard rejection is a degenerate
-baseline, and cross-validation inverse-error weighting---the weighted-average
-surrogate of~\cite{goel2007,viana2009}, which we do not claim as new---is
-necessary for both accuracy and epistemic expressiveness
-(Sec.~\ref{sec:aggregation}).
-\item A forward-UQ stage that turns the trained committee into a Monte Carlo
-engine with epistemic bars, validated against ground-truth MC
-(Sec.~\ref{sec:uq}).
+\item a controlled, paired comparison of single-GP, committee and adaptive
+strategies at a budget of twenty runs on four models, scored on the
+quantities a GUM~S1 evaluation reports;
+\item the finding that the reported GP failure is a kernel-specification
+artefact, and that kernel specification and variable transformation matter
+more than the choice of strategy;
+\item a characterisation of when a committee helps (a member matching the
+dominant structure, combined by error weights) and when adaptive designs help
+(inconsistently, for the criteria tested);
+\item an assessment of how far the surrogate's error can be estimated from the
+training runs alone, and a conservative way to include it in a GUM~S1
+evaluation.
 \end{enumerate}
 
-\section{Failure Characterisation}
-\label{sec:failure}
-For a GP with prior mean $\mu$ and kernel $k$, the posterior predictive mean
-at a test point $\mathbf{x}^\ast$ is
+\section{Problem and protocol}
+\subsection{Surrogate-based propagation}
+Given input distributions $g_{\mathbf X}$ and $N$ runs
+$\{(\mathbf{x}_i,f(\mathbf{x}_i))\}$, a surrogate $\hat f$ is fitted and the
+Monte Carlo method of GUM~S1 is applied to $\hat f$ instead of $f$. Here
+$N=20$, and the propagated mean, standard deviation (SD), 95th percentile
+$y_{0.95}$ and exceedance probabilities are compared with those obtained from
+$f$ itself. All input distributions are uniform over the ranges given below.
+
+\subsection{Test models}
+\emph{Physics} is the benchmark of the earlier analysis,
+$f(\mathbf{x})=\sin 2x_1\cos 2x_2+\mathrm{e}^{-x_3^2}+0.2\lVert\mathbf{x}\rVert^2$
+on $[-h,h]^3$ with $h=200$ unless stated, observed with noise of SD 0.1. Its
+quadratic term carries 44\% of the output variance at $h=2$ and practically
+all of it for $h\ge10$, and lies exactly in the class of a degree-2 polynomial
+chaos expansion.
+
+\emph{Plume} is the ground-level concentration of a continuous release from a
+Gaussian plume model with ground reflection,
 \begin{equation}
-\hat f(\mathbf{x}^\ast)=\mu+\mathbf{k}_\ast^\top
-\!\left(\mathbf{K}+\sigma_\varepsilon^2\mathbf{I}\right)^{-1}\!(\mathbf{y}-\mu\mathbf{1}).
-\label{eq:gp}
+C=\frac{10^3\,Q}{2\uppi\,u\,\sigma_y\sigma_z}
+\exp\!\left(-\frac{y^2}{2\sigma_y^2}\right)
+2\exp\!\left(-\frac{H^2}{2\sigma_z^2}\right),
 \end{equation}
-As the minimum distance between $\mathbf{x}^\ast$ and the training set grows
-relative to the length scale $\ell$, the RBF covariance
-$k(\mathbf{x}^\ast,\mathbf{x}_i)\!=\!\sigma_f^2\exp(-\lVert\mathbf{x}^\ast-\mathbf{x}_i\rVert^2/2\ell^2)\!\to\!0$,
-so $\hat f\to\mu$ regardless of the data. On the physics benchmark
-$f_{\text{phys}}(\mathbf{x})=\sin(2x_1)\cos(2x_2)+e^{-x_3^2}+0.2\lVert\mathbf{x}\rVert^2$
-over $[-200,200]^3$, with $20$ Latin-Hypercube (LHS) samples the expected
-nearest-neighbour distance is $\mathcal{O}(100)$ per dimension; the marginal
-likelihood cannot identify a length scale long enough to bridge the gaps, and
-the GP reverts to its standardised prior mean across most of the domain.
+in mg\,m$^{-3}$, with Briggs rural dispersion coefficients for neutral
+stability, $\sigma_y=0.08x(1+10^{-4}x)^{-1/2}$ and
+$\sigma_z=0.06x(1+1.5\times10^{-3}x)^{-1/2}$. Inputs: emission rate
+$Q\in[100,2000]$\,g\,s$^{-1}$, wind speed $u\in[1,6]$\,m\,s$^{-1}$, release
+height $H\in[1,20]$\,m, downwind distance $x\in[200,1000]$\,m and crosswind
+offset $y\in[-30,30]$\,m. The output spans 1.8 to 2400\,mg\,m$^{-3}$, and the
+probability of exceeding the level immediately dangerous to life or health
+(IDLH) for ammonia, 210\,mg\,m$^{-3}$ (about 300\,ppm), is 0.123. The plume
+model is an analytical proxy for dispersion problems, cheap enough for exact
+reference values; it is not a CFD simulation.
 
-\paragraph{Domain-size ablation.} Figure~\ref{fig:ablation} evaluates the
-benchmark at half-widths $h\in\{2,10,50,100,200\}$ with all other settings
-fixed. A sharp crossover appears between $h{=}2$ ($\rho{=}1.06$,
-indistinguishable) and $h{=}10$ ($\rho{=}0.384$), where
-$\rho=\text{RMSE}_{\text{AL}}/\text{RMSE}_{\text{LHS+GP}}$.
+\emph{Borehole} (water flow through a borehole, eight inputs, standard ranges)
+and \emph{Ishigami} ($\sin x_1+7\sin^2x_2+0.1x_3^4\sin x_1$ on
+$[-\uppi,\uppi]^3$) are standard test functions for computer experiments. No
+candidate surrogate matches the plume, borehole or Ishigami response.
 
-\paragraph{The Schwefel control.} The Schwefel function on $[-500,500]^3$ has
-a \emph{larger} domain than the physics benchmark, yet active learning does
-not win ($\rho{=}1.09$). Its output varies only between $\pm 418d$ with the
-minimum near zero, so the GP prior mean is a reasonable approximation even in
-data-sparse regions. Catastrophic failure therefore requires large domain size
-\emph{and} high output dynamic range. This two-condition criterion is the
-paper's central positive finding. As Sec.~\ref{sec:ablation} shows, it is
-necessary but not sufficient for a committee to help.
+\subsection{Strategies}
+\paragraph{Single GPs.} Each is fitted to a 20-point Latin hypercube. Five
+kernel specifications are compared: (i) the original kernel of the earlier
+analysis, a squared exponential with one length scale and an amplitude that
+is \emph{fixed} at 1 on the standardised output rather than estimated; (ii)
+with the amplitude estimated; (iii) with one length scale per input
+(automatic relevance determination, ARD) but the amplitude fixed; (iv) with
+both; (v) a Mat\'ern-5/2 ARD kernel with amplitude. Hyperparameters are
+estimated by maximising the log marginal likelihood (L-BFGS-B, five random
+restarts) on standardised inputs and outputs, with length scales in
+$[10^{-2},10^3]$, amplitude in $[10^{-3},10^3]$ and a nugget variance in
+$[10^{-8},10^{-1}]$. A sixth variant fits (v) to $\log Y$, with logarithmic
+transformation of inputs whose range is strictly positive (plume and
+borehole); predictions are back-transformed as $\exp$ of the latent mean,
+i.e.\ the predictive median, without bias correction. The adaptive GP starts
+from five Latin hypercube runs and adds 15 at its largest posterior SD over a
+random candidate pool~\cite{gramacy2009}.
 
-\begin{figure}[t]
+\paragraph{Committees.} Nine members: two GPs (squared exponential and
+Mat\'ern-3/2, with amplitude and ARD), polynomial chaos expansions
+(PCE)~\cite{xiu2002,sudret2008} of degrees 2 and 3 (Bayesian ridge
+regression), random forests of 50 and 100 trees, a support vector regressor
+and two neural networks (two hidden layers of 64 and 128 units). Members are
+combined uniformly or with weights
+\begin{equation}
+w_k\propto\left[\mathrm{MSE}_{\mathrm{CV},k}\,(1+\pi_k)\right]^{-1},
+\label{eq:w}
+\end{equation}
+where $\mathrm{MSE}_{\mathrm{CV},k}$ is the three-fold cross-validation error
+of member $k$ (a single 80/20 hold-out for the networks) and $\pi_k\ge0$
+penalises predictions below a known physical bound~\cite{goel2007,viana2009}.
+A committee with the original GP kernel is included for reference. The
+passive committee is fitted to the same 20-point design as the single GPs.
+Adaptive committees start from five runs and add 15 where the active members
+disagree most, scored by the variance of their predictions or by UEigV.
+
+\paragraph{UEigV.} Lin et al.~\cite{lin2024} proposed this measure for
+black-box language models, from the normalised graph Laplacian of pairwise
+similarities between sampled outputs. Here the graph is built from the $K$
+standardised member predictions $\hat y_k$ at a candidate input, with
+$A_{ij}=\exp(-(\hat y_i-\hat y_j)^2/2)$,
+$\mathbf L=\mathbf I-\mathbf D^{-1/2}\mathbf A\mathbf D^{-1/2}$ and
+$\mathrm{UEigV}=\sum_k\max(0,1-\lambda_k)$, a continuous count of agreement
+clusters.
+
+\subsection{Evaluation}
+Each strategy is run with seeds 1000--1029. Seeds are shared and the Latin
+hypercube is seeded from the global random state, so passive strategies use
+the identical design and adaptive ones the identical start. Accuracy over the
+input domain is the root mean square error (RMSE) on 5000 test points divided
+by the output SD (normalised RMSE; 1 corresponds to a constant predictor).
+The surrogate propagates $3\times10^4$ input draws; the reference uses
+$2\times10^5$ draws of $f$. Two exceedance assessments are distinguished:
+$P(Y>y_{0.95})$ at the reference 95th percentile, whose true value is 0.05 by
+construction, tests tail accuracy on every model; $P(C>\mathrm{IDLH})$ at a
+fixed physical threshold is the quantity a risk decision uses. Strategies are
+compared by two-sided Wilcoxon signed-rank tests on paired $\log$ normalised
+RMSE. The 36 tests are treated as exploratory and their $p$-values are
+Holm-adjusted. All errors above are \emph{validation} errors, which need the
+reference model; Section~\ref{sec:estimate} examines what can be estimated
+without it.
+
+\section{Results}
+\subsection{Kernel specification and variable transformation}
+Table~\ref{tab:nrmse} lists every strategy on every model and
+Table~\ref{tab:tests} the paired comparisons. On the physics model the
+original kernel reaches a normalised RMSE of 0.59; estimating the amplitude
+alone reduces it to 0.033, an eighteen-fold improvement in all 30 seeds
+(adjusted $p<10^{-6}$). ARD alone does not help (0.61). With the amplitude
+fixed at the sample variance of the standardised output, the GP cannot
+represent a quadratic bowl whose values far exceed one SD and reverts towards
+the mean between the runs.
+
+Fig.~\ref{fig:dom} repeats this over the domain sweep of the earlier analysis.
+With the original kernel the normalised RMSE is 0.60 at every half-width from
+10 to 200, which the earlier analysis read as a failure of GPs on large
+domains. A Mat\'ern-5/2 ARD GP with amplitude reaches 0.17 at $h=10$ and 0.08
+from 50 to 200. The committee of the earlier analysis remains more accurate,
+falling to $1.7\times10^{-4}$ at $h=200$, but because its degree-2 PCE
+represents the quadratic term exactly: its median RMSE stays at 0.62--0.68,
+close to the RMS of the oscillatory and exponential terms (0.50--0.61) that no
+member can learn from twenty runs.
+
+On the borehole model ARD is what matters (0.30 to 0.09), and on the plume and
+Ishigami models no kernel specification helps. Logarithmic transformation
+gives the largest single improvement where it applies: 0.089 to 0.011 on the
+borehole model (eightfold, all 30 seeds) and 0.60 to 0.42 on the plume (27 of
+30 seeds). No strategy does better than 0.89 on the Ishigami function, for
+which the ten-runs-per-input guideline~\cite{loeppky2009} would ask for 30
+runs.
+
+\begin{figure}[tb]
 \centering
-\includegraphics[width=\linewidth]{fig_ablation.pdf}
-\caption{Domain-size ablation on the physics benchmark ($30$ trials, $N{=}20$
-per method). Left: RMSE ratio $\rho$ versus half-width; the shaded band is the
-crossover zone. Right: absolute mean RMSE; the trajectories diverge as the
-domain grows.}
-\label{fig:ablation}
+\includegraphics[width=\columnwidth]{fig_domain_sweep}
+\caption{Physics model on $[-h,h]^3$: median normalised RMSE over 30 seeds
+against the domain half-width, for a GP with the original kernel (amplitude
+fixed), a Mat\'ern-5/2 ARD GP with amplitude, and the committee of the
+earlier analysis. Open markers: Schwefel function on $[-500,500]^3$. Dashed
+line: constant predictor.}
+\label{fig:dom}
 \end{figure}
 
-\section{Framework Under Study}
-\label{sec:framework}
-
-\paragraph{Heterogeneous committee.} A committee of $K{=}9$ surrogates
-spans complementary inductive biases: two GPs (RBF and Mat\'ern-$3/2$), two
-Polynomial Chaos Expansions (PCE, degrees $2$ and $3$, Bayesian Ridge),
-two Random Forests ($50$/$100$ trees), an RBF Support Vector Regressor, and
-two DNNs ($2{\times}64$, $2{\times}128$). Structurally different models
-extrapolate differently in data-sparse regions---a GP reverts to its mean, a
-PCE follows the global polynomial, an RF returns leaf means---so their
-disagreement is a model-form uncertainty signal~\cite{lakshmi2017}.
-
-\paragraph{UEigV acquisition.} At a candidate $\mathbf{x}$ the $K$ predictions
-form nodes of a fully connected graph with RBF edge weights
-$A_{ij}=\exp(-(\hat y_i-\hat y_j)^2/2\sigma^2)$. With normalised Laplacian
-$\mathbf{L}=\mathbf{I}-\mathbf{D}^{-1/2}\mathbf{A}\mathbf{D}^{-1/2}$ and
-eigenvalues $\lambda_k\in[0,2]$, the acquisition score is
-\begin{equation}
-\text{UEigV}(\mathbf{x})=\sum_{k=1}^{K}\max\!\left(0,\,1-\lambda_k\right),
-\label{eq:ueigv}
-\end{equation}
-a continuous relaxation of the number of agreement clusters~\cite{lin2024}.
-The next query maximises UEigV over a proximity-filtered random candidate
-pool. The natural comparator is plain query-by-committee \emph{variance},
-$\operatorname{Var}_k[\hat y_k(\mathbf{x})]$.
-
-\paragraph{Model management.} Two managers are studied. The \emph{hard}
-Largest Consistent Subset (LCS) manager scores each model by its reduced
-chi-square deviation from the ensemble mean and permanently rejects the worst
-if it exceeds the $\alpha$-quantile threshold ($\alpha{=}0.99$); predictions
-are the uniform mean of survivors. The \emph{soft} manager weights rather
-than removes, using $k$-fold cross-validation error,
-\begin{equation}
-w_k\;\propto\;\frac{1}{\text{CV-MSE}_k\,(1+\pi_k)},
-\label{eq:soft}
-\end{equation}
-with an optional physics penalty $\pi_k\ge0$ for violations of known output
-bounds (e.g.\ concentration non-negativity)~\cite{karniadakis2021}. Models
-below a weight floor are transiently muted from the acquisition graph but
-keep retraining and may recover; at least two models always remain active.
-Equation~\eqref{eq:soft} is the weighted-average surrogate
-of~\cite{goel2007,viana2009}; we use it, we do not propose it.
-
-\begin{algorithm}[t]
-\caption{Committee active learning with model management}
-\label{alg:al}
-\begin{algorithmic}[1]
-\Require domain $\mathcal{X}$, budget $N_{\max}$, $N_0{=}5$, manager $\mathcal{M}$
-\State $\mathcal{D}_0\gets\text{LHS}(N_0,\mathcal{X})$; train committee on $\mathcal{D}_0$
-\For{$t=1,\dots,N_{\max}-N_0$}
-  \State sample candidate pool $\mathcal{X}_c$ (proximity-filtered)
-  \State $\mathbf{x}^\ast\gets\arg\max_{\mathbf{x}\in\mathcal{X}_c}a(\mathbf{x})$ \Comment{UEigV or variance}
-  \State $y^\ast\gets f(\mathbf{x}^\ast)$;\;\; $\mathcal{D}_t\gets\mathcal{D}_{t-1}\cup\{(\mathbf{x}^\ast,y^\ast)\}$
-  \State retrain all active models on $\mathcal{D}_t$; apply $\mathcal{M}$
-\EndFor
-\State \Return committee, weights, $\mathcal{D}_{N_{\max}}$
-\end{algorithmic}
-\end{algorithm}
-
-\section{What Drives Performance: Ablations}
-\label{sec:ablation}
-
-\paragraph{Protocol.} Every arm uses the physics benchmark on
-$[-200,200]^3$, a budget of $N{=}20$ ($5$ LHS $+$ $15$ queries) and $30$
-seeds ($1000$--$1029$), \emph{paired}: the same seed gives every arm the same
-initial design. RMSE is measured on one fixed $5{,}000$-point test set.
-Paired arms are compared by a Wilcoxon signed-rank test on log-RMSE. A trial
-is a \emph{success} if RMSE $<200$, an order of magnitude below the
-${\approx}2{,}000$ level of a prior-reverted GP; the two populations are
-separated by more than two orders of magnitude, so the threshold is not
-sensitive.
-
-\begin{table}[t]
+\begin{table*}[tb]
 \centering
-\caption{Paired ablations on the physics benchmark ($N{=}20$, $30$ seeds).
-Acq.: acquisition. Mgr.: model manager. $p$: Wilcoxon signed-rank on
-log-RMSE versus the full framework (row 1).}
-\label{tab:ablation}
-\footnotesize\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llrrr@{}}
-\toprule
-Arm & Acq.\,/\,Mgr. & Med.\ RMSE & Succ. & $p$ \\
-\midrule
-Full framework      & UEigV\,/\,hard    & $0.682$     & $27/30$ & --- \\
-Variance acq.       & Var\,/\,hard      & $0.660$     & $30/30$ & $0.047$ \\
-No PCE members      & UEigV\,/\,hard    & $2{,}387$   & $0/30$  & $<10^{-4}$ \\
-Single GP (std)     & GP-$\sigma$\,/\,--- & $1{,}772$ & $0/30$  & $<10^{-4}$ \\
-Soft CV weights     & UEigV\,/\,soft    & $0.646$     & $29/30$ & $0.004$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{The spectral metric is not the mechanism.} Replacing UEigV with
-plain ensemble variance, with everything else unchanged, succeeds in all
-$30$ trials against $27$ for UEigV, and has lower paired RMSE in $18/30$
-seeds ($p{=}0.047$, favouring variance). On this benchmark the spectral
-metric adds nothing over query-by-committee variance, and we withdraw the
-claim that it does.
-
-\paragraph{The anchor model is the mechanism.} Removing the two PCE members
-from the committee makes the framework fail in every trial (median RMSE
-$2{,}387$); the surviving model is then a DNN or GP that prior-reverts. The
-standard adaptive baseline---a single GP querying its posterior standard
-deviation---fails identically ($0/30$), which confirms that the regime of
-Sec.~\ref{sec:failure} defeats variance-driven sampling by a lone GP.
-Instrumenting the full framework shows why it succeeds: hard LCS
-sequentially rejects the misspecified majority and ends with PCE-d2 in
-$26/30$ trials (PCE-d3 and GP-RBF in two each). PCE-d2 is the exact
-hypothesis class of the benchmark's dominant $0.2\lVert\mathbf{x}\rVert^2$
-term, which carries $>99.9\%$ of the output variance, and no query lands in the
-oscillatory interior ($r<30$). The final RMSE of ${\approx}0.7$ is the RMS of
-the unresolved $\sin\cdot\cos$ term. The win is therefore
-consistency-based \emph{model selection} funnelling onto an anchor model, not
-an interior discovery event driven by spectral disagreement.
-
-\section{Aggregation Is the Decisive Choice}
-\label{sec:aggregation}
-
-\paragraph{Hard LCS is a degenerate baseline.} Hard LCS collapses to a
-single surviving model in $30/30$ trials, at median AL iteration $10$ of $15$.
-With fewer than two models, both UEigV and variance are constant across the
-candidate pool and $\arg\max$ returns an arbitrary pool member: ${\approx}31\%$
-of hard LCS's query budget is silently \emph{uniform random sampling}. The
-soft manager's two-model floor prevents this. A naive soft-vs-hard comparison
-(Table~\ref{tab:ablation}, last row: soft better in $21/30$ seeds, $p{=}0.004$)
-therefore measures soft CV weighting against a crippled baseline.
-
-\paragraph{Decomposition.} Two further experiments isolate the cause.
-\emph{Predictor swap:} predicting from hard LCS's own final dataset with the
-CV-weighted all-nine ensemble instead of the survivor mean changes nothing
-($p{=}0.237$; $25/30$ pairs within $1\%$), because both predictors reduce to
-PCE-d2. \emph{Fair baseline:} forcing hard LCS to keep at least three models
-(the only change) exposes the aggregation rule (Table~\ref{tab:aggr}).
-
-\begin{table}[t]
-\centering
-\caption{Aggregation under a fair hard-LCS baseline (physics benchmark,
-$N{=}20$). Rows 1--2: $30$ seeds; row 3: $12$ seeds; rows 1--3 use the
-scikit-learn DNN backend, row 4 the PyTorch backend.}
-\label{tab:aggr}
-\footnotesize\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llrr@{}}
-\toprule
-Manager & Aggregation & Med.\ RMSE & Succ. \\
-\midrule
-Hard, $K_{\min}{=}1$ & uniform ($=$PCE-d2)  & $0.695$   & $93\%$ \\
-Hard, $K_{\min}{=}3$ & uniform mean of $3$  & $1{,}763$ & $0\%$ \\
-Hard, $K_{\min}{=}3$ & CV inverse-error     & $0.729$   & $100\%$ \\
-Soft ($K_{\min}{=}2$) & CV inverse-error    & $0.646$   & $97\%$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Interpretation.} With three survivors (typically GP-RBF, PCE-d2
-and PCE-d3), a \emph{uniform} mean fails in every trial even though the
-correct model is present: the prior-reverted GP's error of order $10^3$
-dominates the average. The same committee with CV inverse-error weights
-succeeds in every trial. Reversibility of rejection contributes nothing
-measurable; the causal ingredient is the aggregation rule. The surviving
-claim is therefore: \emph{in the GP prior-reversion regime, committee
-aggregation must be error-weighted. Uniform averaging fails catastrophically;
-hard rejection to a single model recovers accuracy only by discarding all
-epistemic information and degrading the acquisition; CV inverse-error
-weighting attains both accuracy and usable epistemic bands.} This is a
-characterisation of when and why an existing method~\cite{goel2007,viana2009}
-is necessary, not a new method.
-
-\paragraph{Weighting schemes that fail.} Two plausible alternatives to
-Eq.~\eqref{eq:soft} fail and are instructive. (i) Boltzmann weights on the
-training-point chi-square score ($w_k\!\propto\!e^{-s_k/2T}$) leave
-catastrophic extrapolators near-uniformly weighted (RMSE ${\approx}2{,}000$),
-because every surrogate interpolates the $20$ training points and the score
-cannot separate them. (ii) Consensus-deviation probe scores penalise the
-single \emph{correct} dissenter when the majority prior-reverts together.
-CV error sidesteps both by scoring each model against held-out data, never
-against the committee, which separates members by orders of magnitude.
-
-\paragraph{Cross-benchmark context.} Table~\ref{tab:cross} reports the
-original framework (UEigV, hard LCS) against LHS+GP on nine problems. Only the
-physics benchmark---the one problem satisfying both failure
-conditions---favours active learning ($\rho{=}0.044$ on mean RMSE, which the
-passive GP's catastrophic trials inflate); on seven problems a
-well-specified GP ties or wins by $9$--$17\%$. In light of
-Sec.~\ref{sec:ablation}, this table delineates the regime but does not
-attribute the physics-benchmark gain to the spectral metric.
-
-\begin{table}[t]
-\centering
-\caption{Original framework (UEigV, hard LCS) versus LHS+GP, $N{=}20$,
-$30$ trials.
-$\rho=\overline{\text{RMSE}}_{\text{AL}}/\overline{\text{RMSE}}_{\text{LHS+GP}}$.}
-\label{tab:cross}
+\caption{Normalised RMSE, median (interquartile range) over 30 seeds; $N=20$
+runs. Committees use GP members with amplitude and ARD unless marked
+``orig.~GPs''. Generated from the result records.}
+\label{tab:nrmse}
 \small
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabular}{lllll}
 \toprule
-Problem & AL mean & LHS+GP & $\rho$ \\
+Strategy & Physics & Plume & Borehole & Ishigami\\
 \midrule
-Physics $[-200,200]^3$ & $111$   & $2{,}504$ & $0.044$ \\
-Borehole (8-D)         & $15.06$ & $13.57$   & $1.110$ \\
-Piston (7-D)           & $0.105$ & $0.093$   & $1.133$ \\
-Friedman (5-D)         & $2.887$ & $2.467$   & $1.170$ \\
-Nonstationary (3-D)    & $0.792$ & $0.839$   & $0.944$ \\
-Branin (2-D)           & $23.57$ & $20.46$   & $1.152$ \\
-Hartmann3 (3-D)        & $0.658$ & $0.570$   & $1.156$ \\
-Ishigami (3-D)         & $3.941$ & $3.605$   & $1.093$ \\
-Schwefel (3-D)         & $376$   & $344$     & $1.092$ \\
+\tabinput{../results/table_nrmse.tex}
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[tb]
+\centering
+\caption{Paired comparisons over 30 seeds: median ratio of normalised RMSE
+(first / second; below 1 favours the first), number of seeds where the first
+is better, and Holm-adjusted $p$ (two-sided Wilcoxon signed-rank on $\log$
+normalised RMSE, 36 tests). Generated from the result records.}
+\label{tab:tests}
+\small
+\begin{tabular}{lllll}
+\toprule
+Comparison & Physics & Plume & Borehole & Ishigami\\
+\midrule
+\tabinput{../results/table_tests.tex}
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Committees, aggregation and adaptive runs}
+Fig.~\ref{fig:strategies} summarises all strategies. A committee outperforms
+the best single GP only on the physics model, by more than two orders of
+magnitude, and only through its degree-2 PCE, on which the CV weights
+concentrate. On the borehole model the CV-weighted committee is 2.3 times
+worse than the Mat\'ern-5/2 GP on the identical design (0 of 30 seeds better,
+adjusted $p<10^{-6}$); on the plume and Ishigami models the two tie.
+
+Aggregation matters wherever a committee helps. Uniform averaging is worse
+than CV weighting on the physics model by a factor of about 2000 and on the
+borehole model by about 20\% (adjusted $p\le0.002$), with either GP specification,
+and is never better. On the physics model a prior-reverted or otherwise poor
+member is enough to move a uniform mean by orders of magnitude even when an
+exact member is present.
+
+Within the designs tested (five initial runs; 15 adaptive runs chosen by GP
+posterior SD, committee variance or UEigV over a random candidate pool),
+adaptive selection gave no consistent benefit. For the single GP it was never
+significantly better and was worse on the plume before adjustment. For the
+committee it helped on the physics and borehole models (median ratios 0.80
+and 0.61), hurt on the plume (1.25, adjusted $p=0.005$; median error of the
+propagated mean 55\%) and made no difference on the Ishigami function. UEigV
+was never better than variance acquisition after adjustment and was 1.7
+times worse on the borehole model (adjusted $p<10^{-6}$). Criteria aimed at a
+particular quantile or threshold~\cite{gramacy2009} may behave differently.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\columnwidth]{fig_strategies}
+\caption{Normalised RMSE of each strategy on each model: median (marker) and
+interquartile range (bar) over 30 seeds. Dashed line: constant predictor.}
+\label{fig:strategies}
+\end{figure}
+
+\subsection{Propagated quantities}
+Table~\ref{tab:prop} gives validation errors of the propagated quantities.
+They follow the normalised RMSE. With the best strategy for each model, the
+95th percentile is within 0.41\% (physics), 6.9\% (plume), 0.60\% (borehole)
+and 16\% (Ishigami) of the reference, and $P(Y>y_{0.95})$ within 0.0015,
+0.0076, 0.0018 and 0.029 of 0.05. At the fixed IDLH threshold (reference
+$P(C>\mathrm{IDLH})=0.123$), the log-variable GP has a median absolute error
+of 0.009 over 30 seeds against 0.023 for the raw-variable GP;
+Fig.~\ref{fig:plume} shows the first seed, for which the log-variable GP gives
+0.119, the raw-variable GP 0.158 and the CV-weighted committee 0.142.
+
+\begin{table*}[tb]
+\centering
+\caption{Validation error of propagated quantities, median over 30 seeds:
+relative error (\%) of the mean and of $y_{0.95}$, and absolute error
+($\times100$) of $P(Y>y_{0.95})=0.05$. Bold: best per column. Generated from
+the result records.}
+\label{tab:prop}
+\small
+\begin{tabular}{l rrr rrr rrr rrr}
+\toprule
+& \multicolumn{3}{c}{Physics} & \multicolumn{3}{c}{Plume} &
+\multicolumn{3}{c}{Borehole} & \multicolumn{3}{c}{Ishigami}\\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
+Strategy & mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$ &
+mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$\\
+\midrule
+\tabinput{../results/table_propagation.tex}
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\columnwidth]{fig_plume_cdf}
+\caption{Plume model, first seed: distribution of the ground-level
+concentration propagated through three surrogates fitted to the same 20 runs,
+and the reference Monte Carlo distribution. Dotted: IDLH level for ammonia.}
+\label{fig:plume}
+\end{figure}
+
+\subsection{Estimating the surrogate contribution}
+\label{sec:estimate}
+In practice the reference is unavailable and the surrogate's contribution
+must be estimated from the training runs. Table~\ref{tab:est} compares, for
+the recommended GPs, the true error with two estimates available in practice:
+the five-fold CV RMSE with hyperparameters re-fitted in every fold, and the
+root mean square of the GP's own predictive SD over the domain.
+
+CV was conservative. It was at least the true error in 28 and 30 of 30 seeds
+on the physics and borehole models, where the GP is accurate and the
+held-out folds are relatively harder, close to it on the plume and Ishigami
+models, and below half the true error in at most 6 of 30 seeds (plume, log
+variables). The GP's own uncertainty was unreliable in the unsafe direction
+where the GP is weakest: on the plume and Ishigami models it understated the
+error 1.7--2.8 times and the nominal 95\% predictive intervals covered
+73--77\% of test points; on the physics model and the log-variable borehole GP
+it overstated the error. The member envelope of a committee, read as an
+interval for $P(Y>y_{0.95})$~\cite{ferson1996}, contained the reference value
+in 0 to 100\% of seeds depending on model and strategy, and is not a
+substitute.
+
+\begin{table}[tb]
+\centering
+\caption{Estimating the surrogate error from 20 runs, median over 30 seeds:
+ratio of the five-fold CV RMSE and of the GP's root-mean-square predictive SD
+to the true RMSE, and coverage of the nominal 95\% predictive interval.
+M: Mat\'ern-5/2 ARD GP with amplitude; L: the same on log variables.}
+\label{tab:est}
+\small
+\begin{tabular}{llrrr}
+\toprule
+Model & GP & CV/true & SD/true & Coverage\\
+\midrule
+Physics  & M & 9.06 & 1.58 & 100\%\\
+Plume    & M & 0.99 & 0.36 & 77\%\\
+Plume    & L & 0.81 & 0.42 & 73\%\\
+Borehole & M & 2.11 & 0.79 & 90\%\\
+Borehole & L & 2.61 & 1.45 & 99\%\\
+Ishigami & M & 1.07 & 0.58 & 73\%\\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Forward Uncertainty Quantification}
-\label{sec:uq}
-The trained committee is a Monte Carlo engine: a $50{,}000$-point study costs
-seconds on the surrogate versus ${\sim}50{,}000$ CFD-hours on the solver. We
-propagate the input distribution through all surrogates and report four
-quantities, each with epistemic bars from the weighted committee, validated
-against a $200{,}000$-point ground-truth MC on the synthetic benchmark.
+These results suggest a simple, conservative treatment within GUM~S1:
+propagate $Y=\hat f(\mathbf X)+E_{\mathrm s}$, where the surrogate error
+$E_{\mathrm s}$ is an additional input with expectation zero and standard
+uncertainty equal to the CV RMSE, independent of $\mathbf X$. It ignores the
+spatial variation and correlation of the surrogate error and inflates the
+uncertainty where the surrogate is accurate. Calibrated alternatives, for
+example conformal prediction~\cite{angelopoulos2023}, need validation on a
+CFD case.
 
-\paragraph{Output PDF and probability box.}
-Figure~\ref{fig:pbox} shows the CDF probability box: at each level $y$ the
-committee CDFs span $[F_{\text{low}}(y),F_{\text{up}}(y)]$, a p-box in the
-sense of~\cite{ferson1996}. Exceedance probabilities follow as bounded
-intervals. For a $95$th-percentile safety threshold, $P(Y>y_c)$ is returned as
-an interval rather than a single unjustified point estimate.
+\section{Relation to the earlier analysis}
+The earlier analysis made five claims. Three are withdrawn or revised. The
+catastrophic GP failure on large domains is a kernel-specification artefact
+(Section~3.1). The spectral acquisition criterion gives no advantage over
+plain committee variance; on the physics model the earlier paired campaign
+already favoured variance ($p=0.047$, 30 versus 27 of 30 successes), and
+here UEigV is never better. The committee's advantage is not general but
+comes from a member matching the dominant term. Two claims survive and are
+strengthened: aggregation must be error-weighted, and hard rejection of
+members is a degenerate baseline (in the earlier campaign it collapsed to one
+member in all 30 trials and then sampled at random for 31\% of the budget).
+The records of those campaigns are kept in the repository~\cite{repo}.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{fig_uq_pbox.pdf}
-\caption{CDF probability box and bounded exceedance probability (soft
-manager, representative seed). The band is the committee envelope, the solid
-line the weighted-mixture CDF, the dashed line the ground-truth CDF.}
-\label{fig:pbox}
-\end{figure}
+\section{Discussion and limitations}
+The study is deliberately narrow: four analytical models, uniform inputs, one
+budget ($N=20$), one design size for adaptive starts, and acquisition by
+variance-type criteria. The plume model represents the structure of a
+dispersion problem but not the irregularities of a CFD solution, such as
+recirculation, regime changes or numerical noise; a CFD case is the
+necessary next step. Results at larger budgets may differ, in particular for
+adaptive designs. The paired tests are exploratory and Holm-adjusted; several
+nominal differences (uniform versus CV weighting on the plume, adaptive
+versus passive GP on the plume, UEigV versus variance on three models) do not
+survive the adjustment and are not claimed. The log transformation applies
+only to positive outputs, and its back-transformation to the predictive
+median slightly underestimates the mean of a skewed output. Finally, the
+committee's components and hyperparameters were not tuned per model, which
+reflects practice at this budget but may understate what a tuned committee
+could achieve.
 
-\paragraph{Variance decomposition as a stopping diagnostic.}
-By the law of total variance over the input distribution,
-\begin{equation}
-\operatorname{Var}[Y]=\underbrace{\operatorname{Var}_{\mathbf{x}}\!\big[\mu_w(\mathbf{x})\big]}_{\text{input-driven}}
-+\underbrace{\mathbb{E}_{\mathbf{x}}\!\big[\sigma^2_{\text{epi}}(\mathbf{x})\big]}_{\text{epistemic}}
-\;(+\,\sigma^2_\varepsilon).
-\label{eq:lotv}
-\end{equation}
-The epistemic fraction (Fig.~\ref{fig:decomp}) is a convergence diagnostic:
-while it dominates, the next evaluation should buy another simulation; once it
-is small, the UQ estimate is committee-converged. In the representative run it
-decays from $0.76$ to $\approx 0$ over the budget. Because the bands are
-committee envelopes, ``converged'' means the \emph{committee} agrees, not
-that the truth has been reached.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{fig_uq_decomp.pdf}
-\caption{Law-of-total-variance decomposition versus sample count. Left:
-input-driven and epistemic variance. Right: the epistemic fraction, a
-committee-convergence diagnostic.}
-\label{fig:decomp}
-\end{figure}
-
-\paragraph{Sensitivity with epistemic bars.}
-First-order and total Sobol indices are estimated by the Saltelli/Jansen
-pick-and-freeze scheme~\cite{saltelli2010,jansen1999} on the cheap ensemble,
-with per-model indices furnishing error bars on the sensitivity \emph{ranking}
-(Fig.~\ref{fig:sobol}). PCE-based analytic indices~\cite{sudret2008} are the
-natural alternative when a PCE dominates the weights.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{fig_uq_sobol.pdf}
-\caption{Sobol first-order and total indices of the weighted ensemble. Error
-bars are committee spread (epistemic); black ticks are ground-truth indices.}
-\label{fig:sobol}
-\end{figure}
-
-\paragraph{Validation over $30$ seeds.} Central estimates are accurate
-whenever the run succeeds: the median relative error of the predicted output
-median is $0.24\%$ for both managers, and a representative run matches truth
-to within $1\%$ on mean, standard deviation and all reported quantiles. For
-the soft manager, the mean band covers the true output mean in $97\%$ of
-trials, the p-box brackets on average $68\%$ of the true CDF, and the $95$th
-percentile exceedance interval covers the truth in $60\%$ of trials. These are
-committee envelopes, not calibrated intervals, and they under-cover.
-Conformal calibration~\cite{angelopoulos2023} is the principled fix. We do not
-present the soft-versus-hard coverage contrast (Fig.~\ref{fig:campaign}) as
-a result: a one-model ``ensemble'' has zero-width bands by construction, so
-hard LCS's $0\%$ coverage is tautological. The figure illustrates what
-collapsing to $K{=}1$ costs a UQ practitioner.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{fig_campaign.pdf}
-\caption{Paired $30$-seed comparison. Left: RMSE distributions (grey lines
-join identical seeds). Right: p-box coverage of the true CDF. Hard LCS
-collapses to one model, so its zero coverage is by construction; the soft
-manager retains a non-degenerate but uncalibrated envelope.}
-\label{fig:campaign}
-\end{figure}
-
-\section{Discussion and Limitations}
-\paragraph{Single benchmark, favourable anchor.} Every ablation result is on
-one synthetic benchmark whose dominant term coincides exactly with PCE-d2's
-hypothesis class, and the framework fails outright without that member.
-Nothing in Secs.~\ref{sec:ablation}--\ref{sec:aggregation} is claimed to
-generalise until it is repeated on benchmarks with no anchor model in the
-committee; this is the immediate next step. The two-condition failure
-criterion (Sec.~\ref{sec:failure}) is supported across nine benchmarks and a
-domain sweep, and is the most general result here.
-
-\paragraph{Prior art.} CV inverse-error weighting is the weighted-average
-surrogate of Goel et al.~\cite{goel2007} and Viana et al.~\cite{viana2009}.
-Stacking~\cite{yao2018} and Bayesian model averaging~\cite{hoeting1999} are
-related. Our contribution is to show when this aggregation is necessary and
-what fails without it, not the rule itself.
-
-\paragraph{Other limitations.} The benchmark is a smooth synthetic
-construction; real CFD responses include sharp gradients and recirculation, so
-validation on a live solver is required before safety-critical use.
-Cross-validation at $N\!\approx\!20$ is itself noisy, so the weights should be
-read as order-of-magnitude statements, which is all inverse-error weighting
-needs. Soft weighting adds $k\times K$ refits per update (about $2\times$
-the base loop), which is negligible next to one CFD run. The aggregation table
-mixes DNN backends (scikit-learn MLP and PyTorch, architecturally identical);
-the mechanism is arithmetic rather than stochastic, but a single-backend rerun
-is planned. DNN surrogates are two-hidden-layer ReLU networks (Adam,
-$800$ epochs, standardised I/O).
+\section{Practical rules}
+For surrogate-based GUM~S1 evaluations with about twenty runs:
+\begin{enumerate}\setlength\itemsep{1pt}
+\item \emph{Specify the GP fully}: estimate an amplitude and one length scale
+per input; inspect the fitted hyperparameters.
+\item \emph{Transform the variables} when the model is multiplicative or
+positive, for example concentrations and flows.
+\item \emph{Use a committee only with error weighting}, and expect a gain only
+when a member can represent the dominant structure.
+\item \emph{Prefer a space-filling design} unless an adaptive criterion has
+been shown to help for the quantity of interest.
+\item \emph{Estimate the surrogate contribution by cross-validation} and
+include it in the budget; do not rely on the GP's own predictive variance or
+on committee spread.
+\end{enumerate}
 
 \section{Conclusion}
-Passive GP surrogates fail catastrophically when the input domain is large
-enough to cause prior reversion \emph{and} the response has enough dynamic
-range to make the prior mean wrong. In that regime, a heterogeneous committee
-can recover accuracy at the same $20$-evaluation budget, but paired ablations
-show that the reason is not spectral acquisition, which plain variance matches
-or beats. Two things are responsible: a committee member whose hypothesis
-class matches the dominant response structure, and an error-weighted
-aggregation rule that lets that member dominate without discarding the rest.
-Uniform averaging fails even with the right model present. Hard rejection
-succeeds only by collapsing to one model and randomising a third of its
-queries. With CV inverse-error weighting, the committee also supports a
-forward-UQ stage (probability box, bounded exceedance, a variance-decomposition
-stopping diagnostic and Sobol indices with epistemic bars) that recovers
-ground-truth MC to about $1\%$. Establishing whether these findings survive
-without an anchor model is the open question on which any broader claim
-depends.
+For Monte Carlo uncertainty propagation with twenty runs of an expensive
+model, the kernel specification of a GP surrogate and the transformation of
+the variables mattered more than the choice between single surrogates,
+committees and the adaptive designs tested. A GP failure reported in an
+earlier analysis was caused by one hyperparameter held fixed. Committees
+helped only when a member matched the response structure and only with CV
+error weighting. Cross-validation gave a conservative estimate of the
+surrogate's error; the GP's own uncertainty did not. A CFD dispersion case,
+other budgets and a calibrated surrogate contribution are the next steps.
 
-\begin{thebibliography}{99}
+\section*{Data and code availability}
+All code, per-seed records, figure scripts and an audit script that
+recomputes every reported number are available at
+\url{https://github.com/Yugam2508/fyp-active-learning-cfd}~\cite{repo}.
+
+\section*{Authors' contribution}
+Yugam Jinesh Vora: conceptualisation, methodology, software, investigation,
+formal analysis, visualisation, writing -- original draft. Wee Hoe Ng:
+conceptualisation, supervision, writing -- review and editing.
+
 \small
-\bibitem{tan2017} W.\ Tan, H.\ Du, L.\ Liu, T.\ Su, and X.\ Liu, ``Experimental
-and numerical study of ammonia leakage and dispersion in a food factory,''
-\emph{J.\ Loss Prev.\ Process Ind.}, vol.\ 47, pp.\ 129--139, 2017.
-\bibitem{jcgm2008} JCGM 101:2008, ``Evaluation of measurement data---Supplement
-1 to the GUM: Propagation of distributions using a Monte Carlo method,'' 2008.
-\bibitem{wang2022} C.\ Wang, X.\ Qiang, M.\ Xu, and T.\ Wu, ``Recent advances in
-surrogate modeling methods for uncertainty quantification and propagation,''
-\emph{Symmetry}, vol.\ 14, no.\ 6, 1219, 2022.
-\bibitem{heidenreich2017} S.\ Heidenreich, H.\ Gross, M.\ B\"ar, and L.\ Wright,
-``Uncertainty propagation in computationally expensive models: a survey of
-sampling methods and application to scatterometry,'' \emph{Measurement},
-vol.\ 97, pp.\ 79--87, 2017.
-\bibitem{sacks1989} J.\ Sacks et al., ``Design and analysis of computer
-experiments,'' \emph{Statist.\ Sci.}, vol.\ 4, pp.\ 409--423, 1989.
-\bibitem{rw2006} C.\ E.\ Rasmussen and C.\ K.\ I.\ Williams, \emph{Gaussian
-Processes for Machine Learning}. MIT Press, 2006.
-\bibitem{huellermeier2021} E.\ H\"ullermeier and W.\ Waegeman, ``Aleatoric and
-epistemic uncertainty in machine learning,'' \emph{Mach.\ Learn.}, vol.\ 110,
-pp.\ 457--506, 2021.
-\bibitem{lin2024} Z.\ Lin, S.\ Trivedi, and J.\ Sun, ``Generating with
-confidence: UQ for black-box LLMs,'' \emph{TMLR}, 2024.
-\bibitem{lakshmi2017} B.\ Lakshminarayanan, A.\ Pritzel, and C.\ Blundell,
-``Simple and scalable predictive uncertainty estimation using deep
-ensembles,'' \emph{NeurIPS}, 2017.
-\bibitem{goel2007} T.\ Goel, R.\ T.\ Haftka, W.\ Shyy, and N.\ V.\ Queipo,
-``Ensemble of surrogates,'' \emph{Struct.\ Multidiscip.\ Optim.}, vol.\ 33,
-pp.\ 199--216, 2007.
-\bibitem{viana2009} F.\ A.\ C.\ Viana, R.\ T.\ Haftka, and V.\ Steffen,
-``Multiple surrogates: how cross-validation errors can help us to obtain the
-best predictor,'' \emph{Struct.\ Multidiscip.\ Optim.}, vol.\ 39, pp.\
-439--457, 2009.
-\bibitem{hoeting1999} J.\ A.\ Hoeting, D.\ Madigan, A.\ E.\ Raftery, and
-C.\ T.\ Volinsky, ``Bayesian model averaging: a tutorial,'' \emph{Statist.\
-Sci.}, vol.\ 14, pp.\ 382--417, 1999.
-\bibitem{yao2018} Y.\ Yao, A.\ Vehtari, D.\ Simpson, and A.\ Gelman, ``Using
-stacking to average Bayesian predictive distributions,'' \emph{Bayesian
-Anal.}, vol.\ 13, pp.\ 917--1007, 2018.
-\bibitem{karniadakis2021} G.\ E.\ Karniadakis et al., ``Physics-informed
-machine learning,'' \emph{Nat.\ Rev.\ Phys.}, vol.\ 3, pp.\ 422--440, 2021.
-\bibitem{ferson1996} S.\ Ferson and L.\ R.\ Ginzburg, ``Different methods are
-needed to propagate ignorance and variability,'' \emph{Reliab.\ Eng.\ Syst.\
-Saf.}, vol.\ 54, pp.\ 133--144, 1996.
-\bibitem{saltelli2010} A.\ Saltelli et al., ``Variance based sensitivity
-analysis of model output,'' \emph{Comput.\ Phys.\ Commun.}, vol.\ 181, pp.\
-259--270, 2010.
-\bibitem{jansen1999} M.\ J.\ W.\ Jansen, ``Analysis of variance designs for
-model output,'' \emph{Comput.\ Phys.\ Commun.}, vol.\ 117, pp.\ 35--43, 1999.
-\bibitem{sudret2008} B.\ Sudret, ``Global sensitivity analysis using
-polynomial chaos expansions,'' \emph{Reliab.\ Eng.\ Syst.\ Saf.}, vol.\ 93,
-pp.\ 964--979, 2008.
-\bibitem{angelopoulos2023} A.\ N.\ Angelopoulos and S.\ Bates, ``Conformal
-prediction: a gentle introduction,'' \emph{Found.\ Trends Mach.\ Learn.},
-2023.
-\end{thebibliography}
+\bibliographystyle{ieeetr}
+\bibliography{imeko2027/references}
 
 \end{document}
