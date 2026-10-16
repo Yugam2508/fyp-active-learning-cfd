@@ -2,4 +2,20 @@
 
 \section{Conclusion}
 \label{sec:conclusion}
-\textit{[To be completed with the CFD results.]}
+For GUM~S1 evaluations in which the measurement model can be run only a few
+tens of times, the way a surrogate is specified matters more than the
+strategy around it. A GP should estimate its amplitude and one length scale
+per input, include a quadratic trend, and work on the log scale when the
+output is positive; a failure of GP surrogates reported in an earlier
+analysis was an artefact of one hyperparameter held fixed. Among such
+candidates and a sparse PCE, the one with the smallest leave-one-out error
+was as good as the best in hindsight on all ten models, including a CFD
+simulation of a release behind a building. Committees of surrogates and
+space-filling adaptive designs gave no consistent gain at these budgets,
+whereas a design targeted at the threshold improved exceedance
+probabilities. Finally, the surrogate's own error must be part of the
+uncertainty statement, and it should be estimated from leave-one-out
+residuals rather than from the GP's predictive variance: the former
+restored the nominal coverage of the GUM~S1 coverage interval and gave
+valid intervals for reported quantities, the latter was overconfident
+precisely where the surrogate was poor.
