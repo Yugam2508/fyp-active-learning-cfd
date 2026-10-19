@@ -355,7 +355,8 @@ if __name__ == "__main__":
         if seed in done:
             continue
         t0 = time.time()
-        rec = {"seed": seed, "benchmark": bench, "surrogate": surr, "N": N, **run(seed)}
+        rec = {"seed": seed, "benchmark": bench, "surrogate": surr, "N": N,
+               **({"design": DESIGN} if DESIGN != "lhs" else {}), **run(seed)}
         rec["runtime_s"] = round(time.time() - t0, 1)
         results.append(rec)
         json.dump(results, open(OUT, "w"))

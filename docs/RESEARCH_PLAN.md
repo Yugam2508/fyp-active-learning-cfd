@@ -115,6 +115,27 @@ LOO residuals can only reveal errors that some run exposes.
     there.
 - *Cost:* under 1 h.
 
+### How the thresholds are computed (added 2026-10-19 04:55 UTC, before any Tier 1 run started)
+
+- **Pointwise coverage** of a model and surrogate is the mean over the 30
+  seeds of the share of the 5000 test points inside the interval.
+- **Coverage of the GUM S1 interval** is the mean over seeds of the
+  reference probability mass inside the interval.
+- **For T1.1**, the interval is that of the candidate chosen by the LOO
+  selection in each seed, so the selection is part of what is tested.
+- **"Nominal" coverage for a derived quantity** (mean, SD, y95, P(Y > T)) means
+  at least 26 of 30 seeds cover the true value. That is the smallest count
+  not rejected against 95 % by a one-sided exact binomial test at the 5 %
+  level.
+- **T1.3 and T1.4 equivalence** use the 95 % bootstrap interval of the median
+  paired ratio (10 000 resamples), as in the paired-test table. "Equivalent"
+  means the whole interval lies in the margin.
+- **Results kept apart from the main study:**
+  - the bump model (T1.6) and the correlated-input model (T2.5) are
+    reported in their own subsections, not pooled into the main twelve;
+  - records from other design types carry a `design` field and are
+    excluded from the main summaries.
+
 ## Tier 2: closes the remaining minor comments
 
 | Item | Question | Run | Cost |

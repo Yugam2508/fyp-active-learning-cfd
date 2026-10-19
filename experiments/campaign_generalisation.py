@@ -316,7 +316,8 @@ if __name__ == "__main__":
         if seed in done:
             print(f"trial {t} (seed {seed}) already done, skipping"); continue
         t0 = time.time()
-        r = {"seed": seed, "benchmark": bench, "arm": arm, "N": N_TOTAL, **run(seed)}
+        r = {"seed": seed, "benchmark": bench, "arm": arm, "N": N_TOTAL,
+             **({"design": DESIGN} if DESIGN != "lhs" else {}), **run(seed)}
         r["runtime_s"] = round(time.time() - t0, 1)
         results.append(r)
         json.dump(results, open(OUT, "w"))

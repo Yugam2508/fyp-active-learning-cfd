@@ -196,7 +196,7 @@ def selection_summary():
     out = {}
     for f in sorted(glob.glob(os.path.join(RES, "results_sel_*.json"))):
         recs = json.load(open(f))
-        if not recs or recs[0]["N"] != 20 or len(recs) < 5:
+        if not recs or recs[0]["N"] != 20 or len(recs) < 5 or recs[0]["benchmark"] not in BENCHES:
             continue
         b = recs[0]["benchmark"]
         cands = [k[len("loo_rmse_"):] for k in recs[0] if k.startswith("loo_rmse_")]
@@ -251,7 +251,7 @@ def coverage_summary():
         if not recs:
             continue
         b, s, N = recs[0]["benchmark"], recs[0]["surrogate"], recs[0]["N"]
-        if N != 20:
+        if N != 20 or "design" in recs[0] or b not in BENCHES:   # main study only
             continue
         row = {"n": len(recs)}
         for k in recs[0]:
