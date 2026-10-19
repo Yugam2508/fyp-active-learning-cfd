@@ -136,6 +136,26 @@ LOO residuals can only reveal errors that some run exposes.
   - records from other design types carry a `design` field and are
     excluded from the main summaries.
 
+### Finding during T1.3 (2026-10-19, recorded before the write-up)
+
+The OpenTURNS GP was 9 times more accurate than our Matérn GP on the
+physics model, and agreed within 5 % on the five other models. The cause:
+
+- The estimated kernel amplitude reached the upper end of its pre-specified
+  search range (10³, standardised output units) in nearly every design
+  for the isotropic, ARD and Matérn GPs on the physics model.
+- Elsewhere the bound was reached only for the log-scale GP on the CFD case,
+  in 3 of 6 designs. A check of all models and specifications on 6 designs
+  each found no other case.
+- Rerun with the bound at 10⁶ (`experiments/sensitivity_amp_bound.py`),
+  the median nRMSE on the physics model fell from 0.033 to 0.00097
+  (isotropic), from 0.036 to 0.0022 (ARD) and from 0.079 to 0.013 (Matérn).
+  On the CFD case it changed from 0.080 to 0.077.
+
+The study's records keep the pre-specified bound. The paper reports the
+sensitivity result: the bound understates the benefit of estimating the
+amplitude on the physics model; no conclusion is reversed.
+
 ## Tier 2: closes the remaining minor comments
 
 | Item | Question | Run | Cost |

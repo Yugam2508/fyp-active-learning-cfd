@@ -193,3 +193,7 @@ Notes.
 - `src/cfd_dispersion.py` accepts a non-integer refinement factor (cell
   counts are rounded) for the coarse mesh of the grid convergence index; the
   standard and fine meshes are unchanged.
+- `src/surrogates.py` reads `GP_AMP_MAX` (default 1e3, the bound used for
+  every record of the study); only `experiments/sensitivity_amp_bound.py`
+  sets it, to 1e6, for the sensitivity check described in
+  `docs/RESEARCH_PLAN.md` (results in `results/sensitivity_amp_bound.json`).
