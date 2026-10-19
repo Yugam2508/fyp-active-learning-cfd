@@ -78,6 +78,12 @@ the benchmarks are cross-checked against).
 | tominaga2007 | Tominaga, Stathopoulos, *Atmos. Environ.* 41(37) 8091–8099 (2007) | CiNii record, Cambridge reference list | no (not confirmed) |
 | blocken2007 | Blocken, Stathopoulos, Carmeliet, *Atmos. Environ.* 41(2) 238–252 (2007) | TU Eindhoven research portal | yes |
 | weller1998 | Weller, Tabor, Jasak, Fureby, *Comput. Phys.* 12(6) 620–631 (1998) | Scinapse, CiteDrive (DOI), OpenFOAM wiki | yes |
+| heidenreich2015 | Heidenreich, Gross, Bär, *Int. J. Uncertain. Quantif.* 5(6) 511–526 (2015) | EURAMET publication repository | yes |
+| farchmin2020 | Farchmin et al., *J. Micro/Nanolithogr. MEMS MOEMS* 19(2) 024001 (2020) | SPIE Digital Library, arXiv 2005.05164 | yes |
+| jcgm102 | JCGM 102:2011 (GUM Supplement 2) | BIPM DOI page | yes |
+| saltelli2010 | Saltelli et al., *Comput. Phys. Commun.* 181(2) 259–270 (2010) | Scinapse, JRC repository | no (not confirmed) |
+| forrester2008 | Forrester, Sóbester, Keane, *Engineering Design via Surrogate Modelling*, Wiley (2008) | UQTestFuns (wing_weight) | yes |
+| moon2010 | Moon, PhD thesis, Ohio State University (2010) | UQTestFuns (otl_circuit, otl_circuit_20d) | — |
 
 Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
 input models), flood and Ishigami implementations in `src/benchmarks.py`

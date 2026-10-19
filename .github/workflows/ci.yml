@@ -18,6 +18,8 @@ jobs:
           python-version: "3.11"
       - name: Install pinned dependencies (CPU PyTorch)
         run: pip install -r requirements-lock.txt --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Unit tests
+        run: python -m pytest -q
       - name: Benchmarks agree with UQTestFuns
         run: python experiments/check_benchmarks.py
       - name: Published records are reproduced (cross-machine tolerance)
