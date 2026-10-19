@@ -11,12 +11,13 @@ import os, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src"))
 import numpy as np
 import uqtestfuns as uqtf
-from uqtestfuns.test_functions import otl_circuit, piston, borehole, flood, ishigami
+from uqtestfuns.test_functions import (otl_circuit, piston, borehole, flood, ishigami,
+                                       wing_weight)
 from benchmarks import BENCHMARKS
 
 ok = True
 rs = np.random.RandomState(0)
-U = rs.uniform(0.01, 0.99, (2000, 8))
+U = rs.uniform(0.01, 0.99, (2000, 20))
 
 
 def report(name, cond, detail=""):
@@ -29,7 +30,9 @@ pairs = [("otl", uqtf.OTLCircuit(), otl_circuit.evaluate),
          ("piston", uqtf.Piston(), piston.evaluate),
          ("borehole_gum", uqtf.Borehole(), borehole.evaluate),
          ("flood", uqtf.Flood(), flood.evaluate),
-         ("ishigami", uqtf.Ishigami(), lambda X: ishigami.evaluate(X, 7.0, 0.1))]
+         ("ishigami", uqtf.Ishigami(), lambda X: ishigami.evaluate(X, 7.0, 0.1)),
+         ("wingweight", uqtf.WingWeight(), wing_weight.evaluate),
+         ("otl20", uqtf.OTLCircuit20D(), uqtf.OTLCircuit20D())]
 for key, ref, fref in pairs:
     b = BENCHMARKS[key]()
     X = b.ppf(U[:, :b.dim])
@@ -47,6 +50,6 @@ for key, ref, fref in pairs:
 
 # uniform borehole: same formula as UQTestFuns on our (Surjanovic & Bingham) ranges
 b = BENCHMARKS["borehole"]()
-X = b.ppf(U)
+X = b.ppf(U[:, :8])
 report("borehole: model output", np.allclose(b.evaluate(X), borehole.evaluate(X), rtol=1e-12))
 sys.exit(0 if ok else 1)

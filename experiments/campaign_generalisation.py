@@ -38,6 +38,10 @@ Arms
                  targeting the exceedance threshold T (the model's physical
                  threshold if it has one, else the reference 95 % quantile, or
                  5 % quantile for a lower tail)
+    akq_m52, akq_log
+                 the same, always targeting the reference 95 % quantile (a tail
+                 threshold, P(Y > T) = 0.05), scored by exc_*; differs from
+                 ak_* only for models with a physical threshold (plume, CFD)
 
 Seeds 1000 + trial. The seeded LHS (framework_core.lhs) gives every passive arm
 the identical design and every adaptive arm the identical start. Candidate
@@ -86,8 +90,9 @@ from surrogates import GP as _GP, SparsePCE
 
 ARMS = ("gp_orig", "gp_amp", "gp_ardnoamp", "gp_ard", "gp_m52", "gp_quad",
         "gp_log", "gp_quadlog", "spce", "spce_log",
-        "pas_orig", "pas_ard", "al_gp", "al_var", "al_ueigv", "ak_m52", "ak_log")
-LOG_ARMS = ("gp_log", "gp_quadlog", "spce_log", "ak_log")
+        "pas_orig", "pas_ard", "al_gp", "al_var", "al_ueigv", "ak_m52", "ak_log",
+        "akq_m52", "akq_log")
+LOG_ARMS = ("gp_log", "gp_quadlog", "spce_log", "ak_log", "akq_log")
 AUGMENT = "--augment" in sys.argv
 _args = [a for a in sys.argv[1:] if not a.startswith("--")]
 bench, arm, start, n = _args[0], _args[1], int(_args[2]), int(_args[3])
@@ -236,11 +241,12 @@ def run(seed):
         for m in models:
             m.fit(X, y)
         return committee(models, cv_weights(models, X, y))
-    if arm in ("al_gp", "ak_m52", "ak_log"):
+    if arm in ("al_gp", "ak_m52", "ak_log", "akq_m52", "akq_log"):
         X = design(N_INIT)
         y = problem.noisy(X)
-        g = GP("log" if arm == "ak_log" else "m52")
-        t_lat = g.to_latent(np.array([T_THR]))[0] if arm.startswith("ak") else None
+        g = GP("log" if arm.endswith("log") else "m52")
+        target = REF["q95"] if arm.startswith("akq") else T_THR
+        t_lat = g.to_latent(np.array([target]))[0] if arm.startswith("ak") else None
         for _ in range(N_TOTAL - N_INIT):
             g.fit(X, y)
             if arm == "al_gp":
