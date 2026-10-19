@@ -69,7 +69,7 @@ where $\hat\theta_{-i}$ is computed from $\hat f_{-i}$.
 
 \section{Test models}
 \label{sec:models}
-Table~\ref{tab:models} lists the ten models. Six have independent uniform
+Table~\ref{tab:models} lists the twelve models. Eight have independent uniform
 inputs, three have the non-uniform input distributions of a GUM-type
 evaluation, and one is a CFD simulation. The physics model is the benchmark
 of the earlier analysis; its quadratic term carries practically all the
@@ -84,8 +84,13 @@ C=\frac{10^3\,Q}{2\uppi\,u\,\sigma_y\sigma_z}
 with Briggs rural coefficients for neutral stability,
 $\sigma_y=0.08x(1+10^{-4}x)^{-1/2}$ and $\sigma_z=0.06x(1+1.5\times10^{-3}x)^{-1/2}$.
 The borehole~\cite{harper1983,morris1993,vlse},
-Ishigami~\cite{vlse}, OTL circuit and piston~\cite{benari2007} functions are
-standard test functions for computer experiments. The flood
+Ishigami~\cite{vlse}, OTL circuit and piston~\cite{benari2007} and wing
+weight~\cite{forrester2008} functions are standard test functions for
+computer experiments. To test whether the results hold when the inputs
+outnumber what 20 runs can resolve, the OTL circuit is also run with 14
+additional inputs that do not affect the output (uniform on $[100,200]$,
+as in the screening study of Moon~\cite{moon2010}), so that $d=20$ and
+$N=20$ is one run per input. The flood
 model~\cite{iooss2015} gives the maximal annual underflow of a river with
 truncated Gumbel, truncated normal, triangular and uniform inputs. The
 borehole model is also run with the input model of Harper and
@@ -120,6 +125,8 @@ Borehole & 8 & U, ranges of~\cite{vlse} & smooth, multiplicative, positive\\
 Ishigami & 3 & U$[-\uppi,\uppi]^3$ & strongly non-linear, interactions\\
 OTL circuit & 6 & U~\cite{benari2007} & smooth, nearly additive, positive\\
 Piston & 7 & U~\cite{benari2007} & non-linear, positive\\
+Wing weight & 10 & U~\cite{forrester2008} & smooth, multiplicative, positive\\
+OTL circuit, 20 inputs & 20 & U, 14 inactive~\cite{moon2010} & as OTL circuit; sparse\\
 Borehole (GUM) & 8 & normal, lognormal, uniform~\cite{harper1983} & as borehole; input tails\\
 Plume (GUM) & 5 & lognormal, truncated Weibull, uniform, normal & as plume; heavier input and output tails\\
 Flood & 8 & truncated Gumbel and normal, triangular, uniform~\cite{iooss2015} & smooth, lower-tail threshold\\

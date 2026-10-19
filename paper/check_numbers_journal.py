@@ -272,6 +272,44 @@ check(F, "in only 10\\% of seeds, against 87--93\\%", cc["gp_m52"]["dq_q95_gp_co
 check_true("CFD raw GPs both 10 %", round(cc["gp_quad"]["dq_q95_gp_cov"], 2) == 0.10)
 check(F, "were 80\\% and 97\\%", cc["gp_log"]["dq_q95_gp_cov"],
       lambda v: f"were {100 * v:.0f}\\% and {100 * cc['gp_log']['dq_q95_jack_cov']:.0f}\\%")
+# ── worked example (results/worked_example_cfd.json) ─────────────────────
+F = "journal_discussion.tex"
+W = json.load(open(os.path.join(ROOT, "results", "worked_example_cfd.json")))
+wl, wp, wj, wr, wu = (W["loo_rmse"], W["with_surrogate_contribution"], W["jackknife_95"],
+                      W["reference"], W["u_reference"])
+check_true("worked example chose gp_quadlog", W["chosen"] == "gp_quadlog")
+check(F, "LOO RMSE (23\\,mg\\,m$^{-3}$)", wl["gp_quadlog"], "LOO RMSE ({:.0f}\\,mg\\,m$^{{-3}}$)")
+check(F, "log-scale GP (31), the log-scale sparse PCE (93) and the raw-scale\ncandidates (157--260)",
+      wl["gp_log"], lambda v: f"log-scale GP ({v:.0f}), the log-scale sparse PCE ({wl['spce_log']:.0f}) "
+      f"and the raw-scale\ncandidates ({min(wl[k] for k in ('gp_m52', 'gp_quad', 'spce')):.0f}--"
+      f"{max(wl[k] for k in ('gp_m52', 'gp_quad', 'spce')):.0f})")
+W0 = W["surrogate_as_exact"]
+wchg = {k: wp[k] / W0[k] - 1 for k in wp}
+check(F, "changed the reported quantities by at most 1.2\\%", max(abs(v) for v in wchg.values()),
+      lambda v: f"changed the reported quantities by at most {100 * v:.1f}\\%")
+check_true("worked example: residuals lowered every quantity", all(v < 0 for v in wchg.values()))
+rl = np.array(W["loo_residuals_latent"])
+check(F, "negative mean ($-0.013$", rl.mean(), "negative mean (${:.3f}$")
+check_true("worked example: one residual dominates the mean", abs(rl.min()) > abs(rl.sum()) / 2)
+check(F, "contains\n94.3\\% of the reference", W["reference_share_in_interval"],
+      lambda v: f"contains\n{100 * v:.1f}\\% of the reference")
+inside = {k: wj[k][0] <= wr[k] <= wj[k][1] for k in wj}
+check_true("worked example: jackknife contains reference for mean and P only",
+           {k for k, v in inside.items() if v} == {"mean", "p_exceed", "q025"})
+gap = {k: wr[k] / wj[k][1] - 1 for k in ("sd", "q95", "q975")}
+check(F, "the reference lies\n0.9--1.5\\% above the upper end", min(gap.values()),
+      lambda v: f"the reference lies\n{100 * v:.1f}--{100 * max(gap.values()):.1f}\\% above the upper end")
+check_true("worked example: gaps below half the reference uncertainty",
+           all(wr[k] - wj[k][1] < 0.5 * wu[k] for k in gap))
+bs = W["budget"]; sh = dict(zip(W["input_names"], bs["input_share"]))
+check(F, "wind speed contributed 36\\%", sh["U_ref"], lambda v: f"wind speed contributed {100 * v:.0f}\\%")
+check(F, "rate 31\\%, the receptor distance 5.8\\%, the turbulent Schmidt number 3.9\\%",
+      sh["Q"], lambda v: f"rate {100 * v:.0f}\\%, the receptor distance {100 * sh['x_r']:.1f}\\%, "
+                         f"the turbulent Schmidt number {100 * sh['Sc_t']:.1f}\\%")
+check(F, "building height 3.1\\% and the roughness length 1.0\\%", sh["H_b"],
+      lambda v: f"building height {100 * v:.1f}\\% and the roughness length {100 * sh['z0']:.1f}\\%")
+check(F, "inputs 19\\% and the surrogate 0.3\\%", bs["interaction_share"],
+      lambda v: f"inputs {100 * v:.0f}\\% and the surrogate {100 * bs['surrogate_share']:.1f}\\%")
 # ── discussion: adaptive committee on four of seven models ───────────────
 avb = [b for b in S["n20"] if "al_var:cv" in S["n20"][b]]
 check_true("adaptive committee better on four of seven models",

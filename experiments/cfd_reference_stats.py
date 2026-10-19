@@ -20,6 +20,7 @@ y = b.evaluate(b.reference_sets()["ref"]).reshape(N_FLOW, K_PAIRS)
 def q(v):
     v = v.ravel()
     return {"mean": float(v.mean()), "sd": float(v.std()),
+            "q025": float(np.quantile(v, 0.025)), "q975": float(np.quantile(v, 0.975)),
             "q95": float(np.quantile(v, 0.95)), "p_idlh": float(np.mean(v > b.threshold)),
             "min": float(v.min()), "max": float(v.max())}
 
@@ -27,7 +28,7 @@ def q(v):
 est = q(y)
 rs = np.random.RandomState(0)
 boot = [q(y[rs.randint(0, N_FLOW, N_FLOW)]) for _ in range(2000)]
-u = {k: float(np.std([bb[k] for bb in boot])) for k in ("mean", "sd", "q95", "p_idlh")}
+u = {k: float(np.std([bb[k] for bb in boot])) for k in ("mean", "sd", "q025", "q975", "q95", "p_idlh")}
 recs = [json.load(open(f)) for f in glob.glob(os.path.join(ROOT, "results", "cfd_runs", "*.json"))]
 it = np.array([r["iterations"] for r in recs]); conv = np.array([r["converged"] for r in recs])
 out = {"reference": est, "u_reference": u, "n_runs_cached": len(recs),
