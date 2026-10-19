@@ -11,6 +11,9 @@ Options (research plan T1.1, T2.1, T2.6):
                      designs of the adaptive arms are among them)
   --design=K         also the N = 20 designs of type K (maximin, sobol)
   --ref2             the 800 flow states of the second reference set (seed 18)
+  --reverse          run the outstanding flow states in reverse order (a
+                     second instance then works towards the first from the
+                     other end; every run checks the cache before starting)
 
 Usage: CFD_WORKERS=4 python experiments/cfd_precompute.py [--designs-only] [options]
 Requires OpenFOAM v1912 (Ubuntu/Debian package `openfoam`).
@@ -47,6 +50,8 @@ if "--designs-only" not in sys.argv:
     groups.append(("reference", b.reference_flows()[0]))
 for name, F in groups:
     todo = [f for f in F if not os.path.exists(_path(tuple(float(v) for v in f)))]
+    if "--reverse" in sys.argv:
+        todo = todo[::-1]
     t0 = time.time()
     print(f"{name}: {len(F)} flow states, {len(todo)} to run", flush=True)
     # in chunks, so that progress is visible in the log
