@@ -84,6 +84,7 @@ the benchmarks are cross-checked against).
 | saltelli2010 | Saltelli et al., *Comput. Phys. Commun.* 181(2) 259–270 (2010) | Scinapse, JRC repository | no (not confirmed) |
 | forrester2008 | Forrester, Sóbester, Keane, *Engineering Design via Surrogate Modelling*, Wiley (2008) | UQTestFuns (wing_weight) | yes |
 | moon2010 | Moon, PhD thesis, Ohio State University (2010) | UQTestFuns (otl_circuit, otl_circuit_20d) | — |
+| owen2017 | Owen, Challenor, Menon, Bennani, *SIAM/ASA J. Uncertain. Quantif.* 5(1) 403–435 (2017) | University of Exeter repository, REF 2021 record, SIAM page, arXiv 1511.00926 | yes |
 
 Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
 input models), flood and Ishigami implementations in `src/benchmarks.py`

@@ -61,7 +61,10 @@ prediction for a site, and its reference distribution is built from 800
 runs rather than $2\times10^5$. The coverage results are averages over
 seeds: an individual evaluation can still be unlucky, and the jackknife+
 guarantee (at least 90\% for nominal 95\%) holds on average over designs,
-not for every design. The log transformation applies only to positive
+not for every design. Only scalar outputs were studied; for several
+output quantities, as in GUM~S2~\cite{jcgm102}, the LOO residuals of all
+components should be resampled together, run by run, so that their
+correlation is preserved. The log transformation applies only to positive
 outputs, and its back-transformation to the predictive median slightly
 underestimates the mean of a skewed output; the bias is included in the
 validation errors reported. Finally, the paired tests are exploratory: all
@@ -91,3 +94,57 @@ inputs and the model is smooth.
 runs of an expensive model.}
 \label{fig:flowchart}
 \end{figure}
+
+\subsection{Worked example}
+\label{sec:worked}
+The procedure is implemented in \texttt{src/procedure.py} of the
+repository~\cite{repo}; given the $N$ runs and a sampler of the input
+distribution, it returns the GUM~S1 results with and without the surrogate
+contribution, jackknife intervals of the reported quantities and an
+uncertainty budget. Applied to the CFD case with the 20 runs of the first
+design and $M=10^5$ trials, it chose the log-scale GP with a quadratic
+trend, whose LOO RMSE (23\,mg\,m$^{-3}$) was smaller than those of the
+log-scale GP (31), the log-scale sparse PCE (93) and the raw-scale
+candidates (157--260). Table~\ref{tab:worked} compares the result with the
+reference, which a practitioner would not have. Adding the LOO residuals
+changed the reported quantities by at most 1.2\%; here it lowered them,
+because the residuals have a negative mean ($-0.013$ on the log scale,
+mostly from one run). The reported 95\% coverage interval contains
+94.3\% of the reference distribution. The jackknife intervals, which
+describe the surrogate error alone, contain the reference values of the
+mean, the lower limit of the coverage interval and $P(C>\mathrm{IDLH})$;
+for the SD, the 95th percentile and the upper limit the reference lies
+0.9--1.5\% above the upper end of the interval, by less than half the
+standard uncertainty of the reference itself.
+
+The budget treats the surrogate error $E$ as one more input quantity of
+the model $Y=\phi^{-1}(\phi(\hat f(\mathbf X))+E)$, with $E$ drawn from the
+LOO residuals, and gives first-order variance shares of the inputs and the
+total share of $E$ (estimators of Saltelli et al.~\cite{saltelli2010}).
+The reference wind speed contributed 36\% of $\mathrm{Var}(Y)$, the release
+rate 31\%, the receptor distance 5.8\%, the turbulent Schmidt number 3.9\%,
+the building height 3.1\% and the roughness length 1.0\%; interactions
+between the inputs 19\% and the surrogate 0.3\%. With this surrogate, then,
+the evaluation is limited by the input uncertainties rather than by the
+number of runs, and further CFD runs would mainly narrow the jackknife
+intervals of the tail quantities. The budget is how a practitioner can
+tell whether more runs are worth their cost: a surrogate share comparable
+to those of the inputs would indicate the opposite.
+
+\begin{table}[tb]
+\centering
+\caption{Worked example: the procedure of Fig.~\ref{fig:flowchart} on the
+CFD case with $N=20$ runs and $M=10^5$ trials (mg\,m$^{-3}$). Columns:
+surrogate treated as exact; with the LOO residuals added (the reported
+result); 95\% jackknife interval over the LOO fits (surrogate error only);
+reference from 800 CFD runs with its standard uncertainty in parentheses.}
+\label{tab:worked}
+\small
+\begin{tabular}{l rr c r}
+\toprule
+Quantity & exact & with $E$ & jackknife & reference\\
+\midrule
+\tabinput{../results/journal/tab_worked.tex}
+\bottomrule
+\end{tabular}
+\end{table}

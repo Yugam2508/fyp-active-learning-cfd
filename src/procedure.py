@@ -78,7 +78,7 @@ def _quantities(Y, threshold):
 
 
 def evaluate(X, y, sample_inputs, bounds=None, unit_map=None, positive=None,
-             pos_in=None, threshold=None, M=100_000, n_jack=2000, n_sobol=20_000,
+             pos_in=None, threshold=None, M=100_000, n_jack=None, n_sobol=20_000,
              seed=0):
     X, y = np.asarray(X, float), np.asarray(y, float)
     N, d = X.shape
@@ -117,9 +117,11 @@ def evaluate(X, y, sample_inputs, bounds=None, unit_map=None, positive=None,
     for tag, Y in (("with_surrogate_contribution", y_full), ("surrogate_as_exact", y_plain)):
         out[tag] = {k: float(v) for k, v in _quantities(Y, threshold).items()}
 
-    # 5a. jackknife intervals of the reported quantities (surrogate error only)
-    Xj = Xm[:n_jack]
-    est = _quantities(model.predict(Xj), threshold)
+    # 5a. jackknife intervals of the reported quantities (surrogate error only):
+    #     the LOO fits evaluated on the same draws (all M, or the first n_jack),
+    #     centred on the estimate without the surrogate contribution
+    Xj = Xm if n_jack is None else Xm[:n_jack]
+    est = _quantities(y_plain if n_jack is None else model.predict(Xj), threshold)
     jk = _quantities(np.array([f.predict(Xj) for f in fits]), threshold)
     out["jackknife_95"] = {}
     for k in est:

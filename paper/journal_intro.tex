@@ -41,7 +41,9 @@ polynomials orthonormal with respect to $g_{\mathbf X}$~\cite{xiu2002},
 from which the moments and sensitivity indices follow
 directly~\cite{sudret2008}. With few runs, sparse expansions selected by
 least-angle regression~\cite{efron2004} and a corrected leave-one-out
-error are the method of choice~\cite{blatman2011}.
+error are the method of choice~\cite{blatman2011}. Direct comparisons of PCE
+and GP emulators on expensive simulators found neither uniformly
+better~\cite{owen2017}.
 
 \emph{Ensembles and committees.} Combining several surrogates with weights
 derived from their cross-validation errors protects against choosing a poor
@@ -56,6 +58,15 @@ measures such as the spectral uncertainty of Lin et al.~\cite{lin2024}. For
 the probability of exceeding a threshold, the AK-MCS method of Echard et
 al.~\cite{echard2011} places runs where the sign of $f-T$ is most
 uncertain.
+
+\emph{Surrogates in metrology.} In scatterometry, surrogates have been
+compared for the Bayesian inverse problem~\cite{heidenreich2015}, used to
+make Bayesian shape reconstruction of lithography masks
+feasible~\cite{farchmin2020}, and sampling methods for expensive models
+have been surveyed~\cite{heidenreich2017}. These works concern the
+inverse problem or the efficiency of sampling; the present study concerns
+the forward propagation of GUM~S1 and how the surrogate error enters the
+uncertainty budget.
 
 \emph{Validity of the surrogate contribution.} Whether any of these
 uncertainty descriptions has the coverage it claims is rarely checked

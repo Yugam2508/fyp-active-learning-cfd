@@ -31,7 +31,14 @@ yr = b.evaluate(b.reference_sets()["ref"])
 ref = {"mean": float(yr.mean()), "sd": float(yr.std()), "q025": float(np.quantile(yr, 0.025)),
        "q975": float(np.quantile(yr, 0.975)), "q95": float(np.quantile(yr, 0.95)),
        "p_exceed": float(np.mean(yr > b.threshold))}
+# standard uncertainty of the reference (cluster bootstrap, cfd_reference_stats.py)
+u_ref = json.load(open(os.path.join(ROOT, "results", "cfd_reference.json")))["u_reference"]
+u_ref = {k: u_ref[k] for k in ("mean", "sd", "q025", "q975", "q95")} | {"p_exceed": u_ref["p_idlh"]}
 res["reference"] = ref
+# share of the reference distribution inside the reported coverage interval
+w = res["with_surrogate_contribution"]
+res["reference_share_in_interval"] = float(np.mean((yr >= w["q025"]) & (yr <= w["q975"])))
+res["u_reference"] = u_ref
 res["input_names"] = names
 json.dump(res, open(os.path.join(ROOT, "results", "worked_example_cfd.json"), "w"), indent=1)
 
@@ -43,7 +50,9 @@ rows = [("Estimate $y$ (mean)", "mean"), ("Standard uncertainty $u(y)$", "sd"),
 tex = []
 for label, k in rows:
     jk = f"[{f(j[k][0])}, {f(j[k][1])}]" if k in j else "--"
-    tex.append(f"{label} & {f(p[k])} & {f(w[k])} & {jk} & {f(ref[k])} \\\\")
+    fu = f"{u_ref[k]:.3f}" if k == "p_exceed" else f"{u_ref[k]:.{0 if u_ref[k] >= 10 else 1}f}"
+    rf = f"{f(ref[k])} ({fu})"
+    tex.append(f"{label} & {f(p[k])} & {f(w[k])} & {jk} & {rf} \\\\")
 os.makedirs(os.path.join(ROOT, "results", "journal"), exist_ok=True)
 open(os.path.join(ROOT, "results", "journal", "tab_worked.tex"), "w").write("\n".join(tex) + "\n")
 print("reference:", {k: round(v, 3) for k, v in ref.items()})
