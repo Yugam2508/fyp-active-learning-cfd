@@ -36,11 +36,12 @@ FIG = os.path.join(ROOT, "figures", "journal")
 B_BOOT = 10_000
 
 BENCHES = ["physics", "plume", "borehole", "ishigami", "otl", "piston",
-           "borehole_gum", "plume_gum", "flood", "cfd"]
+           "wingweight", "otl20", "borehole_gum", "plume_gum", "flood", "cfd"]
 LABEL = {"physics": "Physics", "plume": "Plume", "borehole": "Borehole",
          "ishigami": "Ishigami", "otl": "OTL circuit", "piston": "Piston",
          "borehole_gum": "Borehole (GUM inputs)", "plume_gum": "Plume (GUM inputs)",
-         "flood": "Flood", "cfd": "CFD dispersion"}
+         "flood": "Flood", "cfd": "CFD dispersion", "wingweight": "Wing weight",
+         "otl20": "OTL circuit, 20 inputs"}
 METHODS = {
     "gp_orig": "GP, original kernel", "gp_amp": "GP + amplitude",
     "gp_m52": "GP Mat\\'ern ARD", "gp_quad": "GP + quadratic trend",
@@ -49,7 +50,8 @@ METHODS = {
     "pas_ard:cv": "Committee (CV)", "pas_ard:uni": "Committee (uniform)",
     "al_gp": "GP, adaptive (SD)", "al_var:cv": "Committee, adaptive",
     "al_ueigv:cv": "Committee, UEigV", "ak_m52": "GP, AK-MCS",
-    "ak_log": "GP log, AK-MCS"}
+    "ak_log": "GP log, AK-MCS", "akq_m52": "GP, AK-MCS at y95",
+    "akq_log": "GP log, AK-MCS at y95"}
 # (A, B, metric, label): effect = median of A/B over paired seeds
 COMPARISONS = [
     ("gp_m52", "gp_orig", "nrmse", "kernel: amplitude + ARD vs original"),
@@ -65,6 +67,8 @@ COMPARISONS = [
     ("al_ueigv:cv", "al_var:cv", "nrmse", "UEigV vs variance"),
     ("ak_m52", "gp_m52", "thr_abserr", "AK-MCS vs passive, exceedance"),
     ("ak_log", "gp_log", "thr_abserr", "AK-MCS vs passive, exceedance (log)"),
+    ("akq_m52", "gp_m52", "exc_abserr", "AK-MCS at $y_{0.95}$ vs passive"),
+    ("akq_log", "gp_log", "exc_abserr", "AK-MCS at $y_{0.95}$ vs passive (log)"),
     ("gp_log", "gp_m52", "thr_abserr", "log vs raw, exceedance"),
 ]
 BUDGETS = [10, 20, 40, 80]
@@ -198,7 +202,11 @@ def selection_summary():
         cands = [k[len("loo_rmse_"):] for k in recs[0] if k.startswith("loo_rmse_")]
         data = {c: {m: load(b, c, metric=m) for m in ("nrmse", "relerr_q95", "thr_abserr")}
                 for c in cands}
-        chosen, rows = {}, []
+        cov = {}
+        for c in cands:
+            fc = os.path.join(RES, f"results_cov_{b}_{c}.json")
+            cov[c] = {x["seed"]: x for x in json.load(open(fc))} if os.path.exists(fc) else {}
+        chosen, rows, covrows = {}, [], []
         for r in recs:
             sd = r["seed"]
             if not all(sd in data[c]["nrmse"] for c in cands):
@@ -210,6 +218,8 @@ def selection_summary():
                          "gp_m52": data["gp_m52"]["nrmse"][sd],
                          "relerr_q95": data[c]["relerr_q95"][sd],
                          "thr_abserr": data[c]["thr_abserr"][sd]})
+            if sd in cov[c]:
+                covrows.append(cov[c][sd])
         if not rows:
             continue
         v = lambda k: np.array([x[k] for x in rows])
@@ -222,6 +232,15 @@ def selection_summary():
                   "relerr_q95_median": float(np.median(v("relerr_q95"))),
                   "thr_abserr_median": float(np.median(v("thr_abserr"))),
                   "per_seed_nrmse": {str(x["seed"]): x["nrmse"] for x in rows}}
+        if len(covrows) == len(rows):           # the whole procedure, end to end
+            m = lambda k: float(np.mean([x[k] for x in covrows]))
+            kk = lambda k: int(np.sum([x[k] for x in covrows]))
+            out[b]["procedure_coverage"] = {
+                "ci_resample_cov": m("ci_resample_cov"), "ci_plain_cov": m("ci_plain_cov"),
+                "pw_jkplus_cov": m("pw_jkplus_cov"),
+                **{f"dq_{q}_jack_cov": m(f"dq_{q}_jack_cov") for q in ("mean", "sd", "q95", "p_thr")},
+                **{f"dq_{q}_jack_wilson": wilson(kk(f"dq_{q}_jack_cov"), len(covrows))
+                   for q in ("mean", "q95", "p_thr")}}
     return out
 
 
@@ -280,7 +299,7 @@ def ptxt(p):
 
 SHORT = {"physics": "Phys.", "plume": "Plume", "borehole": "Bore.", "ishigami": "Ishi.",
          "otl": "OTL", "piston": "Pist.", "borehole_gum": "Bore.G", "plume_gum": "Plume.G",
-         "flood": "Flood", "cfd": "CFD"}
+         "flood": "Flood", "cfd": "CFD", "wingweight": "Wing", "otl20": "OTL20"}
 
 
 def tab_tests(S, N=20):
@@ -315,7 +334,8 @@ def tab_tests_long(S, N=20):
     return "\n".join(lines) + "\n"
 
 
-POSITIVE = {"plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd"}
+POSITIVE = {"plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd",
+            "wingweight", "otl20"}
 
 
 def recommended(b):
