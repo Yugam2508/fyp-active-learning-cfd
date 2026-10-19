@@ -29,6 +29,7 @@ Both expose fit(X, y), predict(X) (original scale) and latent(X) ->
 and from_latent(z) to move between scales.
 """
 
+import os
 import numpy as np
 from numpy.polynomial import legendre
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -36,6 +37,12 @@ from sklearn.gaussian_process.kernels import (RBF, Matern, ConstantKernel,
                                               WhiteKernel, DotProduct)
 from sklearn.linear_model import lars_path
 from sklearn.preprocessing import StandardScaler
+
+
+# Upper bound of the estimated kernel amplitude (standardised output units).
+# 1e3 throughout the study; the environment variable GP_AMP_MAX is only for
+# the sensitivity check of experiments/sensitivity_amp_bound.py.
+AMP_MAX = float(os.environ.get("GP_AMP_MAX", "1e3"))
 
 
 class GP:
@@ -63,15 +70,16 @@ class GP:
     # kernel ---------------------------------------------------------------
     def _kernel(self):
         ls = np.ones(self.d)
-        m52 = lambda: (ConstantKernel(1.0, (1e-3, 1e3))
+        hi = AMP_MAX
+        m52 = lambda: (ConstantKernel(1.0, (1e-3, hi))
                        * Matern(ls, (1e-2, 1e3), nu=2.5))
         nug = lambda: WhiteKernel(1e-4, (1e-8, 1e-1))
         return {
             "orig":     lambda: RBF() + WhiteKernel(1e-2),
-            "amp":      lambda: ConstantKernel(1.0, (1e-3, 1e3)) * RBF()
+            "amp":      lambda: ConstantKernel(1.0, (1e-3, hi)) * RBF()
                                 + WhiteKernel(1e-2),
             "ardnoamp": lambda: RBF(ls) + WhiteKernel(1e-2),
-            "ard":      lambda: ConstantKernel(1.0, (1e-3, 1e3))
+            "ard":      lambda: ConstantKernel(1.0, (1e-3, hi))
                                 * RBF(ls, (1e-2, 1e3)) + nug(),
             "m52":      lambda: m52() + nug(),
             "quad":     lambda: m52()
