@@ -47,7 +47,13 @@ src/                       library modules (importable)
   framework_core.py          committee, UEigV, hard LCS, ActiveLearner (FYP)
   uq_extension.py            SoftLCS (CV inverse-error weights), UQAnalyzer
   surrogates.py              GP specifications (orig ... quad, log) and sparse PCE (LAR)
-  benchmarks.py              9 analytical models (uniform and GUM-type inputs)
+  benchmarks.py              13 analytical models (uniform, GUM-type and dependent
+                             inputs; a failure-mode model)
+  procedure.py               the procedure of the paper: selection, LOO contribution,
+                             adaptive Monte Carlo (GUM S1 7.9), jackknife intervals,
+                             uncertainty budget, GUM-framework comparison
+  gp_bayes.py                Student-t and MCMC GP predictive distributions, IMSE
+  designs.py                 random LHS, maximin LHS, scrambled Sobol' designs
   cfd_dispersion.py          parametrised OpenFOAM case (2-D RANS, building wake)
   cfd_benchmark.py           CFD case as a cached 6-input benchmark + reference sets
 experiments/               runnable studies, launch from anywhere
@@ -59,6 +65,11 @@ experiments/               runnable studies, launch from anywhere
   cfd_precompute.py          the 1550 CFD runs (designs + reference), cached
   cfd_grid_check.py, cfd_iteration_check.py, cfd_reference_stats.py, fig_cfd_case.py
   analyse_journal.py         statistics, tables, figures (--check for CI)
+  run_extension_campaign.sh, run_completion_campaign.sh
+                             higher-dimensional models; the research-plan runs
+  crosscheck_openturns.py, campaign_stacking.py, campaign_vector.py,
+  cfd_gci.py, cfd_reference2.py, worked_example_cfd.py
+  analyse_completion.py      statistics of the research-plan runs
   check_benchmarks.py        formulas and input models vs UQTestFuns
   test_reproducibility.py    regenerate published records and compare
   analyse_generalisation.py, make_paper_figures.py, campaign_domain.py,
@@ -69,7 +80,8 @@ results/                   per-seed JSON records (resumable), cfd_runs/ cache,
                            journal/ (summary.json + generated LaTeX tables)
 figures/                   generated figures (journal/ for the journal manuscript)
 paper/                     imeko2027/ (extended abstract), paper.tex + journal_*.tex
-docs/                      findings, reproducibility record, reference checks
+tests/                     unit tests (python -m pytest -q)
+docs/                      research plan, reproducibility record, reference checks
 ```
 
 ## Setup
