@@ -13,3 +13,5 @@ threadpoolctl==3.7.0
 torch==2.14.1
 uqtestfuns==0.7.0
 pytest==9.1.1
+emcee==3.1.6
+openturns==1.27.post1

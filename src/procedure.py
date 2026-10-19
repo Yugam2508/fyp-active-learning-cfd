@@ -17,6 +17,12 @@ Steps
   4. GUM S1 propagation of M input draws through the surrogate, adding to
      every trial a residual drawn with equal probabilities from {r_i}:
      y_k = phi^-1(phi(fhat(x_k)) + r_J).
+     With ndig given, the number of trials is chosen by the adaptive Monte
+     Carlo procedure of GUM S1 (JCGM 101:2008, 7.9): batches of
+     h = max(100/(1-p), 1e4) trials until twice the standard deviation of
+     the batch means of y, u(y) and both interval limits is at most the
+     numerical tolerance delta = 0.5 10^l, u(y) = c 10^l with ndig
+     significant digits in c.
   5. Report: estimate y (mean), standard uncertainty u(y) (SD), the
      probabilistically symmetric 95 % coverage interval, P(Y > T) if a
      threshold is given; the same without the surrogate contribution; 95 %
@@ -24,7 +30,10 @@ Steps
      an uncertainty budget of Var(Y) with the surrogate error E treated as an
      additional input quantity: first-order variance shares of the inputs and
      the total variance share of E (Saltelli et al. 2010), the rest being
-     interactions between inputs.
+     interactions between inputs. For comparison, the GUM uncertainty
+     framework (law of propagation of uncertainty, first order, through the
+     chosen surrogate at the input means, sensitivity coefficients by central
+     differences, interval y +- 1.96 u(y)).
 
 Inputs
   X (N, d), y (N,)       the model runs
@@ -79,7 +88,7 @@ def _quantities(Y, threshold):
 
 def evaluate(X, y, sample_inputs, bounds=None, unit_map=None, positive=None,
              pos_in=None, threshold=None, M=100_000, n_jack=None, n_sobol=20_000,
-             seed=0):
+             seed=0, ndig=None):
     X, y = np.asarray(X, float), np.asarray(y, float)
     N, d = X.shape
     positive = bool(np.all(y > 0)) if positive is None else positive
@@ -108,12 +117,20 @@ def evaluate(X, y, sample_inputs, bounds=None, unit_map=None, positive=None,
     r = np.array([z[i] - f.latent(X[i:i + 1])[0][0] for i, f in enumerate(fits)])
 
     # 4. propagation with and without the surrogate contribution
-    Xm = sample_inputs(M, rng)
-    mu = model.latent(Xm)[0]
-    y_plain = model.from_latent(mu)
-    y_full = model.from_latent(mu + r[rng.integers(0, N, M)])
+    if ndig is None:
+        Xm = sample_inputs(M, rng)
+        mu = model.latent(Xm)[0]
+        y_plain = model.from_latent(mu)
+        y_full = model.from_latent(mu + r[rng.integers(0, N, M)])
+        adaptive = None
+    else:
+        Xm, y_full, adaptive = _adaptive_mc(model, r, sample_inputs, rng, ndig)
+        M = len(Xm)
+        y_plain = model.from_latent(model.latent(Xm)[0])
     out = {"chosen": chosen, "loo_rmse": {k: v["rmse"] for k, v in loo.items()},
            "loo_residuals_latent": r.tolist(), "M": M, "N": N}
+    if adaptive is not None:
+        out["adaptive_mc"] = adaptive
     for tag, Y in (("with_surrogate_contribution", y_full), ("surrogate_as_exact", y_plain)):
         out[tag] = {k: float(v) for k, v in _quantities(Y, threshold).items()}
 
@@ -145,7 +162,44 @@ def evaluate(X, y, sample_inputs, bounds=None, unit_map=None, positive=None,
     S_E = float(np.mean((fA - full(A, eB)) ** 2) / (2 * V))
     out["budget"] = {"input_share": S, "surrogate_share": S_E,
                      "interaction_share": float(max(0.0, 1 - sum(S) - S_E))}
+
+    # 6. GUM uncertainty framework through the surrogate, for comparison
+    Xs = sample_inputs(100_000, rng)
+    xbar, ux = Xs.mean(0), Xs.std(0)
+    c = np.empty(d)
+    for i in range(d):
+        dx = np.zeros(d); dx[i] = 1e-3 * ux[i]
+        c[i] = (model.predict((xbar + dx)[None])[0]
+                - model.predict((xbar - dx)[None])[0]) / (2 * dx[i])
+    y0 = float(model.predict(xbar[None])[0])
+    u0 = float(np.sqrt(np.sum((c * ux) ** 2)))
+    out["gum_framework"] = {"y": y0, "u": u0, "q025": y0 - Z95 * u0, "q975": y0 + Z95 * u0,
+                            "sensitivity": c.tolist()}
     return out
+
+
+def _adaptive_mc(model, r, sample_inputs, rng, ndig, p=0.95, max_batches=1000):
+    """GUM S1 7.9: batches until the numerical tolerance is met."""
+    h = max(int(np.ceil(100 / (1 - p))), 10_000)
+    Xs, Ys, stats = [], [], []
+    for _ in range(max_batches):
+        Xb = sample_inputs(h, rng)
+        Yb = model.from_latent(model.latent(Xb)[0] + r[rng.integers(0, len(r), h)])
+        Xs.append(Xb); Ys.append(Yb)
+        stats.append([Yb.mean(), Yb.std(), *np.quantile(Yb, [(1 - p) / 2, (1 + p) / 2])])
+        if len(stats) < 2:
+            continue
+        S = np.array(stats)
+        Y = np.concatenate(Ys)
+        u = Y.std()
+        l = int(np.floor(np.log10(u))) - ndig + 1
+        delta = 0.5 * 10.0 ** l
+        sd = S.std(0, ddof=1) / np.sqrt(len(S))
+        if np.all(2 * sd <= delta):
+            break
+    return (np.vstack(Xs), np.concatenate(Ys),
+            {"batches": len(stats), "batch_size": h, "ndig": ndig, "delta": float(delta),
+             "two_sd_of_mean": (2 * sd).tolist(), "met": bool(np.all(2 * sd <= delta))})
 
 
 def budget_table(res, names=None, unit=""):

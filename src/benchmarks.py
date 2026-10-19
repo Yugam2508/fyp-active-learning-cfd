@@ -44,12 +44,17 @@ wingweight    Weight (lb) of a light-aircraft wing, 10 inputs (Forrester et
               al. 2008); the sweep angle (degrees) can be negative.
 otl20         OTL circuit with 14 additional inert inputs U(100, 200), 20
               inputs (Moon 2010): tests surrogates on irrelevant inputs.
+bump          x1 + x2^2 + 0.5 sin(2 pi x3) + 0.5 x4
+              + 3.6 exp(-||x - 0.7||^2 / (2 0.13^2)) on [0, 1]^4: a local
+              feature that the runs can miss (failure-mode test).
 Non-uniform inputs
 ------------------
 borehole_gum  borehole with the probabilistic input model of Harper & Gupta
               (1983) as implemented in UQTestFuns v0.7: rw ~ N(0.10,
               0.0161812), ln r ~ N(7.71, 1.0056), Hu ~ U(990, 1100),
               Kw ~ U(9985, 12045), other inputs uniform as above.
+borehole_corr borehole_gum with a Gaussian copula: correlation 0.5 between Tu
+              and Tl and between Hu and Hl (dependent inputs).
 plume_gum     plume with illustrative GUM-style inputs: Q lognormal (median
               500 g/s, geometric SD 2), u Weibull (shape 2, scale 4 m/s)
               truncated to [0.5, 15] m/s, H ~ U(1, 20) m, x ~ U(200, 1000) m,
@@ -246,6 +251,25 @@ class OTL20(OTL):
         return super().evaluate(X[:, :6])
 
 
+class Bump(_Bench):
+    """Failure-mode model (research plan T1.6): smooth part plus a narrow
+    Gaussian bump carrying about 10 % of the variance, in a region (bump
+    above 10 % of its height) of 3 % of the input volume that a 20-run Latin
+    hypercube misses with probability about one half."""
+    name = "bump"
+    bounds = [(0., 1.)] * 4
+    A, W, C = 3.6, 0.13, 0.7
+
+    def evaluate(self, X):
+        x1, x2, x3, x4 = X.T
+        return (x1 + x2 ** 2 + 0.5 * np.sin(2 * np.pi * x3) + 0.5 * x4
+                + self.A * np.exp(-np.sum((X - self.C) ** 2, axis=1) / (2 * self.W ** 2)))
+
+    def in_bump(self, X):
+        """True where the bump exceeds 10 % of its height."""
+        return np.exp(-np.sum((X - self.C) ** 2, axis=1) / (2 * self.W ** 2)) > 0.1
+
+
 # ── non-uniform-input models ─────────────────────────────────────────────
 def _quantile_bounds(marginals, lo=5e-4, hi=1 - 5e-4):
     return [(float(m.ppf(lo)), float(m.ppf(hi))) for m in marginals]
@@ -259,6 +283,29 @@ class BoreholeGUM(Borehole):
                  _uniform(63.1, 116.), _uniform(700., 820.),
                  _uniform(1120., 1680.), _uniform(9985., 12045.)]
     bounds = _quantile_bounds(marginals)
+
+
+class BoreholeCorr(BoreholeGUM):
+    """borehole_gum with dependent inputs (research plan T2.5): a Gaussian
+    copula with correlation 0.5 between the transmissivities Tu and Tl and
+    between the heads Hu and Hl. ppf maps independent uniforms U to the
+    dependent inputs (U -> standard normal -> correlated by the Cholesky
+    factor -> marginal quantiles); cdf is its inverse (the Rosenblatt
+    transform of the Gaussian copula), so designs, sparse PCE and the
+    propagation all work in the independent space."""
+    name = "borehole_corr"
+    R = np.eye(8)
+    R[2, 4] = R[4, 2] = 0.5                     # Tu, Tl
+    R[3, 5] = R[5, 3] = 0.5                     # Hu, Hl
+    L = np.linalg.cholesky(R)
+
+    def ppf(self, U):
+        Z = stats.norm.ppf(np.clip(U, 1e-15, 1 - 1e-15)) @ self.L.T
+        return super().ppf(stats.norm.cdf(Z))
+
+    def cdf(self, X):
+        Z = stats.norm.ppf(np.clip(super().cdf(X), 1e-15, 1 - 1e-15))
+        return stats.norm.cdf(np.linalg.solve(self.L, Z.T).T)
 
 
 class PlumeGUM(Plume):
@@ -291,7 +338,7 @@ class Flood(_Bench):
 
 BENCHMARKS = {c.name: c for c in (Physics, Plume, Borehole, Ishigami, OTL,
                                   Piston, BoreholeGUM, PlumeGUM, Flood,
-                                  WingWeight, OTL20)}
+                                  WingWeight, OTL20, Bump, BoreholeCorr)}
 
 # CFD dispersion case (OpenFOAM; runs cached in results/cfd_runs/)
 from cfd_benchmark import CFDDispersion            # noqa: E402
