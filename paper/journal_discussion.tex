@@ -50,9 +50,9 @@ surrogate contribution, and the jackknife over LOO fits for the uncertainty
 of quantities derived from the propagated distribution.
 
 \subsection{Limitations}
-The study covers ten models with up to eight inputs and budgets of 10 to
-80 runs; higher-dimensional problems, where sparse and additive structures
-matter more, may rank the surrogates differently. Two models were run with
+The study covers twelve models with up to 20 inputs and budgets of 10 to
+80 runs; problems with many more inputs, where sparse and additive
+structures matter more, may rank the surrogates differently. Two models were run with
 a single budget per input distribution, and the adaptive committees were
 run only up to $N=40$ because of their cost. The CFD case is
 two-dimensional and steady, with a standard $k$--$\varepsilon$ model; it is a
@@ -74,7 +74,7 @@ survive the adjustment are not claimed.
 \section{A procedure for surrogate-based GUM~S1 evaluations}
 \label{sec:procedure}
 Fig.~\ref{fig:flowchart} condenses the results into a procedure that needs
-only the $N$ runs. Its two key steps were validated on the ten models: the
+only the $N$ runs. Its two key steps were validated on the twelve models: the
 selection of the surrogate by its LOO error recovered practically all the
 benefit of the best specification (Section~\ref{sec:res-select}), and the
 LOO error as surrogate contribution restored the nominal coverage of the

@@ -5,11 +5,13 @@
 For GUM~S1 evaluations in which the measurement model can be run only a few
 tens of times, the way a surrogate is specified matters more than the
 strategy around it. A GP should estimate its amplitude and one length scale
-per input, include a quadratic trend, and work on the log scale when the
-output is positive; a failure of GP surrogates reported in an earlier
-analysis was an artefact of one hyperparameter held fixed. Among such
-candidates and a sparse PCE, the one with the smallest leave-one-out error
-was as good as the best in hindsight on all ten models, including a CFD
+per input and work on the log scale when the output is positive; a failure
+of GP surrogates reported in an earlier analysis was an artefact of one
+hyperparameter held fixed. A quadratic trend helps when the response has
+one but can overfit when there are many inputs, so it belongs among the
+candidates rather than in every model. Among such candidates and a sparse
+PCE, the one with the smallest leave-one-out error
+was as good as the best in hindsight on all twelve models, including a CFD
 simulation of a release behind a building. Committees of surrogates and
 variance-driven adaptive designs gave no consistent gain at 20 runs,
 whereas a design targeted at the threshold improved exceedance

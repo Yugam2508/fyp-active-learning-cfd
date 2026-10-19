@@ -14,7 +14,7 @@ Definitions used throughout: medians over the 30 seeds 1000–1029; nRMSE =
 test RMSE / reference output SD; a paired ratio is the median over seeds of
 (error of A) / (error of B); confidence intervals are 95 % percentile
 bootstrap (10 000 resamples, `RandomState(0)`); p-values are two-sided
-Wilcoxon signed-rank on log ratios, Holm-adjusted over all 173 tests of the
+Wilcoxon signed-rank on log ratios, Holm-adjusted over all 222 tests of the
 study (`p_holm` in `summary.json`); "significant" means `p_holm < 0.05`.
 
 Sources of the records:
