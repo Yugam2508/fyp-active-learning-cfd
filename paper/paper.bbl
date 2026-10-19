@@ -149,7 +149,8 @@ D.~Wicaksono and M.~Hecht, ``{UQTestFuns}: a {P}ython3 library of uncertainty
   Software}, vol.~8, no.~90, p.~5671, 2023.
 
 \bibitem{repo}
-Y.~J. Vora, ``Surrogate committees for uncertainty propagation: code, per-seed
+Y.~J. Vora and W.~H. Ng, ``Surrogate models for {GUM} {S}upplement 1
+  uncertainty propagation with small budgets of model runs: code, per-seed
   records and figure scripts.''
   \url{https://github.com/Yugam2508/fyp-active-learning-cfd}, 2026.
 
