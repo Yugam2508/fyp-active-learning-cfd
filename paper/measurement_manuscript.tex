@@ -1,0 +1,59 @@
+% measurement_manuscript.tex — ANONYMIZED manuscript for Measurement (Elsevier,
+% double-anonymized review): no author names, affiliations or repository
+% link; those are on the separate title page (measurement_title_page.tex).
+% Same text as paper.tex (journal_*.tex). Build from paper/:
+%   pdflatex measurement_manuscript && bibtex measurement_manuscript
+%   && pdflatex measurement_manuscript && pdflatex measurement_manuscript
+\documentclass[preprint,12pt,a4paper]{elsarticle}
+
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,shapes.geometric}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{lineno}
+\linenumbers
+
+\graphicspath{{../figures/}}
+\makeatletter\newcommand\tabinput[1]{\@@input #1 }\makeatother
+% anonymized forms of the identifying text
+\newcommand\anon[2]{#2}
+\newcommand\repocite{\cite{repoanon}}
+
+\journal{Measurement}
+
+\begin{document}
+\begin{frontmatter}
+\title{Surrogate models for Monte Carlo uncertainty propagation with few runs
+of an expensive model: specification, selection and a valid surrogate
+contribution}
+
+\begin{abstract}
+\input{journal_abstract}
+\end{abstract}
+
+\begin{keyword}
+measurement uncertainty \sep GUM Supplement 1 \sep Monte Carlo method \sep
+surrogate model \sep Gaussian process \sep polynomial chaos \sep
+conformal prediction \sep gas dispersion
+\end{keyword}
+\end{frontmatter}
+
+\input{journal_body}
+
+\section*{Data and code availability}
+All code, the per-seed records of every strategy, the cached CFD runs,
+figure scripts, an analysis script that recomputes every table and figure,
+and an implementation of the procedure of Section~\ref{sec:procedure} are
+available in a public repository~\repocite; the link is withheld for
+anonymized review and given on the title page.
+
+\bibliographystyle{elsarticle-num}
+\bibliography{imeko2027/references,journal}
+
+\end{document}
