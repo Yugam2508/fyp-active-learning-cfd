@@ -59,7 +59,11 @@ log variants E is multiplicative.
             200 posterior draws,
             uniform prior on the log-hyperparameters within the ML bounds);
             mixture predictive (derived quantities: 40 paths for each of 25
-            draws); N <= 40 only (cost)
+            draws); N = 20 only (cost; the T1.2 decision is taken at N = 20)
+
+Also recorded: loo_rmse_orig, the LOO RMSE on the original scale of y (the
+selection criterion of campaign_selection.py), so that the selection at
+N != 20 is evaluated from these records without refitting.
 
 Usage: python campaign_coverage.py <benchmark> <surrogate> <start> <n> [N] [--augment]
 Surrogates: gp_orig, gp_m52, gp_quad, gp_log, gp_quadlog, spce, spce_log
@@ -195,6 +199,8 @@ def run(seed):
     r = np.array(r); mu_loo_t = np.array(mu_loo_t); mu_loo_q = np.array(mu_loo_q)
     s_loo = float(np.sqrt(np.mean(r ** 2)))
     out["s_loo_latent"] = s_loo
+    # LOO RMSE on the original scale: the selection criterion of the procedure
+    out["loo_rmse_orig"] = float(np.sqrt(np.mean((y - m(z - r)) ** 2)))
 
     # 1. pointwise intervals
     pw = {"cvnorm": (mu_t - Z * s_loo, mu_t + Z * s_loo),
@@ -301,7 +307,7 @@ def bayes_variants(s, m, r, s_loo_pt, mu_t, sd_t, mu_mc, sd_mc, truth, rs):
     out.update(dq_stats("gpcal", m(gp_bayes.mvn_paths(mq0, c2 * Cq0, N_PATHS, rs)), truth))
     out.update({"gpcal_rms_z": float(np.sqrt(c2)), "gpcal_q": float(qz)})
     # gpmc: all hyperparameters integrated out by MCMC
-    if N <= 40:
+    if N == 20:
         th, acc, tau = gp_bayes.mcmc_thetas(s, rs)
         md, sdd = gp_bayes.predict_draws(s, th, X_test)
         smp = md[:, None, :] + sdd[:, None, :] * rs.standard_normal((len(th), 5, len(X_test)))
@@ -328,6 +334,8 @@ if __name__ == "__main__" and AUGMENT:
     results = json.load(open(OUT))
     n_bad = 0
     for rec in results:
+        if "pw_gpt_cov" in rec or not IS_GP:          # already augmented
+            continue
         t0 = time.time()
         new = run(rec["seed"])
         bad = [k for k, v in new.items() if k in rec and not _same(rec[k], v)]

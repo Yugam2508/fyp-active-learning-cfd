@@ -95,15 +95,22 @@ def bayes_gp():
 
 # ── T1.1 budgets: the procedure (selection + LOO contribution) per N ─────
 def budgets():
+    """At N = 20 the LOO errors come from campaign_selection.py, at other N
+    from the coverage records (loo_rmse_orig, same definition)."""
     out = {}
     for N in (10, 20, 40, 80):
         for b in BENCHES:
-            sel = jload(f"results_sel_{b}{suffix(N)}.json")
-            if not sel:
-                continue
             cov = {c: cov_records(b, c, N) for c in cands(b)}
-            cs = [c for c in cands(b) if len(cov[c]) >= 5 and f"loo_rmse_{c}" in sel[0]]
-            if not cs:
+            if N == 20:
+                sel = jload(f"results_sel_{b}.json")
+                cs = [c for c in cands(b) if len(cov[c]) >= 5 and sel and f"loo_rmse_{c}" in sel[0]]
+            else:
+                cs = [c for c in cands(b) if len(cov[c]) >= 5
+                      and all("loo_rmse_orig" in x for x in cov[c].values())]
+                seeds = sorted(set.intersection(*[set(cov[c]) for c in cs])) if cs else []
+                sel = [{"seed": sd, **{f"loo_rmse_{c}": cov[c][sd]["loo_rmse_orig"] for c in cs}}
+                       for sd in seeds]
+            if not cs or not sel:
                 continue
             gen = {c: load(b, c, N=N) for c in cs}
             rows = []

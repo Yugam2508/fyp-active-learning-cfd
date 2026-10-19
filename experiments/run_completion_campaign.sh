@@ -10,7 +10,9 @@
 #       T2.5 correlated inputs, T2.6 CFD grid convergence index; CFD runs for
 #       the design types and the second reference (one core)
 #   2b  T2.1/T2.2/T2.3 on the CFD case, T2.6 second reference
-# Resumable (finished seeds are skipped).
+# The selection at N != 20 is evaluated from the LOO errors stored in the
+# coverage records (loo_rmse_orig), so no separate selection jobs run there.
+# Resumable (finished seeds are skipped; augmented records are not redone).
 #   bash experiments/run_completion_campaign.sh [n_parallel] [first_stage]
 set -u
 cd "$(dirname "$0")/.."
@@ -37,13 +39,12 @@ EOF
   for N in 20 40; do                                                         # T1.6
     for a in gp_m52 gp_quad spce pas_ard al_gp ak_m52; do echo "gen bump $a $N"; done
     for s in gp_m52 gp_quad spce; do echo "cov bump $s $N"; done
-    echo "sel bump $N"
   done
+  echo "sel bump 20"
   for N in 10 40; do                                                         # T1.1
     for b in $ANA; do
       for s in $(cands $b); do echo "cov $b $s $N"; done
       is_pos $b && echo "gen $b gp_quadlog $N"
-      echo "sel $b $N"
     done
   done
 }
@@ -53,12 +54,10 @@ jobs_1b() {
     if [ $N = 40 ]; then for s in 0 10 20; do echo "part cfd al_gp 40 $s"; done
     else echo "gen cfd al_gp 10"; fi
     for s in $(cands cfd); do echo "cov cfd $s $N"; done
-    echo "sel cfd $N"
   done
   for b in $ANA; do                                                          # T1.1, N = 80
     for s in $(cands80 $b); do echo "cov $b $s 80"; done
     is_pos $b && echo "gen $b gp_quadlog 80"
-    echo "sel $b 80"
   done
 }
 jobs_2a() {
