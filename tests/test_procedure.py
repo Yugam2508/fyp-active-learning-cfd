@@ -23,3 +23,19 @@ def test_procedure_on_borehole_is_close_to_reference():
     assert 0 <= shares["surrogate_share"] < 0.05
     assert abs(sum(shares["input_share"]) + shares["surrogate_share"]
                + shares["interaction_share"] - 1) < 0.05
+
+
+def test_adaptive_mc_and_gum_framework_agree_on_a_linear_model():
+    """For a linear model the law of propagation of uncertainty is exact, so
+    the adaptive Monte Carlo result must agree with it to the tolerance."""
+    rng = np.random.default_rng(3)
+    X = 1 + rng.uniform(0, 1, (20, 2))
+    y = 2 * X[:, 0] + 3 * X[:, 1]
+    sample = lambda n, r: 1 + r.uniform(0, 1, (n, 2))
+    res = evaluate(X, y, sample, bounds=[(1, 2), (1, 2)], M=10_000, n_sobol=2000,
+                   seed=0, ndig=2)
+    a, g, w = res["adaptive_mc"], res["gum_framework"], res["with_surrogate_contribution"]
+    assert a["met"] and a["batches"] >= 2 and res["M"] == a["batches"] * a["batch_size"]
+    u_true = np.sqrt((4 + 9) / 12)
+    assert abs(g["u"] / u_true - 1) < 0.01 and abs(g["y"] - 7.5) < 0.01
+    assert abs(w["sd"] - g["u"]) < 2 * a["delta"] + 0.01

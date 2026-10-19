@@ -61,6 +61,11 @@ Results: results/results_gen_<benchmark>_<arm>.json for N = 20, else
 results_gen_<benchmark>_<arm>_N<N>.json (resumable). RESULTS_DIR may be
 overridden by the environment variable of the same name (used by tests).
 
+--design=K  design type (src/designs.py): lhs (default), maximin or sobol;
+            results get the suffix _d<K> for K != lhs (research plan T2.1)
+al_imse     sequential design adding the candidate (of 300, as al_gp) that most
+            reduces the integrated GP posterior variance over 1000 draws from
+            the input distribution (IMSE; research plan T2.2)
 --augment   recompute every existing record, check that all stored fields
             are reproduced (relative tolerance 1e-9), and add fields that the
             record lacks (e.g. thr_* for records made before they existed).
@@ -87,13 +92,16 @@ from framework_core import (ActiveLearner, GPSurrogate, PCESurrogate,
 from uq_extension import SoftActiveLearner, SoftLCS, make_bound_penalty
 from benchmarks import BENCHMARKS
 from surrogates import GP as _GP, SparsePCE
+from designs import make_design
+import gp_bayes
 
 ARMS = ("gp_orig", "gp_amp", "gp_ardnoamp", "gp_ard", "gp_m52", "gp_quad",
         "gp_log", "gp_quadlog", "spce", "spce_log",
         "pas_orig", "pas_ard", "al_gp", "al_var", "al_ueigv", "ak_m52", "ak_log",
-        "akq_m52", "akq_log")
+        "akq_m52", "akq_log", "al_imse")
 LOG_ARMS = ("gp_log", "gp_quadlog", "spce_log", "ak_log", "akq_log")
 AUGMENT = "--augment" in sys.argv
+DESIGN = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--design=")), "lhs")
 _args = [a for a in sys.argv[1:] if not a.startswith("--")]
 bench, arm, start, n = _args[0], _args[1], int(_args[2]), int(_args[3])
 N_TOTAL = int(_args[4]) if len(_args) > 4 else 20
@@ -107,7 +115,7 @@ if arm in LOG_ARMS:
 if arm in ("al_var", "al_ueigv"):
     assert UNIFORM, f"{arm} is implemented for uniform inputs only"
 N_INIT = 5 if N_TOTAL <= 20 else N_TOTAL // 4
-suffix = "" if N_TOTAL == 20 else f"_N{N_TOTAL}"
+suffix = ("" if N_TOTAL == 20 else f"_N{N_TOTAL}") + ("" if DESIGN == "lhs" else f"_d{DESIGN}")
 OUT = os.path.join(RESULTS_DIR, f"results_gen_{bench}_{arm}{suffix}.json")
 penalty = (make_bound_penalty(lower=problem.lower_bound)
            if problem.lower_bound is not None else None)
@@ -212,7 +220,7 @@ def cv_weights(models, X, y):
 
 
 def design(n_pts):
-    return problem.ppf(lhs(d, n_pts))
+    return problem.ppf(make_design(DESIGN, d, n_pts))
 
 
 def run(seed):
@@ -241,7 +249,7 @@ def run(seed):
         for m in models:
             m.fit(X, y)
         return committee(models, cv_weights(models, X, y))
-    if arm in ("al_gp", "ak_m52", "ak_log", "akq_m52", "akq_log"):
+    if arm in ("al_gp", "al_imse", "ak_m52", "ak_log", "akq_m52", "akq_log"):
         X = design(N_INIT)
         y = problem.noisy(X)
         g = GP("log" if arm.endswith("log") else "m52")
@@ -254,6 +262,10 @@ def run(seed):
                         if UNIFORM else draw(300))
                 _, sd = g.predict(grid, return_std=True)
                 x_new = grid[np.argmax(sd)][None, :]
+            elif arm == "al_imse":
+                grid = (np.random.uniform(dom[:, 0], dom[:, 1], size=(300, d))
+                        if UNIFORM else draw(300))
+                x_new = grid[np.argmax(gp_bayes.imse_reduction(g, grid, draw(1000)))][None, :]
             else:
                 grid = draw(2000)
                 mu, sd = g.latent(grid)

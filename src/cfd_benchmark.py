@@ -114,15 +114,17 @@ class CFDDispersion:
     def noisy(self, X):
         return self.evaluate(X)
 
-    def reference_flows(self):
-        rs = np.random.RandomState(8)
+    def reference_flows(self, seed=8):
+        rs = np.random.RandomState(seed)
         b = np.array(self.bounds, float)
         F = b[:4, 0] + rs.uniform(0, 1, (N_FLOW, 4)) * (b[:4, 1] - b[:4, 0])
         P = rs.uniform(0, 1, (N_FLOW, K_PAIRS, 2))
         return F, P
 
-    def reference_sets(self):
-        F, P = self.reference_flows()
+    def reference_sets(self, seed=8):
+        """The reference (seed 8); seed 18 gives the independent second set
+        of research plan T2.6."""
+        F, P = self.reference_flows(seed)
         b = np.array(self.bounds, float)
         XR = b[4:, 0] + P * (b[4:, 1] - b[4:, 0])          # (N_FLOW, K, 2)
         X = np.concatenate([np.repeat(F[:, None, :], K_PAIRS, axis=1), XR], axis=2)

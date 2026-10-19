@@ -1,8 +1,9 @@
 """
 worked_example_cfd.py — the procedure of the paper (src/procedure.py)
 applied to the CFD dispersion case as a practitioner would: 20 CFD runs
-(the Latin hypercube of seed 1000), M = 1e5 Monte Carlo trials through the
-chosen surrogate, the surrogate contribution from LOO residuals, an
+(the Latin hypercube of seed 1000), Monte Carlo trials through the chosen
+surrogate until the numerical tolerance of GUM S1 7.9 is met for two
+significant digits of u(y), the surrogate contribution from LOO residuals, an
 uncertainty budget, and a comparison with the reference built from 800 CFD
 runs (which a practitioner would not have).
 Writes results/worked_example_cfd.json and results/journal/tab_worked.tex.
@@ -23,7 +24,7 @@ y = b.evaluate(X)                                     # 20 cached CFD runs
 lo, hi = np.array(b.bounds).T
 sample = lambda n, rng: lo + rng.uniform(0, 1, (n, b.dim)) * (hi - lo)
 res = evaluate(X, y, sample, bounds=b.bounds, positive=True, pos_in=b.pos_in,
-               threshold=b.threshold, M=100_000, seed=0)
+               threshold=b.threshold, ndig=2, seed=0)      # GUM S1 7.9, 2 digits of u(y)
 names = ["U_ref", "z0", "H_b", "Sc_t", "x_r", "Q"]
 print(budget_table(res, names, "mg/m3"))
 
@@ -38,6 +39,8 @@ res["reference"] = ref
 # share of the reference distribution inside the reported coverage interval
 w = res["with_surrogate_contribution"]
 res["reference_share_in_interval"] = float(np.mean((yr >= w["q025"]) & (yr <= w["q975"])))
+g = res["gum_framework"]
+res["reference_share_in_gum_interval"] = float(np.mean((yr >= g["q025"]) & (yr <= g["q975"])))
 res["u_reference"] = u_ref
 res["input_names"] = names
 json.dump(res, open(os.path.join(ROOT, "results", "worked_example_cfd.json"), "w"), indent=1)

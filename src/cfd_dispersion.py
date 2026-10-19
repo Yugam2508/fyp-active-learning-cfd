@@ -85,7 +85,7 @@ def _block_mesh(H, refine=1):
                 continue                                          # the building
             hexv = (v(i, k, 0), v(i + 1, k, 0), v(i + 1, k, 1), v(i, k, 1),
                     v(i, k + 1, 0), v(i + 1, k + 1, 0), v(i + 1, k + 1, 1), v(i, k + 1, 1))
-            blocks.append(f"    hex ({' '.join(map(str, hexv))}) ({NX[i] * refine} 1 {NZ[k] * refine}) "
+            blocks.append(f"    hex ({' '.join(map(str, hexv))}) ({int(round(NX[i] * refine))} 1 {int(round(NZ[k] * refine))}) "
                           f"simpleGrading ({GX[i]} 1 {GZ[k]})")
     P = np.array(verts)
 
