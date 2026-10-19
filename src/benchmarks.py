@@ -40,6 +40,10 @@ ishigami      sin x1 + 7 sin^2 x2 + 0.1 x3^4 sin x1 on [-pi, pi]^3.
 otl           Mid-point voltage (V) of an output-transformerless push-pull
               circuit, 6 inputs (Ben-Ari & Steinberg 2007).
 piston        Cycle time (s) of a piston, 7 inputs (Ben-Ari & Steinberg 2007).
+wingweight    Weight (lb) of a light-aircraft wing, 10 inputs (Forrester et
+              al. 2008); the sweep angle (degrees) can be negative.
+otl20         OTL circuit with 14 additional inert inputs U(100, 200), 20
+              inputs (Moon 2010): tests surrogates on irrelevant inputs.
 Non-uniform inputs
 ------------------
 borehole_gum  borehole with the probabilistic input model of Harper & Gupta
@@ -217,6 +221,31 @@ class Piston(_Bench):
         return 2 * np.pi * np.sqrt(M / (k + S ** 2 * P0 * V0 * Ta / (T0 * V ** 2)))
 
 
+class WingWeight(_Bench):
+    name = "wingweight"
+    #          Sw (ft2)      Wfw (lb)      A          Lambda (deg)  q (lb/ft2)
+    bounds = [(150., 200.), (220., 300.), (6., 10.), (-10., 10.), (16., 45.),
+              #  lambda     tc            Nz          Wdg (lb)        Wp (lb/ft2)
+              (0.5, 1.), (0.08, 0.18), (2.5, 6.), (1700., 2500.), (0.025, 0.08)]
+    lower_bound = 0.0
+    positive = True
+
+    def evaluate(self, X):
+        Sw, Wfw, A, Lam, q, lam, tc, Nz, Wdg, Wp = X.T
+        c = np.cos(np.deg2rad(Lam))
+        return (0.036 * Sw ** 0.758 * Wfw ** 0.0035 * (A / c ** 2) ** 0.6
+                * q ** 0.006 * lam ** 0.04 * (100 * tc / c) ** -0.3
+                * (Nz * Wdg) ** 0.49 + Sw * Wp)
+
+
+class OTL20(OTL):
+    name = "otl20"
+    bounds = OTL.bounds + [(100., 200.)] * 14
+
+    def evaluate(self, X):
+        return super().evaluate(X[:, :6])
+
+
 # ── non-uniform-input models ─────────────────────────────────────────────
 def _quantile_bounds(marginals, lo=5e-4, hi=1 - 5e-4):
     return [(float(m.ppf(lo)), float(m.ppf(hi))) for m in marginals]
@@ -261,7 +290,8 @@ class Flood(_Bench):
 
 
 BENCHMARKS = {c.name: c for c in (Physics, Plume, Borehole, Ishigami, OTL,
-                                  Piston, BoreholeGUM, PlumeGUM, Flood)}
+                                  Piston, BoreholeGUM, PlumeGUM, Flood,
+                                  WingWeight, OTL20)}
 
 # CFD dispersion case (OpenFOAM; runs cached in results/cfd_runs/)
 from cfd_benchmark import CFDDispersion            # noqa: E402

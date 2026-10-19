@@ -29,7 +29,6 @@ Both expose fit(X, y), predict(X) (original scale) and latent(X) ->
 and from_latent(z) to move between scales.
 """
 
-import itertools
 import numpy as np
 from numpy.polynomial import legendre
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -133,11 +132,23 @@ class SparsePCE:
         return np.exp(z) if self.log else z
 
     @staticmethod
+    def _total_degree(d, p):
+        """All multi-indices of length d with total degree <= p, in the
+        lexicographic order of itertools.product (first index slowest)."""
+        if d == 1:
+            return [(k,) for k in range(p + 1)]
+        return [(k,) + rest for k in range(p + 1)
+                for rest in SparsePCE._total_degree(d - 1, p - k)]
+
+    @staticmethod
     def _indices(d, p, q):
-        """Multi-indices with hyperbolic (q-)norm <= p, constant excluded."""
+        """Multi-indices with hyperbolic (q-)norm <= p, constant excluded.
+        Enumerates only the total-degree set (C(d+p, p) indices), not the
+        full (p+1)^d grid, so it scales to many inputs; the order, and hence
+        every fit, is the same as filtering itertools.product."""
         out = []
-        for a in itertools.product(range(p + 1), repeat=d):
-            if sum(a) == 0 or sum(a) > p:
+        for a in SparsePCE._total_degree(d, p):
+            if sum(a) == 0:
                 continue
             if q < 1 and sum(ai ** q for ai in a) ** (1 / q) > p + 1e-9:
                 continue

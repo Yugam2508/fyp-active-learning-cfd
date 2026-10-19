@@ -45,7 +45,7 @@ Errors are added on the fitting (latent) scale and mapped back, so for the
 log variants E is multiplicative.
 
 Usage: python campaign_coverage.py <benchmark> <surrogate> <start> <n> [N]
-Surrogates: gp_orig, gp_m52, gp_quad, gp_log, spce, spce_log
+Surrogates: gp_orig, gp_m52, gp_quad, gp_log, gp_quadlog, spce, spce_log
 Results: results/results_cov_<benchmark>_<surrogate>[_N<N>].json (resumable)
 """
 
@@ -60,7 +60,7 @@ from framework_core import lhs
 from benchmarks import BENCHMARKS
 from surrogates import GP, SparsePCE
 
-SURR = ("gp_orig", "gp_m52", "gp_quad", "gp_log", "spce", "spce_log")
+SURR = ("gp_orig", "gp_m52", "gp_quad", "gp_log", "gp_quadlog", "spce", "spce_log")
 bench, surr, start, n = sys.argv[1], sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
 N = int(sys.argv[5]) if len(sys.argv) > 5 else 20
 assert bench in BENCHMARKS and surr in SURR, (bench, surr)
