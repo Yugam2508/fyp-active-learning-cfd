@@ -255,6 +255,9 @@ def coverage_summary():
             continue
         row = {"n": len(recs)}
         for k in recs[0]:
+            if any(t in k for t in ("_gpt", "_gpmc", "_gpcal", "gpt_", "gpmc_", "gpcal_",
+                                    "augment_")):
+                continue             # research-plan fields: analyse_completion.py
             v = [r[k] for r in recs]
             if k.startswith(("pw_", "ci_")) and isinstance(v[0], float):
                 row[k] = float(np.mean(v))

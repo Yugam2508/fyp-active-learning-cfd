@@ -32,6 +32,13 @@ def sig(b, a, c, metric="nrmse", N=20):
 
 
 med = lambda b, m: S["n20"][b][m]["median"]
+
+
+def load_pair(b, a, c):
+    """Per-seed ratios of nRMSE, arm a over arm c, N = 20 (from the records)."""
+    ra = {r["seed"]: r["nrmse"] for r in json.load(open(os.path.join(ROOT, "results", f"results_gen_{b}_{a}.json")))}
+    rc = {r["seed"]: r["nrmse"] for r in json.load(open(os.path.join(ROOT, "results", f"results_gen_{b}_{c}.json")))}
+    return [ra[k] / rc[k] for k in sorted(ra) if k in rc]
 MODELS = [b for b in S["n20"] if S["n20"][b]]            # models with records
 prop = lambda b, m, k: S["prop"][b][m][k]
 cr = S["coverage_ranges"]
@@ -68,60 +75,84 @@ check(F, "median nRMSE from 0.59 to 0.033, eighteen-fold", med("physics", "gp_or
                 + {18: "eighteen"}.get(round(v / med("physics", "gp_amp")), "?") + "-fold")
 spec_sig = [b for b in MODELS if b != "cfd" and any(t["bench"] == b and t["a"] == "gp_m52"
             and t["b"] == "gp_orig" and t["N"] == 20 and t["p_holm"] < 0.05 for t in S["tests"])]
-check_true("kernel spec significant on six models", len(spec_sig) == 6)
+check_true("kernel spec significant on eight models", len(spec_sig) == 8)
 check_true("kernel spec not significant on plume, plume_gum, ishigami",
            not any(sig(b, "gp_m52", "gp_orig") for b in ("plume", "plume_gum", "ishigami")))
 check(F, "0.11\n(borehole)", R("borehole", "gp_log", "gp_m52"), "{:.2f}\n(borehole)")
 check(F, "to 0.75 (piston)", R("piston", "gp_log", "gp_m52"), "to {:.2f} (piston)")
-check_true("log significant on all six positive models",
-           all(sig(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston",
-                                                    "borehole_gum", "plume_gum")))
+check_true("log significant on all eight positive analytical models",
+           all(sig(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "wingweight", "otl20", "borehole_gum", "plume_gum")))
+check_true("log-scale factors span the quoted range",
+           all(0.105 <= R(b, "gp_log", "gp_m52") <= 0.755 for b in ("plume", "borehole", "otl", "piston", "wingweight", "otl20", "borehole_gum", "plume_gum")))
 check(F, "by a factor of 400", 1 / R("physics", "gp_quad", "gp_m52"),
       lambda v: f"by a factor of {int(round(v, -2))}")
-check_true("trend changes nRMSE by < 0.5 % elsewhere",
+check_true("trend changes nRMSE by < 0.5 % on nine of the other ten models",
            all(abs(R(b, "gp_quad", "gp_m52") - 1) < 0.005 for b in
-               ("plume", "borehole", "ishigami", "otl", "piston", "borehole_gum", "plume_gum", "flood")))
+               ("plume", "borehole", "ishigami", "otl", "piston", "wingweight", "borehole_gum",
+                "plume_gum", "flood")) and abs(R("otl20", "gp_quad", "gp_m52") - 1) >= 0.005)
+_q = load_pair("otl20", "gp_quad", "gp_m52")
+check(F, "1.6 to 8 times worse in\n12 of the 30 designs", min(v for v in _q if v > 1.5),
+      lambda v: f"{v:.1f} to {max(_q):.0f} times worse in\n{sum(x > 1.5 for x in _q)} of the 30 designs")
+check(F, "and the wing weight model (ratio 0.50)", R("wingweight", "gp_quadlog", "gp_log"),
+      "and the wing weight model (ratio {:.2f})")
+check(F, "20-input model worse (1.18)", R("otl20", "gp_quadlog", "gp_log"), "20-input model worse ({:.2f})")
+check_true("trend on log scale: wing weight better, otl20 worse, both significant",
+           sig("wingweight", "gp_quadlog", "gp_log") and sig("otl20", "gp_quadlog", "gp_log"))
 check(F, "plume models (0.42 to 0.35", med("plume", "gp_log"), "plume models ({:.2f} to "
       + f"{med('plume', 'gp_quadlog'):.2f}")
 check(F, "0.37 to 0.28 with GUM-type", med("plume_gum", "gp_log"),
       "{:.2f} to " + f"{med('plume_gum', 'gp_quadlog'):.2f} with GUM-type")
 # ── 5.2 PCE and committees ───────────────────────────────────────────────
-spce = [R(b, "spce", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum",
-                                         "plume_gum", "flood")]
+spce = [R(b, "spce", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "wingweight",
+                                         "otl20", "borehole_gum", "plume_gum", "flood")]
 check(F, "1.2 to 3.8 times worse", min(spce), "{:.1f} to " + f"{max(spce):.1f} times worse")
-spl = [R(b, "spce_log", "gp_log") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum")]
-check(F, "(1.1 to 12 times on the log scale)", min(spl), "({:.1f} to " + f"{max(spl):.0f} times on the log scale)")
+spl = [R(b, "spce_log", "gp_log") for b in ("plume", "borehole", "otl", "piston", "otl20",
+                                            "borehole_gum", "plume_gum")]
+check(F, "it was 1.1 to 12 times worse", min(spl), "it was {:.1f} to " + f"{max(spl):.0f} times worse")
+check(F, "log-scale GP (ratio 0.72)", R("wingweight", "spce_log", "gp_log"), "log-scale GP (ratio {:.2f})")
+check_true("log PCE better than log GP on wing weight", sig("wingweight", "spce_log", "gp_log"))
 cm = {b: R(b, "pas_ard:cv", "gp_quad") for b in MODELS if b != "cfd"}
 worse = [b for b in cm if sig(b, "pas_ard:cv", "gp_quad") and cm[b] > 1]
 check_true("committee never significantly better than trend GP",
            not any(sig(b, "pas_ard:cv", "gp_quad") and cm[b] < 1 for b in cm))
-check_true("committee worse on exactly borehole, borehole_gum, otl, flood",
-           sorted(worse) == ["borehole", "borehole_gum", "flood", "otl"])
-check(F, "It tied on five models and was 1.7 to 2.4 times", min(cm[b] for b in worse),
-      "It tied on five models and was {:.1f} to " + f"{max(cm[b] for b in worse):.1f} times")
+check_true("committee worse on exactly borehole, borehole_gum, otl, wingweight, flood",
+           sorted(worse) == ["borehole", "borehole_gum", "flood", "otl", "wingweight"])
+check(F, "It tied on six models and was 1.5 to 2.4 times", min(cm[b] for b in worse),
+      "It tied on six models and was {:.1f} to " + f"{max(cm[b] for b in worse):.1f} times")
 check(F, "reproduces (ratio 1.00)", R("physics", "pas_ard:cv", "gp_quad"), "reproduces (ratio {:.2f})")
 cvu = [b for b in cm if sig(b, "pas_ard:cv", "pas_ard:uni")]
-check_true("CV weights better on five models, never worse",
-           len(cvu) == 5 and all(R(b, "pas_ard:cv", "pas_ard:uni") < 1 for b in cvu))
+check_true("CV weights better on seven models, never worse",
+           len(cvu) == 7 and all(R(b, "pas_ard:cv", "pas_ard:uni") < 1 for b in cvu))
 # ── 5.3 adaptive and targeted ────────────────────────────────────────────
 alg = [R(b, "al_gp", "gp_m52") for b in cm]
 check(F, "(ratios 0.86--1.22)", min(alg), "(ratios {:.2f}--" + f"{max(alg):.2f})")
 check_true("adaptive GP never significant at N=20", not any(sig(b, "al_gp", "gp_m52") for b in cm))
-av = {b: R(b, "al_var:cv", "pas_ard:cv") for b in ("physics", "plume", "borehole", "ishigami", "otl", "piston")}
-check(F, "(0.61--0.80)", min(av["physics"], av["borehole"], av["otl"]),
-      "({:.2f}--" + f"{max(av['physics'], av['borehole'], av['otl']):.2f})")
+av = {b: R(b, "al_var:cv", "pas_ard:cv") for b in ("physics", "plume", "borehole", "ishigami", "otl",
+                                                   "piston", "wingweight", "otl20")}
+avb = [b for b in av if sig(b, "al_var:cv", "pas_ard:cv") and av[b] < 1]
+check_true("adaptive committee better on physics, borehole, otl, wingweight, otl20",
+           sorted(avb) == ["borehole", "otl", "otl20", "physics", "wingweight"])
+check(F, "(0.60--0.80)", min(av[b] for b in avb), "({:.2f}--" + f"{max(av[b] for b in avb):.2f})")
 check(F, "plume model (1.25)", av["plume"], "plume model ({:.2f})")
 check(F, "median of 0.17, against 0.02", S["exceedance"]["plume"]["al_var:cv"]["median_abserr"],
       "median of {:.2f}, against " + f"{S['exceedance']['plume']['pas_ard:cv']['median_abserr']:.2f}")
-ue = {b: R(b, "al_ueigv:cv", "al_var:cv") for b in av}
+ue = {b: R(b, "al_ueigv:cv", "al_var:cv") for b in ("physics", "plume", "borehole", "ishigami", "otl", "piston")}
 ue_bad = [b for b in ue if sig(b, "al_ueigv:cv", "al_var:cv")]
 check_true("UEigV never better, worse on three", len(ue_bad) == 3 and all(ue[b] > 1 for b in ue_bad))
 check(F, "three models (1.26--1.72)", min(ue[b] for b in ue_bad),
       "three models ({:.2f}--" + f"{max(ue[b] for b in ue_bad):.2f})")
 ak = [t for t in S["tests"] if t["N"] == 20 and t["a"] in ("ak_m52", "ak_log") and t["bench"] != "cfd"]
 aks = [t for t in ak if t["p_holm"] < 0.05]
-check(F, "8 of\nthe 15 comparisons", len(aks), lambda v: f"{v} of\nthe {len(ak)} comparisons")
+check(F, "8 of\nthe 19 comparisons", len(aks), lambda v: f"{v} of\nthe {len(ak)} comparisons")
 check_true("AK never significantly worse", all(t["ratio"] < 1 for t in aks))
+check(F, "median factors of 0.68 (plume) and 0.55", R("plume", "akq_log", "gp_log", "exc_abserr"),
+      "median factors of {:.2f} (plume) and " + f"{R('plume_gum', 'akq_log', 'gp_log', 'exc_abserr'):.2f}")
+check(F, "no difference (0.95)", R("cfd", "akq_log", "gp_log", "exc_abserr"), "no difference ({:.2f})")
+check_true("AK at the reference quantile never significant",
+           not any(sig(b, a, c, "exc_abserr") for b, a, c in
+                   (("plume", "akq_log", "gp_log"), ("plume_gum", "akq_log", "gp_log"),
+                    ("cfd", "akq_log", "gp_log"), ("plume", "akq_m52", "gp_m52"),
+                    ("plume_gum", "akq_m52", "gp_m52"))))
 check(F, "factors of 0.11 to 0.47", min(t["ratio"] for t in aks),
       "factors of {:.2f} to " + f"{max(t['ratio'] for t in aks):.2f}")
 check(F, "piston model (0.0099 to 0.0014", S["exceedance"]["piston"]["gp_log"]["median_abserr"],
@@ -138,8 +169,9 @@ check(F, "within 0.2\\% (OTL, flood) to 16\\%", min(q95.values()),
 thr = {b: prop(b, rec(b), "thr_abserr") for b in cm}
 check(F, "within 0.0013 to 0.036", min(thr.values()), "within {:.4f} to " + f"{max(thr.values()):.3f}")
 cq = sorted(prop(b, "pas_ard:cv", "relerr_q95") for b in cm)
-check(F, "off by 6.9--31\\% on\nsix of the nine", cq[3],
-      lambda v: f"off by {100 * v:.1f}--{100 * cq[-1]:.0f}\\% on\nsix of the nine")
+check(F, "off by 6.3--31\\% on\nseven of the eleven", cq[4],
+      lambda v: f"off by {100 * v:.1f}--{100 * cq[-1]:.0f}\\% on\nseven of the eleven")
+check_true("committee q95 error below 6 % on four models", cq[3] < 0.06 <= cq[4])
 check(F, "$P(C>210\\,\\mathrm{mg\\,m^{-3}})=0.123$", S["exceedance"]["plume"]["gp_log"]["p_true"],
       "$P(C>210\\,\\mathrm{{mg\\,m^{{-3}}}})={:.3f}$")
 check(F, "median absolute error of 0.009, against 0.023",
@@ -153,52 +185,81 @@ check(F, "27--77\\% of seeds", min(v["share_oracle"] for v in sel.values()),
       lambda v: f"{100 * v:.0f}--{100 * max(x['share_oracle'] for x in sel.values()):.0f}\\% of seeds")
 check(F, "factor of 500 on the physics", 1 / sel["physics"]["ratio_to_gp_m52"],
       lambda v: f"factor of {int(round(v, -2))} on the physics")
-pos = [sel[b]["ratio_to_gp_m52"] for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum")]
+pos = [sel[b]["ratio_to_gp_m52"] for b in ("plume", "borehole", "otl", "piston", "wingweight", "otl20", "borehole_gum", "plume_gum")]
+check_true("selection never chose a trend GP on otl20",
+           not any(c in sel["otl20"]["chosen"] for c in ("gp_quad", "gp_quadlog")))
+check(F, "log-scale sparse PCE in 9 of 30 seeds", sel["wingweight"]["chosen"].get("spce_log", 0),
+      "log-scale sparse PCE in {} of 30 seeds")
 check(F, "factors of 0.12--0.84", min(pos), "factors of {:.2f}--" + f"{max(pos):.2f}")
 # ── 5.6 budget ───────────────────────────────────────────────────────────
-pos4 = ("plume", "borehole", "otl", "piston")
+pos4 = ("plume", "borehole", "otl", "piston", "wingweight", "otl20")
 r10 = [R(b, "gp_log", "gp_m52", N=10) for b in pos4]; r80 = [R(b, "gp_log", "gp_m52", N=80) for b in pos4]
-check(F, "0.62--0.92 at $N=10$", min(r10), "{:.2f}--" + f"{max(r10):.2f} at $N=10$")
+check(F, "0.62--1.00 at $N=10$", min(r10), "{:.2f}--" + f"{max(r10):.2f} at $N=10$")
 check(F, "0.10--0.48 at $N=80$", min(r80), "{:.2f}--" + f"{max(r80):.2f} at $N=80$")
 check(F, "$1.6\\times10^{-4}$, against 0.97", S["sweep"]["physics"]["spce"]["10"]["median"],
       lambda v: f"${v / 1e-4:.1f}\\times10^{{-4}}$, against {S['sweep']['physics']['gp_m52']['10']['median']:.2f}")
 check_true("adaptive GP never significant at N=10",
-           not any(sig(b, "al_gp", "gp_m52", N=10) for b in ("physics", "plume", "borehole", "ishigami", "otl", "piston")))
+           not any(sig(b, "al_gp", "gp_m52", N=10) for b in ("physics", "plume", "borehole", "ishigami",
+                                                            "otl", "piston", "wingweight", "otl20")))
+check(F, "wing weight (0.81 at $N=40$)", R("wingweight", "al_gp", "gp_m52", N=40), "wing weight ({:.2f} at $N=40$)")
+check(F, "20-input OTL (0.83 at $N=80$)", R("otl20", "al_gp", "gp_m52", N=80), "20-input OTL ({:.2f} at $N=80$)")
+check(F, "wing weight model at\n$N=80$ (1.93)", R("wingweight", "al_gp", "gp_m52", N=80),
+      "wing weight model at\n$N=80$ ({:.2f})")
 check(F, "physics\n(0.22--0.43)", R("physics", "al_gp", "gp_m52", N=80),
       "physics\n({:.2f}--" + f"{R('physics', 'al_gp', 'gp_m52', N=40):.2f})")
 check(F, "borehole (0.77)", R("borehole", "al_gp", "gp_m52", N=40), "borehole ({:.2f})")
 check(F, "OTL (0.75 at $N=80$)", R("otl", "al_gp", "gp_m52", N=80), "OTL ({:.2f} at $N=80$)")
-check(F, "piston\n(0.81--0.87)", R("piston", "al_gp", "gp_m52", N=40),
-      "piston\n({:.2f}--" + f"{R('piston', 'al_gp', 'gp_m52', N=80):.2f})")
-check(F, "plume model (1.19 at $N=40$)", R("plume", "al_gp", "gp_m52", N=40), "plume model ({:.2f} at $N=40$)")
+check(F, "piston (0.81--0.87)", R("piston", "al_gp", "gp_m52", N=40),
+      "piston ({:.2f}--" + f"{R('piston', 'al_gp', 'gp_m52', N=80):.2f})")
+check(F, "plume model\n(1.19 at $N=40$)", R("plume", "al_gp", "gp_m52", N=40), "plume model\n({:.2f} at $N=40$)")
 check(F, "(0.94 and 0.50)", R("physics", "al_var:cv", "pas_ard:cv", N=40),
       "({:.2f} and " + f"{R('borehole', 'al_var:cv', 'pas_ard:cv', N=40):.2f})")
 for b, N in (("physics", 40), ("plume", 40), ("borehole", 40), ("borehole", 80), ("otl", 80),
-             ("piston", 40), ("piston", 80)):
+             ("piston", 40), ("piston", 80), ("wingweight", 40), ("wingweight", 80), ("otl20", 80)):
     check_true(f"al_gp vs gp_m52 significant on {b} N={N}", sig(b, "al_gp", "gp_m52", N=N))
 # ── coverage ─────────────────────────────────────────────────────────────
 F = "journal_results_coverage.tex"
-check(F, "between 95.2\\%\nand 99.0\\%", cr["pw_jkplus_cov"]["min"],
+check(F, "between 95.2\\%\nand 99.6\\%", cr["pw_jkplus_cov"]["min"],
       lambda v: f"between {pct(v)}\\%\nand {pct(cr['pw_jkplus_cov']['max'])}\\%")
 check(F, "(median 97.4\\%)", cr["pw_jkplus_cov"]["median"], lambda v: f"(median {pct(v)}\\%)")
-check(F, "covered 89.7--97.0\\% (median 94.2\\%)", cr["pw_cvnorm_cov"]["min"],
+check(F, "covered 89.7--97.1\\% (median 94.2\\%)", cr["pw_cvnorm_cov"]["min"],
       lambda v: f"covered {pct(v)}--{pct(cr['pw_cvnorm_cov']['max'])}\\% (median {pct(cr['pw_cvnorm_cov']['median'])}\\%)")
-check(F, "covered 68--98\\% (median 89\\%)", cr["pw_gp_cov"]["min"],
+check(F, "covered 68--98\\% (median 88\\%)", cr["pw_gp_cov"]["min"],
       lambda v: f"covered {100 * v:.0f}--{100 * cr['pw_gp_cov']['max']:.0f}\\% (median {100 * cr['pw_gp_cov']['median']:.0f}\\%)")
 check(F, "ranged from 57\\% to 96\\% (median 94\\%)", cr["ci_plain_cov"]["min"],
       lambda v: f"ranged from {100 * v:.0f}\\% to {100 * cr['ci_plain_cov']['max']:.0f}\\% (median {100 * cr['ci_plain_cov']['median']:.0f}\\%)")
-check(F, "to 91.5--97.3\\%\n(median 95.0\\%)", cr["ci_normal_cov"]["min"],
+check(F, "to 91.5--97.3\\%\n(median 94.9\\%)", cr["ci_normal_cov"]["min"],
       lambda v: f"to {pct(v)}--{pct(cr['ci_normal_cov']['max'])}\\%\n(median {pct(cr['ci_normal_cov']['median'])}\\%)")
 check(F, "to 91.0--97.0\\% (median 94.9\\%)", cr["ci_resample_cov"]["min"],
       lambda v: f"to {pct(v)}--{pct(cr['ci_resample_cov']['max'])}\\% (median {pct(cr['ci_resample_cov']['median'])}\\%)")
-check(F, "gave 89.8--96.0\\% (median 94.5\\%)", cr["ci_gp_cov"]["min"],
+check(F, "gave 89.8--96.0\\% (median 94.6\\%)", cr["ci_gp_cov"]["min"],
       lambda v: f"gave {pct(v)}--{pct(cr['ci_gp_cov']['max'])}\\% (median {pct(cr['ci_gp_cov']['median'])}\\%)")
+_C = {b: v for b, v in S["coverage"].items() if b != "cfd"}
+_rows = [r for v in _C.values() for r in v.values()]
+_gp = [r for v in _C.values() for s_, r in v.items() if s_.startswith("gp_")]
+check(F, "(68 combinations of model and surrogate on\nthe eleven analytical models", len(_rows),
+      "({} combinations of model and surrogate on\nthe eleven analytical models")
+check(F, "in 31 of the 49 GP combinations",
+      sum(r["pw_gp_score"] <= min(r["pw_cvnorm_score"], r["pw_jkplus_score"]) for r in _gp),
+      lambda v: f"in {v} of the {len(_gp)} GP combinations")
+_w = [r["pw_jkplus_width"] / r["pw_cvnorm_width"] for r in _rows]
+check(F, "a median 1.6 (1.1--2.9)", float(np.median(_w)),
+      lambda v: f"a median {v:.1f} ({min(_w):.1f}--{max(_w):.1f})")
+check(F, "a median 0.95 times the reference (down to\n0.41)", float(np.median([r["ci_plain_u"] for r in _rows])),
+      lambda v: f"a median {v:.2f} times the reference (down to\n{min(r['ci_plain_u'] for r in _rows):.2f})")
+check(F, "a median 1.00 (0.78--1.29)", float(np.median([r["ci_resample_u"] for r in _rows])),
+      lambda v: f"a median {v:.2f} ({min(r['ci_resample_u'] for r in _rows):.2f}--"
+                f"{max(r['ci_resample_u'] for r in _rows):.2f})")
+check_true("GP pointwise coverage below 80 % on exactly the six models named",
+           sorted({b for b, v in _C.items() for s_, r in v.items() if s_.startswith("gp_")
+                   and r["pw_gp_cov"] < 0.8}) == ["ishigami", "otl20", "piston", "plume", "plume_gum",
+                                                  "wingweight"])
 cv = S["coverage"]
 check(F, "rose from 57\\% to 95\\%", cv["ishigami"]["gp_orig"]["ci_plain_cov"],
       lambda v: f"rose from {100 * v:.0f}\\% to {100 * cv['ishigami']['gp_orig']['ci_normal_cov']:.0f}\\%")
-check(F, "a median 53\\% of seeds (7--100\\%)", cr["dq_q95_gp_cov"]["median"],
+check(F, "a median 63\\% of seeds (7--100\\%)", cr["dq_q95_gp_cov"]["median"],
       lambda v: f"a median {100 * v:.0f}\\% of seeds ({100 * cr['dq_q95_gp_cov']['min']:.0f}--{100 * cr['dq_q95_gp_cov']['max']:.0f}\\%)")
-check(F, "for $P(Y>T)$ in 57\\%", cr["dq_p_thr_gp_cov"]["median"], lambda v: f"for $P(Y>T)$ in {100 * v:.0f}\\%")
+check(F, "for $P(Y>T)$ in 63\\%", cr["dq_p_thr_gp_cov"]["median"], lambda v: f"for $P(Y>T)$ in {100 * v:.0f}\\%")
 check(F, "contained the true value in a median\n97\\% of seeds", cr["dq_q95_jack_cov"]["median"],
       lambda v: f"contained the true value in a median\n{100 * v:.0f}\\% of seeds")
 check_true("jackknife p_thr median equals q95 median (both quantities)",
@@ -263,7 +324,7 @@ check(F, "covered 69--92\\% of\ntest points", min(cc[k]["pw_gp_cov"] for k in gp
       lambda v: f"covered {100 * v:.0f}--{100 * max(cc[k]['pw_gp_cov'] for k in gpk):.0f}\\% of\ntest points")
 check(F, "intervals 94.8--99.1\\%", min(cc[k]["pw_jkplus_cov"] for k in cc),
       lambda v: f"intervals {100 * v:.1f}--{100 * max(cc[k]['pw_jkplus_cov'] for k in cc):.1f}\\%")
-check(F, "of 90.8--94.6\\%; adding the LOO error gave 93.8--95.7\\%",
+check(F, "of 90.8--94.7\\%; adding the LOO error gave 93.8--95.7\\%",
       min(cc[k]["ci_plain_cov"] for k in cc),
       lambda v: f"of {100 * v:.1f}--{100 * max(cc[k]['ci_plain_cov'] for k in cc):.1f}\\%; adding the LOO error gave "
                 f"{100 * min(cc[k]['ci_normal_cov'] for k in cc):.1f}--{100 * max(cc[k]['ci_normal_cov'] for k in cc):.1f}\\%")
@@ -313,9 +374,9 @@ check(F, "inputs 19\\% and the surrogate 0.3\\%", bs["interaction_share"],
       lambda v: f"inputs {100 * v:.0f}\\% and the surrogate {100 * bs['surrogate_share']:.1f}\\%")
 # ── discussion: adaptive committee on four of seven models ───────────────
 avb = [b for b in S["n20"] if "al_var:cv" in S["n20"][b]]
-check_true("adaptive committee better on four of seven models",
-           len(avb) == 7 and sum(sig(b, "al_var:cv", "pas_ard:cv") and R(b, "al_var:cv", "pas_ard:cv") < 1
-                                 for b in avb) == 4)
+check_true("adaptive committee better on six of nine models (incl. CFD)",
+           len(avb) == 9 and sum(sig(b, "al_var:cv", "pas_ard:cv") and R(b, "al_var:cv", "pas_ard:cv") < 1
+                                 for b in avb) == 6)
 # ── abstract ─────────────────────────────────────────────────────────────
 F = "journal_abstract.tex"
 logs = [R(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd")]
@@ -327,9 +388,9 @@ allc = {k: [r[k] for row in S["coverage"].values() for r in row.values() if k in
         for k in ("ci_normal_cov", "pw_jkplus_cov", "pw_gp_cov")}
 check(F, "to 91--97\\% on all models", min(allc["ci_normal_cov"]),
       lambda v: f"to {100 * v:.0f}--{100 * max(allc['ci_normal_cov']):.0f}\\% on all models")
-check(F, "covered 95--99\\% of test points", min(allc["pw_jkplus_cov"]),
+check(F, "covered 95--100\\% of test points", min(allc["pw_jkplus_cov"]),
       lambda v: f"covered {100 * v:.0f}--{100 * max(allc['pw_jkplus_cov']):.0f}\\% of test points")
 check(F, "as few as 68\\%", min(allc["pw_gp_cov"]), lambda v: f"as few as {100 * v:.0f}\\%")
-check(F, "median of\nonly 53\\%", cr["dq_q95_gp_cov"]["median"], lambda v: f"median of\nonly {100 * v:.0f}\\%")
+check(F, "median of\nonly 63\\%", cr["dq_q95_gp_cov"]["median"], lambda v: f"median of\nonly {100 * v:.0f}\\%")
 print("all numbers reproduced" if ok else "MISMATCHES FOUND")
 sys.exit(0 if ok else 1)

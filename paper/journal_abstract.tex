@@ -5,7 +5,7 @@ on a surrogate fitted to a few tens of model runs, and the surrogate's error
 becomes part of the uncertainty budget. We compare Gaussian processes (GPs)
 of different specifications, sparse polynomial chaos expansions, committees
 of surrogates, and space-filling, adaptive and threshold-targeted designs on
-ten models, including GUM-type input distributions and a computational
+twelve models with up to 20 inputs, including GUM-type input distributions and a computational
 fluid dynamics (CFD) simulation of a gas release behind a building, with
 10 to 80 runs and 30 paired repetitions against reference Monte Carlo
 evaluations. The specification of the surrogate mattered more than the
@@ -20,8 +20,8 @@ at a threshold in the tail reduced the error of exceedance probabilities up
 to ninefold. Adding the leave-one-out
 residuals of the surrogate to every Monte Carlo trial brought the achieved
 coverage of the GUM~S1 95\% coverage interval to 91--97\% on all models,
-and jackknife+ prediction intervals covered 95--99\% of test points,
+and jackknife+ prediction intervals covered 95--100\% of test points,
 whereas the GP's own predictive intervals covered as few as 68\%, and its
 intervals for a 95th percentile contained the true value in a median of
-only 53\% of repetitions. The results are condensed into a validated
+only 63\% of repetitions. The results are condensed into a validated
 procedure for surrogate-based uncertainty evaluation.
