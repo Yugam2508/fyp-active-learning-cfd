@@ -153,3 +153,43 @@ Notes.
   The difference comes from processor-dependent BLAS and PyTorch kernels,
   amplified by the hyperparameter optimisation; it is five orders of
   magnitude below any effect reported in the papers.
+
+## 8. Extension and research-plan runs (2026-10-19 onwards)
+
+Same environment as §7, plus `emcee` 3.1.6 (MCMC over GP hyperparameters)
+and OpenTURNS 1.27 (independent cross-check), both pinned in
+`requirements-lock.txt`. The plan these runs carry out, and the decision
+rules fixed before they started, are in `docs/RESEARCH_PLAN.md`.
+
+| Step | Command | Output |
+|---|---|---|
+| wing weight, OTL with 20 inputs, AK-MCS at the reference 95th percentile, coverage of every candidate on the new models | `bash experiments/run_extension_campaign.sh 4` | `results/results_{gen,cov,sel}_*.json` |
+| worked example (procedure on the CFD case) | `python experiments/worked_example_cfd.py` | `results/worked_example_cfd.json`, `results/journal/tab_worked.tex` |
+| all Tier 1 and 2 runs of the research plan, in four stages | `bash experiments/run_completion_campaign.sh 4 [first_stage]` | see below |
+| statistics of those runs | `python experiments/analyse_completion.py` (`--check`) | `results/journal/completion.json`, `tab_bayesgp.tex`, `tab_budgets.tex` |
+
+Outputs of `run_completion_campaign.sh`:
+
+| Plan item | Script | Records |
+|---|---|---|
+| T1.1 coverage, selection, the procedure at N = 10, 40, 80 | `campaign_coverage.py`, `campaign_selection.py`, `campaign_generalisation.py` | `results_{cov,sel,gen}_<model>_*_N<N>.json` |
+| T1.2 Student-t, MCMC and LOO-recalibrated GP intervals | `campaign_coverage.py` (`--augment` adds them to the N = 20 records after checking that every stored field is reproduced) | fields `*_gpt_*`, `*_gpmc_*`, `*_gpcal_*` |
+| T1.3 OpenTURNS PCE, GP and PC-Kriging | `crosscheck_openturns.py` | `results_ot_<model>.json` |
+| T1.6 failure mode (model `bump`) | `campaign_generalisation.py`, `campaign_coverage.py`, `campaign_selection.py` | `results_*_bump_*.json` |
+| T2.1 maximin LHS and Sobol' designs | `--design=maximin|sobol` | `*_dmaximin.json`, `*_dsobol.json` (records carry a `design` field) |
+| T2.2 IMSE sequential design | arm `al_imse` | `results_gen_<model>_al_imse*.json` |
+| T2.3 stacking of the candidates | `campaign_stacking.py` | `results_stack_<model>.json` |
+| T2.4 vector output (GUM S2) | `campaign_vector.py` | `results_vector_plume.json` |
+| T2.5 dependent inputs (model `borehole_corr`) | as for the other models | `results_*_borehole_corr_*.json` |
+| T2.6 grid convergence index; second CFD reference | `cfd_gci.py`; `cfd_precompute.py --ref2` then `cfd_reference2.py` | `results/cfd_gci.json`, `results/cfd_reference2.json` |
+
+Notes.
+
+- The new GP intervals use their own random stream, RandomState(seed + 2e6),
+  so the published fields of the coverage records do not change.
+- At N = 10 a 95 % jackknife+ interval is unbounded (its upper rank
+  ⌈0.95 (N + 1)⌉ exceeds N); the records then hold infinite bounds, and
+  `analyse_completion.py` reports the share of such cases.
+- `src/cfd_dispersion.py` accepts a non-integer refinement factor (cell
+  counts are rounded) for the coarse mesh of the grid convergence index; the
+  standard and fine meshes are unchanged.
