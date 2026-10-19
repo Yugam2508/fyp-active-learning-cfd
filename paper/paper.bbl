@@ -80,6 +80,12 @@ G.~Blatman and B.~Sudret, ``Adaptive sparse polynomial chaos expansion based on
   least angle regression,'' {\em Journal of Computational Physics}, vol.~230,
   no.~6, pp.~2345--2367, 2011.
 
+\bibitem{owen2017}
+N.~E. Owen, P.~Challenor, P.~P. Menon, and S.~Bennani, ``Comparison of
+  surrogate-based uncertainty quantification methods for computationally
+  expensive simulators,'' {\em SIAM/ASA Journal on Uncertainty Quantification},
+  vol.~5, no.~1, pp.~403--435, 2017.
+
 \bibitem{goel2007}
 T.~Goel, R.~T. Haftka, W.~Shyy, and N.~V. Queipo, ``Ensemble of surrogates,''
   {\em Struct. Multidiscip. Optim.}, vol.~33, no.~3, pp.~199--216, 2007.
@@ -108,6 +114,18 @@ Z.~Lin, S.~Trivedi, and J.~Sun, ``Generating with confidence: uncertainty
 B.~Echard, N.~Gayton, and M.~Lemaire, ``{AK-MCS}: an active learning
   reliability method combining {K}riging and {M}onte {C}arlo simulation,'' {\em
   Structural Safety}, vol.~33, no.~2, pp.~145--154, 2011.
+
+\bibitem{heidenreich2015}
+S.~Heidenreich, H.~Gross, and M.~B{\"a}r, ``Bayesian approach to the
+  statistical inverse problem of scatterometry: comparison of three surrogate
+  models,'' {\em International Journal for Uncertainty Quantification}, vol.~5,
+  no.~6, pp.~511--526, 2015.
+
+\bibitem{farchmin2020}
+N.~Farchmin, M.~Hammerschmidt, P.-I. Schneider, M.~Wurm, B.~Bodermann,
+  M.~B{\"a}r, and S.~Heidenreich, ``Efficient {B}ayesian inversion for shape
+  reconstruction of lithography masks,'' {\em Journal of Micro/Nanolithography,
+  MEMS, and MOEMS}, vol.~19, no.~2, p.~024001, 2020.
 
 \bibitem{angelopoulos2023}
 A.~N. Angelopoulos and S.~Bates, ``Conformal prediction: a gentle
@@ -151,6 +169,16 @@ E.~N. Ben-Ari and D.~M. Steinberg, ``Modeling data from computer experiments:
   an empirical comparison of kriging with {MARS} and projection pursuit
   regression,'' {\em Quality Engineering}, vol.~19, pp.~327--338, 2007.
 
+\bibitem{forrester2008}
+A.~I.~J. Forrester, A.~S{\'o}bester, and A.~J. Keane, {\em Engineering Design
+  via Surrogate Modelling: A Practical Guide}.
+\newblock Chichester: Wiley, 2008.
+
+\bibitem{moon2010}
+H.~Moon, {\em Design and Analysis of Computer Experiments for Screening Input
+  Variables}.
+\newblock PhD thesis, The Ohio State University, 2010.
+
 \bibitem{iooss2015}
 B.~Iooss and P.~Lema{\^i}tre, ``A review on global sensitivity analysis
   methods,'' in {\em Uncertainty Management in Simulation-Optimization of
@@ -183,5 +211,17 @@ Y.~Tominaga and T.~Stathopoulos, ``Turbulent {S}chmidt numbers for {CFD}
 T.~Gneiting and A.~E. Raftery, ``Strictly proper scoring rules, prediction, and
   estimation,'' {\em Journal of the American Statistical Association},
   vol.~102, no.~477, pp.~359--378, 2007.
+
+\bibitem{jcgm102}
+{BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML}, ``Evaluation of
+  measurement data -- {S}upplement 2 to the ``{G}uide to the expression of
+  uncertainty in measurement'' -- {E}xtension to any number of output
+  quantities.'' Joint Committee for Guides in Metrology, JCGM 102:2011, 2011.
+
+\bibitem{saltelli2010}
+A.~Saltelli, P.~Annoni, I.~Azzini, F.~Campolongo, M.~Ratto, and S.~Tarantola,
+  ``Variance based sensitivity analysis of model output. {D}esign and estimator
+  for the total sensitivity index,'' {\em Computer Physics Communications},
+  vol.~181, no.~2, pp.~259--270, 2010.
 
 \end{thebibliography}
