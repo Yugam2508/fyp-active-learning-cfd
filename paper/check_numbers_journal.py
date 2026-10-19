@@ -32,6 +32,7 @@ def sig(b, a, c, metric="nrmse", N=20):
 
 
 med = lambda b, m: S["n20"][b][m]["median"]
+MODELS = [b for b in S["n20"] if S["n20"][b]]            # models with records
 prop = lambda b, m, k: S["prop"][b][m][k]
 cr = S["coverage_ranges"]
 ok = True
@@ -65,7 +66,7 @@ check(F, "to 0.71 (piston)", R("piston", "gp_m52", "gp_orig"), "to {:.2f} (pisto
 check(F, "median nRMSE from 0.59 to 0.033, eighteen-fold", med("physics", "gp_orig"),
       lambda v: f"median nRMSE from {v:.2f} to {med('physics', 'gp_amp'):.3f}, "
                 + {18: "eighteen"}.get(round(v / med("physics", "gp_amp")), "?") + "-fold")
-spec_sig = [b for b in S["n20"] if b != "cfd" and any(t["bench"] == b and t["a"] == "gp_m52"
+spec_sig = [b for b in MODELS if b != "cfd" and any(t["bench"] == b and t["a"] == "gp_m52"
             and t["b"] == "gp_orig" and t["N"] == 20 and t["p_holm"] < 0.05 for t in S["tests"])]
 check_true("kernel spec significant on six models", len(spec_sig) == 6)
 check_true("kernel spec not significant on plume, plume_gum, ishigami",
@@ -90,7 +91,7 @@ spce = [R(b, "spce", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "
 check(F, "1.2 to 3.8 times worse", min(spce), "{:.1f} to " + f"{max(spce):.1f} times worse")
 spl = [R(b, "spce_log", "gp_log") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum")]
 check(F, "(1.1 to 12 times on the log scale)", min(spl), "({:.1f} to " + f"{max(spl):.0f} times on the log scale)")
-cm = {b: R(b, "pas_ard:cv", "gp_quad") for b in S["n20"] if b != "cfd"}
+cm = {b: R(b, "pas_ard:cv", "gp_quad") for b in MODELS if b != "cfd"}
 worse = [b for b in cm if sig(b, "pas_ard:cv", "gp_quad") and cm[b] > 1]
 check_true("committee never significantly better than trend GP",
            not any(sig(b, "pas_ard:cv", "gp_quad") and cm[b] < 1 for b in cm))
