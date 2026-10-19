@@ -254,9 +254,11 @@ def coverage_summary():
         if N != 20 or "design" in recs[0] or b not in BENCHES:   # main study only
             continue
         row = {"n": len(recs)}
-        for k in recs[0]:
-            if any(t in k for t in ("_gpt", "_gpmc", "_gpcal", "gpt_", "gpmc_", "gpcal_",
-                                    "augment_")):
+        common = set.intersection(*(set(r) for r in recs))   # records being augmented
+        for k in recs[0]:            # may hold new fields in some seeds only
+            if k not in common or k == "loo_rmse_orig" or any(
+                    t in k for t in ("_gpt", "_gpmc", "_gpcal", "gpt_", "gpmc_", "gpcal_",
+                                     "augment_")):
                 continue             # research-plan fields: analyse_completion.py
             v = [r[k] for r in recs]
             if k.startswith(("pw_", "ci_")) and isinstance(v[0], float):
