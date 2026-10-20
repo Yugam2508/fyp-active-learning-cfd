@@ -301,7 +301,7 @@ def imse():
 
 
 def stacking():
-    out = {}
+    out, tests = {}, []
     for b in BENCHES + ["bump", "borehole_corr"]:
         R = jload(f"results_stack_{b}.json")
         if not R or len(R) < 5:
@@ -310,6 +310,8 @@ def stacking():
         se = {x["seed"]: x["selected_nrmse"] for x in R}
         orc = {x["seed"]: x["oracle_nrmse"] for x in R}
         out[b] = {"stack_vs_selected": paired(st, se), "stack_vs_oracle": paired(st, orc)}
+        tests.append(out[b]["stack_vs_selected"])
+    holm(tests)
     return out
 
 
