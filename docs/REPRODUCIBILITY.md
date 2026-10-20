@@ -197,3 +197,17 @@ Notes.
   every record of the study); only `experiments/sensitivity_amp_bound.py`
   sets it, to 1e6, for the sensitivity check described in
   `docs/RESEARCH_PLAN.md` (results in `results/sensitivity_amp_bound.json`).
+
+## 9. Long-term reproducibility
+
+- `Dockerfile` builds the environment of section 1: Ubuntu 24.04,
+  OpenFOAM v1912 from the Ubuntu archive (package 1912.200626-2build3),
+  Python 3.11 from the deadsnakes PPA (the study used 3.11.15-1+noble1) and
+  `requirements-lock.txt` with the CPU build of PyTorch, plus the LaTeX
+  packages for the papers. Its default command runs the CI checks:
+  `docker build -t fyp-surrogate-gum . && docker run --rm fyp-surrogate-gum`.
+  The workflow `.github/workflows/docker.yml` builds the image and runs
+  these checks whenever the Dockerfile or the lockfile changes.
+- The release cited in the papers is archived at Zenodo with the cached CFD
+  runs and every result record, so the analyses can be repeated without
+  OpenFOAM even if the package stops being installable.
