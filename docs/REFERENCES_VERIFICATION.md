@@ -90,6 +90,8 @@ the benchmarks are cross-checked against).
 | schobi2015 | Schöbi, Sudret, Wiart, *Int. J. Uncertain. Quantif.* 5(2) 171–193 (2015) | HAL record (DOI), ETH research collection, arXiv 1502.03939 | yes |
 | breiman1996 | Breiman, *Mach. Learn.* 24(1) 49–64 (1996) | Berkeley technical report header, DBLP, Springer DOI page | yes |
 | celik2008 | Celik, Ghia, Roache, Freitas, Coleman, Raad, *J. Fluids Eng.* 130(7) 078001 (2008) | ResearchGate, Semantic Scholar and citing literature (DOI 10.1115/1.2960953) | yes |
+| vovk2019 | Vovk, Shen, Manokhin, Xie, *Mach. Learn.* 108(3) 445–474 (2019) | Royal Holloway repository, NSF PAR record, PMLR v60 conference version (DOI 10.1007/s10994-018-5755-8) | yes |
+| arlot2010 | Arlot, Celisse, *Stat. Surv.* 4 40–79 (2010) | Project Euclid, arXiv 0907.4728, HAL (DOI 10.1214/09-SS054) | yes |
 
 Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
 input models), flood and Ishigami implementations in `src/benchmarks.py`

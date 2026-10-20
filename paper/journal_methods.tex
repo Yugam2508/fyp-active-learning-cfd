@@ -59,6 +59,30 @@ $\alpha=0.05$. For exchangeable runs the jackknife+ interval covers $f$ with
 probability at least $1-2\alpha$ whatever the surrogate~\cite{barber2021};
 it is a member of the conformal family~\cite{angelopoulos2023}.
 
+\emph{Why resampling the LOO residuals can be expected to work.} For an
+input $\mathbf X\sim g_{\mathbf X}$ drawn independently of the runs,
+$\varphi(f(\mathbf X))=\varphi(\hat f(\mathbf X))+e(\mathbf X)$ exactly, so
+equation~\eqref{eq:contrib} gives the true distribution of the output if $E$
+behaves as $e(\mathbf X)$. If the run inputs and $\mathbf X$ are
+exchangeable, as for independent draws from $g_{\mathbf X}$, each $r_i$ is
+distributed as the error of a surrogate fitted to $N-1$ runs at a new input,
+so the empirical distribution of the $r_i$ estimates the distribution of
+$e(\mathbf X)$, on the conservative side because $N-1$ rather than $N$ runs
+are used~\cite{arlot2010}. Three approximations remain. Resampling draws $E$
+independently of $\mathbf X$: it reproduces the variance of the error but
+drops its covariance with $\varphi(\hat f(\mathbf X))$, which is zero in
+expectation when $\hat f$ is the posterior mean of a correctly specified
+model but not in general. A Latin hypercube design is close to, not exactly,
+exchangeable with independent draws. And a feature of $f$ that no run
+reaches leaves no trace in any $r_i$ (Section~\ref{sec:res-robust}). At a
+fixed input $\mathbf x$, the same construction with $\hat f_{-i}(\mathbf x)$
+in place of $\hat f(\mathbf x)$ is the predictive distribution behind the
+jackknife+ interval, one of the conformal predictive distributions, which
+are valid in finite samples under exchangeability~\cite{barber2021,vovk2019}.
+For the distribution of $Y$, which mixes over the inputs, no such guarantee
+is available, and the coverage study of Section~\ref{sec:res-coverage} is
+its empirical check.
+
 For a reported quantity $\theta$ itself (the mean, SD, $y_{0.95}$ or
 $P(Y>T)$ of the output over a fixed set of input draws), two 95\% intervals
 are compared: the 2.5th and 97.5th percentiles of $\theta$ over joint sample

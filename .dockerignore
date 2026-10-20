@@ -1,0 +1,6 @@
+.git
+**/__pycache__
+paper/*.aux
+paper/*.log
+paper/**/*.aux
+paper/**/*.log
