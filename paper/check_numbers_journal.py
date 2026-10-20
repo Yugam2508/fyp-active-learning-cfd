@@ -537,6 +537,54 @@ _ind = [V[f"{s}_{m}_cov"] for s in ("orig", "log") for m in ("indep", "normal")]
 _vol = [V[f"{s}_{m}_vol"] for s in ("orig", "log") for m in ("indep", "normal")]
 check(F, "covered\n96.7--98.4\\% but with regions 5.7--7.2 times", min(_ind),
       lambda v: f"covered\n{pct(v)}--{pct(max(_ind))}\\% but with regions {min(_vol):.1f}--{max(_vol):.1f} times")
+F = "journal_results_main.tex"
+DS, IM, SK = CP["designs"], CP["imse"], CP["stacking"]
+_dt = [v for b in DS if b != "cfd" for v in DS[b].values() if isinstance(v, dict)]
+_dr = [v["ratio"] for v in _dt]
+check(F, "by factors of 0.73 to 1.25 (median 0.99)\nin the 120 comparisons on the twelve analytical models", min(_dr),
+      lambda v: f"by factors of {v:.2f} to {max(_dr):.2f} (median {np.median(_dr):.2f})\nin the {len(_dt)} comparisons "
+      f"on the {'twelve' if len([b for b in DS if b != 'cfd']) == 12 else '??'} analytical models")
+_ds = [(b, k) for b in DS if b != "cfd" for k, v in DS[b].items() if isinstance(v, dict) and v["p_holm"] < 0.05]
+check_true("design type: the two significant differences are OTL with Sobol'",
+           len(_ds) == 2 and all(b == "otl" and "sobol" in k for b, k in _ds))
+_dsr = [DS[b][k]["ratio"] for b, k in _ds]
+check(F, "Sobol' design on the OTL circuit\n(0.73--0.76), and 59 comparisons", min(_dsr),
+      lambda v: f"Sobol' design on the OTL circuit\n({v:.2f}--{max(_dsr):.2f}), and "
+      f"{sum(x['equivalent'] for x in _dt)} comparisons")
+_dc = [v for b in DS if b != "cfd" for v in DS[b].values() if not isinstance(v, dict)]
+check(F, "covered\n93.4--97.1\\% of the reference distribution with either design type", min(_dc),
+      lambda v: f"covered\n{pct(v)}--{pct(max(_dc))}\\% of the reference distribution with either design type")
+_im = lambda N, ref: [x for x in IM if x["N"] == N and x["vs"] == ref and x["bench"] != "cfd"]
+_ims = lambda N, ref: [x for x in _im(N, ref) if x["p_holm"] < 0.05]
+check_true("IMSE N=20 vs passive: one model, borehole_gum",
+           [x["bench"] for x in _ims(20, "gp_m52")] == ["borehole_gum"] and len(_im(20, "gp_m52")) == 12)
+check(F, "the borehole\nmodel with GUM-type inputs (0.75)", _ims(20, "gp_m52")[0]["ratio"],
+      lambda v: f"the borehole\nmodel with GUM-type inputs ({v:.2f})")
+_a = [x["ratio"] for x in _ims(20, "al_gp")]
+check(F, "GP-SD design on\ntwo (0.74--0.77)", min(_a),
+      lambda v: f"GP-SD design on\n{'two' if len(_a) == 2 else len(_a)} ({v:.2f}--{max(_a):.2f})")
+check_true("IMSE N=20 better than GP-SD where significant", all(x["ratio"] < 1 for x in _ims(20, "al_gp")))
+_b = _ims(40, "gp_m52")
+check(F, "on six of the nine models with records at that budget (0.48--0.86)", min(x["ratio"] for x in _b),
+      lambda v: f"on {'six' if len(_b) == 6 else len(_b)} of the {'nine' if len(_im(40, 'gp_m52')) == 9 else '??'} "
+      f"models with records at that budget ({v:.2f}--{max(x['ratio'] for x in _b):.2f})")
+check_true("IMSE N=40: not significant on plume, ishigami, bump; all significant ones better",
+           {x["bench"] for x in _im(40, "gp_m52")} - {x["bench"] for x in _b} == {"plume", "ishigami", "bump"}
+           and all(x["ratio"] < 1 for x in _b))
+_sk = {b: v["stack_vs_selected"] for b, v in SK.items() if b not in ("cfd", "borehole_corr")}
+_so = [v["stack_vs_oracle"]["ratio"] for b, v in SK.items() if b not in ("cfd", "borehole_corr")]
+_sr = [v["ratio"] for v in _sk.values()]
+check(F, "0.96 to 1.17 times that of the selected candidate", min(_sr),
+      lambda v: f"{v:.2f} to {max(_sr):.2f} times that of the selected candidate")
+_sig = {b: v["ratio"] for b, v in _sk.items() if v["p_holm"] < 0.05}
+check_true("stacking: significant only on ishigami, bump (lower) and borehole_gum (higher)",
+           set(_sig) == {"ishigami", "bump", "borehole_gum"} and _sig["ishigami"] < 1 and _sig["bump"] < 1
+           and _sig["borehole_gum"] > 1)
+check(F, "by 4\\% and 2\\%, and\nhigher on the borehole model with GUM-type inputs, by 17\\%", _sig["ishigami"],
+      lambda v: f"by {100 * (1 - v):.0f}\\% and {100 * (1 - _sig['bump']):.0f}\\%, and\nhigher on the borehole model "
+      f"with GUM-type inputs, by {100 * (_sig['borehole_gum'] - 1):.0f}\\%")
+check(F, "0.99 to\n1.26 times that of the best candidate in hindsight", min(_so),
+      lambda v: f"{v:.2f} to\n{max(_so):.2f} times that of the best candidate in hindsight")
 F = "journal_results_cfd.tex"
 GC = CP["cfd_numerics"]["gci"]
 check(F, "gave values\nbetween 8.1\\% lower and 0.5\\% higher", GC["rel_coarse_range"][0],

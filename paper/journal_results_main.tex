@@ -96,6 +96,15 @@ OTL, wing weight and 20-input OTL models (0.60--0.80) and hurt on the
 plume model (1.25), where its estimate of $P(C>\mathrm{IDLH})$ was off by a median of 0.17, against 0.02
 for the passive committee. The spectral criterion UEigV was never better
 than plain committee variance and was worse on three models (1.26--1.72).
+The IMSE design, which places runs where they most reduce the posterior
+variance over the whole input distribution, did somewhat better than the
+GP-SD design without changing the picture. With 20 runs it was more
+accurate than the passive design on one of the twelve analytical models
+(the eleven of Table~\ref{tab:models} and the bump model), the borehole
+model with GUM-type inputs (0.75), and than the GP-SD design on
+two (0.74--0.77); with 40 runs it was more accurate than the passive design
+on six of the nine models with records at that budget (0.48--0.86), all of
+them smooth, and not on the plume, Ishigami and bump models.
 
 Targeting the threshold changes the picture for exceedance probabilities.
 AK-MCS reduced the median absolute error of $P(Y>T)$ significantly in 8 of
@@ -111,6 +120,16 @@ percentile instead reduced the error of $P(Y>y_{0.95})$ on the log scale by
 median factors of 0.68 (plume) and 0.55 (plume with GUM-type inputs), but
 neither reduction survived the Holm adjustment, and on the CFD case it made
 no difference (0.95).
+
+\emph{Type of passive design.} Replacing the random Latin hypercube by a
+maximin Latin hypercube or a scrambled Sobol' sequence changed the median
+nRMSE of the candidate surrogates by factors of 0.73 to 1.25 (median 0.99)
+in the 120 comparisons on the twelve analytical models. Two differences
+survived the Holm adjustment, both for the Sobol' design on the OTL circuit
+(0.73--0.76), and 59 comparisons were equivalent within $\pm20\%$. With the
+GP with trend and its LOO residuals, the GUM~S1 coverage interval covered
+93.4--97.1\% of the reference distribution with either design type. The
+conclusions do not depend on the type of space-filling design.
 
 \emph{What the comparisons without a difference show.} Of the 228 paired
 comparisons, 105 showed no significant difference after the Holm
@@ -153,7 +172,12 @@ left it unchanged on the flood and Ishigami models. On the 20-input model it
 never chose the trend GP that overfits there, and on the wing weight model
 it chose the log-scale sparse PCE in 9 of 30 seeds. The selection step
 therefore recovers practically all of the benefit of the right
-specification without access to the true model.
+specification without access to the true model. Combining the candidates
+by stacking instead of choosing one did not help: its median nRMSE was
+0.96 to 1.17 times that of the selected candidate on the twelve analytical
+models (lower only on the Ishigami and bump models, by 4\% and 2\%, and
+higher on the borehole model with GUM-type inputs, by 17\%) and 0.99 to
+1.26 times that of the best candidate in hindsight.
 
 \subsection{Dependence on the number of runs}
 \label{sec:res-budget}
