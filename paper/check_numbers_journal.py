@@ -649,20 +649,31 @@ check(F, "the committee took 9\\,s and the adaptive committee 78\\,s", CO["pas_a
       lambda v: f"the committee took {v:.0f}\\,s and the adaptive committee {CO['al_var']:.0f}\\,s")
 check(F, "One run of the CFD model, itself small, took 39\\,s", CO["cfd_run_s"],
       "One run of the CFD model, itself small, took {:.0f}\\,s")
+NOMINAL_MIN = 26                                       # of 30 seeds (plan)
 # ── abstract ─────────────────────────────────────────────────────────────
 F = "journal_abstract.tex"
 logs = [R(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd")]
 check(F, "to 18, 400 and 9", med("physics", "gp_orig") / med("physics", "gp_amp"),
       lambda v: f"to {v:.0f}, {int(round(1 / R('physics', 'gp_quad', 'gp_m52'), -2))} and {1 / min(logs):.0f}")
-check(F, "up\nto ninefold", 1 / min(t["ratio"] for t in aks),
-      lambda v: "up\nto ninefold" if round(v) == 9 else f"up\nto {v:.0f}-fold")
-allc = {k: [r[k] for row in S["coverage"].values() for r in row.values() if k in r]
-        for k in ("ci_normal_cov", "pw_jkplus_cov", "pw_gp_cov")}
-check(F, "to 91--97\\% on all models", min(allc["ci_normal_cov"]),
-      lambda v: f"to {100 * v:.0f}--{100 * max(allc['ci_normal_cov']):.0f}\\% on all models")
-check(F, "covered 95--100\\% of test points", min(allc["pw_jkplus_cov"]),
-      lambda v: f"covered {100 * v:.0f}--{100 * max(allc['pw_jkplus_cov']):.0f}\\% of test points")
-check(F, "as few as 68\\%", min(allc["pw_gp_cov"]), lambda v: f"as few as {100 * v:.0f}\\%")
-check(F, "median of\nonly 63\\%", cr["dq_q95_gp_cov"]["median"], lambda v: f"median of\nonly {100 * v:.0f}\\%")
+check(F, "up to ninefold", 1 / min(t["ratio"] for t in aks),
+      lambda v: "up to ninefold" if round(v) == 9 else f"up to {v:.0f}-fold")
+_bud = [r["ci_resample_cov"] for N in CP["budgets"]["rows"].values() for r in N.values()]
+check(F, "gave 93--97\\% coverage of the GUM~S1 95\\% coverage\ninterval at every budget", min(_bud),
+      lambda v: f"gave {100 * v:.0f}--{100 * max(_bud):.0f}\\% coverage of the GUM~S1 95\\% coverage\ninterval at every budget")
+_dep = [c["ci_resample_cov"] for c in CP["correlated"]["coverage"].values()]
+_vec = [CP["vector"]["orig_joint_cov"], CP["vector"]["log_joint_cov"]]
+check_true("abstract: dependent inputs and vector outputs inside 93-97 %",
+           all(0.925 <= x < 0.975 for x in _dep + _vec))
+_BG = CP["bayes_gp"]["rows"]
+_pw = [r["pw_gp_cov"] for b in _BG for r in _BG[b].values()]
+check(F, "covered as few as 68\\% of test points", min(_pw), lambda v: f"covered as few as {100 * v:.0f}\\% of test points")
+_cnt = lambda v: sum(r[f"dq_q95_{v}_cov_count"] >= NOMINAL_MIN for b in _BG for r in _BG[b].values())
+_ncomb = sum(len(_BG[b]) for b in _BG)
+check(F, "in only 13 of 42\ncases (24 with hyperparameters integrated out)", _cnt("gp"),
+      lambda v: f"in only {v} of {_ncomb}\ncases ({_cnt('gpmc')} with hyperparameters integrated out)")
+_selr = [r["ratio_to_oracle"] for N, rows in CP["budgets"]["rows"].items() if int(N) >= 20
+         for r in rows.values() if r.get("ratio_to_oracle") is not None]
+check_true("abstract: selection within 5 % of the best candidate from 20 runs on",
+           len(_selr) > 30 and max(_selr) < 1.05)
 print("all numbers reproduced" if ok else "MISMATCHES FOUND")
 sys.exit(0 if ok else 1)
