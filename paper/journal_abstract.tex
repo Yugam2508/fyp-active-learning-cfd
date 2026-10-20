@@ -1,27 +1,26 @@
 % journal_abstract.tex
 When the measurement model is an expensive simulation, Monte Carlo
-propagation of distributions according to GUM Supplement~1 is carried out
-on a surrogate fitted to a few tens of model runs, and the surrogate's error
-becomes part of the uncertainty budget. We compare Gaussian processes (GPs)
-of different specifications, sparse polynomial chaos expansions, committees
-of surrogates, and space-filling, adaptive and threshold-targeted designs on
-twelve models with up to 20 inputs, including GUM-type input distributions and a computational
-fluid dynamics (CFD) simulation of a gas release behind a building, with
-10 to 80 runs and 30 paired repetitions against reference Monte Carlo
-evaluations. The specification of the surrogate mattered more than the
-choice of strategy: an estimated kernel amplitude, a quadratic trend and
-the log scale for positive quantities reduced the error by factors of up
-to 18, 400 and 9, and choosing among such candidates by their
-leave-one-out error recovered practically all of the gain without access
-to the true model. Committees did not beat a GP with a trend, and
-variance-driven adaptive designs gave no consistent gain at 20 runs and
-helped only with larger budgets on smooth models, whereas a design targeted
-at a threshold in the tail reduced the error of exceedance probabilities up
-to ninefold. Adding the leave-one-out
-residuals of the surrogate to every Monte Carlo trial brought the achieved
-coverage of the GUM~S1 95\% coverage interval to 91--97\% on all models,
-and jackknife+ prediction intervals covered 95--100\% of test points,
-whereas the GP's own predictive intervals covered as few as 68\%, and its
-intervals for a 95th percentile contained the true value in a median of
-only 63\% of repetitions. The results are condensed into a validated
-procedure for surrogate-based uncertainty evaluation.
+propagation according to GUM Supplement~1 is carried out on a surrogate
+fitted to a few tens of runs, and the surrogate's error enters the
+uncertainty budget. We compared Gaussian process (GP) specifications,
+sparse polynomial chaos, committees, stacking, and space-filling, adaptive
+and threshold-targeted designs on twelve models with up to 20 inputs,
+including GUM-type inputs and a computational fluid dynamics
+(CFD) gas-dispersion simulation, with 10 to 80 runs and 30 paired
+repetitions against reference evaluations. Surrogate specification
+mattered more than strategy: an estimated kernel amplitude, a
+quadratic trend and the log scale for positive quantities reduced the error
+by factors of up to 18, 400 and 9, and selecting among candidates by
+leave-one-out error recovered practically all of this gain from 20 runs
+on. Committees and
+stacking gained little or nothing, the design type hardly mattered, and
+variance-driven adaptive designs helped only with larger budgets on smooth
+models, whereas threshold-targeted designs reduced the error of tail
+exceedance probabilities up to ninefold. Adding the leave-one-out residuals to every
+Monte Carlo trial gave 93--97\% coverage of the GUM~S1 95\% coverage
+interval at every budget, also for dependent inputs and vector outputs.
+GP predictive intervals covered as few as 68\% of test points, and GP
+intervals for a 95th percentile reached nominal coverage in only 13 of 42
+cases (24 with hyperparameters integrated out). The results are
+condensed into a validated procedure, with a worked uncertainty budget for
+the CFD case.
