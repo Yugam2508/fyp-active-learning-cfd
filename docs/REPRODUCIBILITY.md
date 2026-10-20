@@ -181,7 +181,7 @@ Outputs of `run_completion_campaign.sh`:
 | T2.3 stacking of the candidates | `campaign_stacking.py` | `results_stack_<model>.json` |
 | T2.4 vector output (GUM S2) | `campaign_vector.py` | `results_vector_plume.json` |
 | T2.5 dependent inputs (model `borehole_corr`) | as for the other models | `results_*_borehole_corr_*.json` |
-| T2.6 grid convergence index; second CFD reference | `cfd_gci.py`; `cfd_precompute.py --ref2` then `cfd_reference2.py` | `results/cfd_gci.json`, `results/cfd_reference2.json` |
+| T2.6 grid convergence index; second CFD reference | `cfd_gci.py` (iteration check of its coarse mesh: `cfd_gci_iterations.py`); `cfd_precompute.py --ref2` then `cfd_reference2.py` | `results/cfd_gci.json`, `results/cfd_gci_iterations.json`, `results/cfd_reference2.json` |
 
 Notes.
 
@@ -207,7 +207,10 @@ Notes.
   packages for the papers. Its default command runs the CI checks:
   `docker build -t fyp-surrogate-gum . && docker run --rm fyp-surrogate-gum`.
   The workflow `.github/workflows/docker.yml` builds the image and runs
-  these checks whenever the Dockerfile or the lockfile changes.
+  these checks whenever the Dockerfile or the lockfile changes, and then
+  `experiments/cfd_smoke.py`, which reruns one stored CFD case with the
+  image's OpenFOAM (relative tolerance 1e-3). Both passed on the first
+  build (2026-10-20).
 - The release cited in the papers is archived at Zenodo with the cached CFD
   runs and every result record, so the analyses can be repeated without
   OpenFOAM even if the package stops being installable.
