@@ -549,6 +549,28 @@ check_true("GCI: standard mesh largest at the oscillatory points",
 check(F, "(median 5.9\\%, at most 8.1\\%)", GC["band_median"],
       lambda v: f"(median {pct(v)}\\%, at most {pct(GC['band_max'])}\\%)")
 check_true("GCI: coarse-mesh iteration change below 4e-5", GC["coarse_iter_change_max"] < 4e-5)
+GP_CANDS = ("gp_m52", "gp_quad", "gp_log", "gp_quadlog")
+F = "journal_discussion.tex"
+ST, CO = CP["stopping"], CP["cost"]
+b0, b1, b2 = ST["bins"]
+check(F, "Over the\n7020 evaluations", ST["n"], "Over the\n{} evaluations")
+check(F, "(Spearman correlation 0.86 with the\nnRMSE)", ST["spearman_share_vs_nrmse"],
+      lambda v: f"(Spearman correlation {v:.2f} with the\nnRMSE)")
+check(F, "below 1\\% (2512 evaluations), the median nRMSE\nwas 0.026 and the standard uncertainty was within 0.6\\% (median)",
+      b0["n"], lambda v: f"below 1\\% ({v} evaluations), the median nRMSE\nwas {b0['nrmse_median']:.3f} and the "
+      f"standard uncertainty was within {pct(b0['u_relerr_median'])}\\% (median)")
+check(F, "for shares of 1--5\\%, 0.13 and 2.5\\%; above 5\\%, 0.51 and 16\\%", b1["nrmse_median"],
+      lambda v: f"for shares of 1--5\\%, {v:.2f} and {pct(b1['u_relerr_median'])}\\%; above 5\\%, "
+      f"{b2['nrmse_median']:.2f} and {100 * b2['u_relerr_median']:.0f}\\%")
+_gp = [CO[a] for a in GP_CANDS]
+check(F, "a GP took\n0.3--0.8\\,s and a sparse PCE 0.1\\,s", min(_gp),
+      lambda v: f"a GP took\n{v:.1f}--{max(_gp):.1f}\\,s and a sparse PCE {max(CO['spce'], CO['spce_log']):.1f}\\,s")
+check(F, "took 37\\,s (median, at most 74\\,s)", CO["selection_s"],
+      lambda v: f"took {v:.0f}\\,s (median, at most {CO['selection_s_max']:.0f}\\,s)")
+check(F, "the committee took 9\\,s and the adaptive committee 78\\,s", CO["pas_ard"],
+      lambda v: f"the committee took {v:.0f}\\,s and the adaptive committee {CO['al_var']:.0f}\\,s")
+check(F, "One run of the CFD model, itself small, took 39\\,s", CO["cfd_run_s"],
+      "One run of the CFD model, itself small, took {:.0f}\\,s")
 # ── abstract ─────────────────────────────────────────────────────────────
 F = "journal_abstract.tex"
 logs = [R(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd")]

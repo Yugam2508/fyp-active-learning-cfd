@@ -399,6 +399,12 @@ def cost():
             if g:
                 out.setdefault(a, []).extend(x["runtime_s"] for x in g if "runtime_s" in x)
     res = {a: float(np.median(v)) for a, v in out.items() if v}
+    # the procedure's LOO step: every candidate refitted N times (N = 20)
+    sel = [x["runtime_s"] for b in BENCHES for x in (jload(f"results_sel_{b}.json") or [])
+           if "runtime_s" in x]
+    if sel:
+        res["selection_s"] = float(np.median(sel))
+        res["selection_s_max"] = float(np.max(sel))
     grid = jload("cfd_grid_check.json")
     if grid:
         res["cfd_run_s"] = float(np.median([c["refine1"]["runtime_s"] for c in grid["cases"]]))
