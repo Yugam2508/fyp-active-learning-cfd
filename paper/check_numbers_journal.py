@@ -347,8 +347,8 @@ check(F, "log-scale GP (31), the log-scale sparse PCE (93) and the raw-scale\nca
       f"{max(wl[k] for k in ('gp_m52', 'gp_quad', 'spce')):.0f})")
 W0 = W["surrogate_as_exact"]
 wchg = {k: wp[k] / W0[k] - 1 for k in wp}
-check(F, "changed the reported quantities by at most 1.2\\%", max(abs(v) for v in wchg.values()),
-      lambda v: f"changed the reported quantities by at most {100 * v:.1f}\\%")
+check(F, "changed the reported\nquantities by at most 1.3\\%", max(abs(v) for v in wchg.values()),
+      lambda v: f"changed the reported\nquantities by at most {100 * v:.1f}\\%")
 check_true("worked example: residuals lowered every quantity", all(v < 0 for v in wchg.values()))
 rl = np.array(W["loo_residuals_latent"])
 check(F, "negative mean ($-0.013$", rl.mean(), "negative mean (${:.3f}$")
@@ -359,19 +359,164 @@ inside = {k: wj[k][0] <= wr[k] <= wj[k][1] for k in wj}
 check_true("worked example: jackknife contains reference for mean and P only",
            {k for k, v in inside.items() if v} == {"mean", "p_exceed", "q025"})
 gap = {k: wr[k] / wj[k][1] - 1 for k in ("sd", "q95", "q975")}
-check(F, "the reference lies\n0.9--1.5\\% above the upper end", min(gap.values()),
+check(F, "the reference lies\n0.7--1.6\\% above the upper end", min(gap.values()),
       lambda v: f"the reference lies\n{100 * v:.1f}--{100 * max(gap.values()):.1f}\\% above the upper end")
 check_true("worked example: gaps below half the reference uncertainty",
            all(wr[k] - wj[k][1] < 0.5 * wu[k] for k in gap))
 bs = W["budget"]; sh = dict(zip(W["input_names"], bs["input_share"]))
 check(F, "wind speed contributed 36\\%", sh["U_ref"], lambda v: f"wind speed contributed {100 * v:.0f}\\%")
-check(F, "rate 31\\%, the receptor distance 5.8\\%, the turbulent Schmidt number 3.9\\%",
+check(F, "rate 29\\%, the receptor distance 5.9\\%, the turbulent Schmidt number 4.2\\%",
       sh["Q"], lambda v: f"rate {100 * v:.0f}\\%, the receptor distance {100 * sh['x_r']:.1f}\\%, "
                          f"the turbulent Schmidt number {100 * sh['Sc_t']:.1f}\\%")
-check(F, "building height 3.1\\% and the roughness length 1.0\\%", sh["H_b"],
+check(F, "building height 3.2\\% and the roughness length 1.7\\%", sh["H_b"],
       lambda v: f"building height {100 * v:.1f}\\% and the roughness length {100 * sh['z0']:.1f}\\%")
-check(F, "inputs 19\\% and the surrogate 0.3\\%", bs["interaction_share"],
+check(F, "inputs 20\\% and the surrogate 0.3\\%", bs["interaction_share"],
       lambda v: f"inputs {100 * v:.0f}\\% and the surrogate {100 * bs['surrogate_share']:.1f}\\%")
+# ── worked example: GUM S1 adaptive Monte Carlo and GUM framework (T1.7) ─
+am, gf = W["adaptive_mc"], W["gum_framework"]
+check(F, "took 115 batches of $10^4$ trials, $M=1.15\\times10^6$", am["batches"],
+      lambda v: f"took {v} batches of $10^4$ trials, $M={v * am['batch_size'] / 1e6:.2f}\\times10^6$")
+check_true("adaptive MC met the tolerance, delta 5, upper limit last", am["met"] and am["delta"] == 5.0
+           and int(np.argmax(am["two_sd_of_mean"])) == 3)
+check(F, "gives $y=318$\\,mg\\,m$^{-3}$,\n$u(y)=232$", gf["y"],
+      lambda v: f"gives $y={v:.0f}$\\,mg\\,m$^{{-3}}$,\n$u(y)={gf['u']:.0f}$")
+check(F, "[-137,772]", gf["q025"], lambda v: f"[{v:.0f},{gf['q975']:.0f}]")
+check(F, "contains only 85.5\\% of the reference", W["reference_share_in_gum_interval"],
+      lambda v: f"contains only {100 * v:.1f}\\% of the reference")
+# ── research plan, Tier 1 (results/journal/completion.json) ──────────────
+CP = json.load(open(os.path.join(ROOT, "results", "journal", "completion.json")))
+F = "journal_results_coverage.tex"
+bg = [r for b in CP["bayes_gp"]["rows"].values() for r in b.values()]
+check(F, "Over the 42\ncombinations", len(bg), "Over the {}\ncombinations")
+pw = lambda v: float(np.median([r[f"pw_{v}_cov"] for r in bg]))
+check(F, "coverage rose from 80\\% with the plug-in hyperparameters to 83\\% for the\nStudent-t process and 96\\%",
+      pw("gp"), lambda v: f"coverage rose from {100 * v:.0f}\\% with the plug-in hyperparameters to "
+      f"{100 * pw('gpt'):.0f}\\% for the\nStudent-t process and {100 * pw('gpmc'):.0f}\\%")
+cal = [r["pw_gpcal_cov"] for r in bg]
+check(F, "reached 95\\% (91--98\\%) and the jackknife+ 97\\%", pw("gpcal"),
+      lambda v: f"reached {100 * v:.0f}\\% ({100 * min(cal):.0f}--{100 * max(cal):.0f}\\%) and the jackknife+ "
+      f"{100 * pw('jkplus'):.0f}\\%")
+ok26 = lambda v: sum(r[f"dq_q95_{v}_cov_count"] >= 26 for r in bg)
+check(F, "in 13 of the 42\ncombinations with the plug-in GP, 15 with the Student-t process, 24 with\nthe fully Bayesian GP, 23 with the recalibrated GP and 39 with the\njackknife",
+      ok26("gp"), lambda v: f"in {v} of the {len(bg)}\ncombinations with the plug-in GP, {ok26('gpt')} with the "
+      f"Student-t process, {ok26('gpmc')} with\nthe fully Bayesian GP, {ok26('gpcal')} with the recalibrated GP "
+      f"and {ok26('jack')} with the\njackknife")
+check(F, "fell as low as 8 of 30 seeds", min(r["dq_q95_gpmc_cov_count"] for r in bg), "fell as low as {} of 30 seeds")
+check_true("MCMC minimum is the Matern GP on the CFD case",
+           CP["bayes_gp"]["rows"]["cfd"]["gp_m52"]["dq_q95_gpmc_cov_count"] == min(r["dq_q95_gpmc_cov_count"] for r in bg))
+jbad = sorted((b, s_) for b, v in CP["bayes_gp"]["rows"].items() for s_, r in v.items() if r["dq_q95_jack_cov_count"] < 26)
+check_true("jackknife short on exactly plume_gum gp_m52/gp_quad and ishigami gp_m52",
+           jbad == [("ishigami", "gp_m52"), ("plume_gum", "gp_m52"), ("plume_gum", "gp_quad")])
+check(F, "(24--25 of 30)", min(CP["bayes_gp"]["rows"][b][s_]["dq_q95_jack_cov_count"] for b, s_ in jbad),
+      lambda v: f"({v}--{max(CP['bayes_gp']['rows'][b][s_]['dq_q95_jack_cov_count'] for b, s_ in jbad)} of 30)")
+check_true("no GP variant valid by the plan's rule", not any(d["valid"] for d in CP["bayes_gp"]["decision"].values()))
+check(F, "93\\% or more with every\nerror model", min(r[f"ci_{v}_cov"] for r in bg for v in ("gp", "gpt", "gpmc", "gpcal", "resample")),
+      lambda v: f"{100 * v:.0f}\\% or more with every\nerror model" if v >= 0.925 else "?")
+taus = [r["gpmc_tau_median"] for r in bg]
+check(F, "autocorrelation times of 38--62\nsteps", min(taus), lambda v: f"autocorrelation times of {v:.0f}--{max(taus):.0f}\nsteps")
+BR = CP["budgets"]["rows"]
+rng = lambda N, k: (min(r[k] for r in BR[N].values()), max(r[k] for r in BR[N].values()))
+check(F, "covered 93.4--96.9\\% of the reference distribution at\n$N=10$, 94.2--96.1\\% at 20, 94.7--95.7\\% at 40 and 94.7--95.1\\% at 80",
+      rng("10", "ci_resample_cov")[0], lambda v: "covered {:.1f}--{:.1f}\\% of the reference distribution at\n$N=10$, "
+      "{:.1f}--{:.1f}\\% at 20, {:.1f}--{:.1f}\\% at 40 and {:.1f}--{:.1f}\\% at 80".format(
+          *[100 * x for N in ("10", "20", "40", "80") for x in rng(N, "ci_resample_cov")]))
+check_true("procedure decision: >= 90 % at every N on every model", CP["budgets"]["decision"]["holds_all"])
+check_true("budgets: 12 models at N = 10, 20, 40 and 11 at N = 80",
+           [len(BR[N]) for N in ("10", "20", "40", "80")] == [12, 12, 12, 11])
+check(F, "covered as little as 81.9\\% at $N=10$, against 89.9\\% at 20", rng("10", "ci_plain_cov")[0],
+      lambda v: f"covered as little as {100 * v:.1f}\\% at $N=10$, against {100 * rng('20', 'ci_plain_cov')[0]:.1f}\\% at 20")
+check(F, "in up to 23\\% of the designs of a model,\nwith 20 runs in at most 3\\%", rng("10", "share_designs_below_90")[1],
+      lambda v: f"in up to {100 * v:.0f}\\% of the designs of a model,\nwith 20 runs in at most "
+      f"{100 * rng('20', 'share_designs_below_90')[1]:.0f}\\%")
+check_true("no design below 90 % at N = 40, 80",
+           rng("40", "share_designs_below_90")[1] == 0 and rng("80", "share_designs_below_90")[1] == 0)
+check(F, "within 4.4\\% of the best candidate in hindsight at every budget from 20\nruns, but up to 37\\% worse",
+      max(rng(N, "ratio_to_oracle")[1] for N in ("20", "40", "80")) - 1,
+      lambda v: f"within {100 * v:.1f}\\% of the best candidate in hindsight at every budget from 20\nruns, "
+      f"but up to {100 * (rng('10', 'ratio_to_oracle')[1] - 1):.0f}\\% worse")
+check_true("jackknife+ unbounded at N = 10 in every seed", all(r["pw_jkplus_unbounded_share"] == 1 for r in BR["10"].values()))
+check(F, "in 19--30 of 30 seeds at $N=10$ and 23--30 at $N=40$", rng("10", "dq_q95_jack_count")[0],
+      lambda v: f"in {v}--{rng('10', 'dq_q95_jack_count')[1]} of 30 seeds at $N=10$ and "
+      f"{rng('40', 'dq_q95_jack_count')[0]}--{rng('40', 'dq_q95_jack_count')[1]} at $N=40$")
+check(F, "did so in 14 of 30 seeds on the physics model", BR["80"]["physics"]["dq_q95_jack_count"],
+      "did so in {} of 30 seeds on the physics model")
+check_true("physics is the only N = 80 model below 26", [b for b, r in BR["80"].items() if r["dq_q95_jack_count"] < 26] == ["physics"])
+_phys80 = max(abs(r["dq_q95_hat"] - r["dq_q95_true"]) / abs(r["dq_q95_true"])
+              for s_ in ("gp_quad", "spce") for r in json.load(open(os.path.join(ROOT, "results", f"results_cov_physics_{s_}_N80.json"))))
+check_true("physics N = 80 relative error of y95 below 1e-4 for the trend GP and PCE", _phys80 < 1e-4)
+PD = CP["per_design"]
+check(F, "below\n90\\% in at most 10\\% of the designs of any model and surrogate (median 0\\%),\nand never below 80.8\\%",
+      PD["ci_resample_below_90_max"], lambda v: f"below\n90\\% in at most {100 * v:.0f}\\% of the designs of any model and "
+      f"surrogate (median {100 * PD['ci_resample_below_90_median']:.0f}\\%),\nand never below {100 * PD['ci_resample_min']:.1f}\\%")
+BP = CP["bump"]
+check(F, "13 of the 30 designs of\n20 runs placed a run inside the bump", BP["20"]["designs_hitting"],
+      "{} of the 30 designs of\n20 runs placed a run inside the bump")
+miss = [BP["20"][f"{s_}_miss"] for s_ in ("gp_m52", "gp_quad", "spce")]
+hit = [BP["20"][f"{s_}_hit"] for s_ in ("gp_m52", "gp_quad", "spce")]
+check(F, "interval still covered 94--95\\% of the reference distribution", min(m["ci_resample_cov"] for m in miss),
+      lambda v: f"interval still covered {100 * v:.0f}--{100 * max(m['ci_resample_cov'] for m in miss):.0f}\\% of the reference distribution")
+check(F, "jackknife+ intervals\n95--97\\% of the test points", min(m["pw_jkplus_cov"] for m in miss),
+      lambda v: f"jackknife+ intervals\n{100 * v:.0f}--{100 * max(m['pw_jkplus_cov'] for m in miss):.0f}\\% of the test points")
+check(F, "true value in only 9--10 of the 17 designs, against 13 of 13", min(m["dq_q95_jack_count"] for m in miss),
+      lambda v: f"true value in only {v}--{max(m['dq_q95_jack_count'] for m in miss)} of the {miss[0]['n']} designs, "
+      f"against {min(h['dq_q95_jack_count'] for h in hit)} of {hit[0]['n']}")
+miss40 = [BP["40"][f"{s_}_miss"] for s_ in ("gp_m52", "gp_quad", "spce")]
+check(F, "With 40 runs, 6 designs missed the bump", miss40[0]["n"], "With 40 runs, {} designs missed the bump")
+check(F, "contained the true value in 1--4 of 6", min(m["dq_q95_jack_count"] for m in miss40),
+      lambda v: f"contained the true value in {v}--{max(m['dq_q95_jack_count'] for m in miss40)} of {miss40[0]['n']}")
+FM = "journal_methods.tex"
+check(FM, "misses with probability 0.53 and one of 40 runs with probability\n0.26", BP["20"]["p_miss_lhs_mc"],
+      lambda v: f"misses with probability {v:.2f} and one of 40 runs with probability\n{BP['40']['p_miss_lhs_mc']:.2f}")
+# ── T1.3 cross-check, amplitude bound; T1.4 equivalence (results main) ────
+F = "journal_results_main.tex"
+XC = CP["crosscheck"]
+pce = [XC[b]["spce_vs_ot_pce"] for b in XC]
+check(F, "(median ratio of nRMSE 0.98--1.00, equivalent within\n$\\pm20\\%$ on all six)", min(t["ratio"] for t in pce),
+      lambda v: f"(median ratio of nRMSE {v:.2f}--{max(t['ratio'] for t in pce):.2f}, equivalent within\n$\\pm20\\%$ on all "
+      + {6: "six"}.get(sum(t["equivalent"] for t in pce), "?") + ")")
+gpe = [XC[b]["gp_m52_vs_ot_gp"] for b in XC if b != "physics"]
+check(F, "OpenTURNS' GP on five of\nthem (0.95--1.00)", min(t["ratio"] for t in gpe),
+      lambda v: f"OpenTURNS' GP on five of\nthem ({v:.2f}--{max(t['ratio'] for t in gpe):.2f})")
+check_true("GP equivalent on the five non-physics models", all(t["equivalent"] for t in gpe) and len(gpe) == 5)
+check(F, "physics model the OpenTURNS GP was 9.2 times more\naccurate", XC["physics"]["gp_m52_vs_ot_gp"]["ratio"],
+      "physics model the OpenTURNS GP was {:.1f} times more\naccurate")
+SA = json.load(open(os.path.join(ROOT, "results", "sensitivity_amp_bound.json")))
+smed = lambda k, bnd: float(np.median([x["nrmse"] for x in SA[k][bnd].values()]))
+check(F, "changed the median nRMSE from\n0.080 to 0.077", smed("cfd/gp_log", "1e3"),
+      lambda v: f"changed the median nRMSE from\n{v:.3f} to {smed('cfd/gp_log', '1e6'):.3f}")
+check(F, "fell from 0.033 to 0.00097 for the GP with estimated\namplitude, from 0.036 to 0.0022 with ARD and from 0.079 to 0.013",
+      smed("physics/gp_amp", "1e3"), lambda v: f"fell from {v:.3f} to {smed('physics/gp_amp', '1e6'):.5f} for the GP with estimated\n"
+      f"amplitude, from {smed('physics/gp_ard', '1e3'):.3f} to {smed('physics/gp_ard', '1e6'):.4f} with ARD and from "
+      f"{smed('physics/gp_m52', '1e3'):.3f} to {smed('physics/gp_m52', '1e6'):.3f}")
+check(F, "about 600-fold rather than\neighteen-fold", med("physics", "gp_orig") / smed("physics/gp_amp", "1e6"),
+      lambda v: f"about {int(round(v, -2))}-fold rather than\neighteen-fold")
+check(F, "trend (0.00018) remains", med("physics", "gp_quad"), "trend ({:.5f}) remains")
+uk = [XC[b]["gp_quad_vs_ot_gp_quad"]["ratio"] for b in XC if b != "physics"]
+check(F, "was 1.3--3.3 times less accurate than the\nkernel-form trend", 1 / max(uk),
+      lambda v: f"was {v:.1f}--{1 / min(uk):.1f} times less accurate than the\nkernel-form trend")
+check_true("PC-Kriging never better than the selected candidate",
+           all(XC[b]["ot_pck_vs_selected"]["ratio"] > 1 for b in XC))
+EQ = CP["equivalence"]
+check(F, "Of the 228 paired\ncomparisons, 105 showed no significant difference", S["n_tests"],
+      lambda v: f"Of the {v} paired\ncomparisons, {EQ['n_null']} showed no significant difference")
+check(F, "Of these, 55 were equivalent within $\\pm20\\%$ and 24 within\n$\\pm10\\%$", EQ["n_equivalent_20"],
+      lambda v: f"Of these, {v} were equivalent within $\\pm20\\%$ and {EQ['n_equivalent_10']} within\n$\\pm10\\%$")
+_eq = lambda a, b: (sum(r["equivalent_20"] for r in EQ["rows"] if (r["a"], r["b"]) == (a, b)),
+                    sum(1 for r in EQ["rows"] if (r["a"], r["b"]) == (a, b)))
+check(F, "(6 of its 7 ties)", _eq("pas_ard:cv", "gp_quad"), lambda v: f"({v[0]} of its {v[1]} ties)")
+check(F, "one (9 of 10)", _eq("gp_quad", "gp_m52"), lambda v: f"one ({v[0]} of {v[1]})")
+check(F, "models (4 of 4)", _eq("gp_m52", "gp_orig"), lambda v: f"models ({v[0]} of {v[1]})")
+check(F, "GP-SD design (14 of 27)", _eq("al_gp", "gp_m52"), lambda v: f"GP-SD design ({v[0]} of {v[1]})")
+check(F, "All 12 non-significant comparisons of\nAK-MCS", sum(_eq(a, b)[1] for a, b in (("ak_m52", "gp_m52"), ("ak_log", "gp_log"))),
+      "All {} non-significant comparisons of\nAK-MCS")
+check_true("no AK comparison equivalent", sum(_eq(a, b)[0] for a, b in (("ak_m52", "gp_m52"), ("ak_log", "gp_log"))) == 0)
+F = "journal_results_cfd.tex"
+check(F, "by factors of 0.58 and 0.094, the GP-SD design made\nno difference (1.02 and 1.10) and sparse PCE remained less accurate than the\nGP (1.21 and 1.45)",
+      R("cfd", "gp_log", "gp_m52", N=10), lambda v: f"by factors of {v:.2f} and {R('cfd', 'gp_log', 'gp_m52', N=40):.3f}, the GP-SD design made\n"
+      f"no difference ({R('cfd', 'al_gp', 'gp_m52', N=10):.2f} and {R('cfd', 'al_gp', 'gp_m52', N=40):.2f}) and sparse PCE "
+      f"remained less accurate than the\nGP ({R('cfd', 'spce', 'gp_m52', N=10):.2f} and {R('cfd', 'spce', 'gp_m52', N=40):.2f})")
+check_true("CFD GP-SD not significant at N = 10, 40", not sig("cfd", "al_gp", "gp_m52", N=10) and not sig("cfd", "al_gp", "gp_m52", N=40))
+F = "journal_discussion.tex"
 # ── discussion: adaptive committee on four of seven models ───────────────
 avb = [b for b in S["n20"] if "al_var:cv" in S["n20"][b]]
 check_true("adaptive committee better on six of nine models (incl. CFD)",

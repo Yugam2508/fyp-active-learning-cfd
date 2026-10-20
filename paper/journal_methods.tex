@@ -67,6 +67,25 @@ $\hat\theta\pm1.96\,\mathrm{SE}_{\mathrm J}$ with
 $\mathrm{SE}_{\mathrm J}^2=\frac{N-1}{N}\sum_i(\hat\theta_{-i}-\bar\theta)^2$,
 where $\hat\theta_{-i}$ is computed from $\hat f_{-i}$.
 
+\emph{Hyperparameter uncertainty.} The GP intervals above plug in the
+maximum-likelihood (ML) hyperparameters, which may make them too narrow
+with few runs. Three variants test whether the GP's shortfall is a plug-in
+effect: (i) a Student-t process, with the overall variance scale and a
+constant mean integrated out under the reference prior
+$p(\beta,\sigma^2)\propto\sigma^{-2}$ and the correlation hyperparameters at
+their ML values (the standard Bayesian emulator~\cite{ohagan2006}, $N-1$
+degrees of freedom); (ii) a fully Bayesian GP, all hyperparameters
+integrated out by Markov chain Monte Carlo (affine-invariant ensemble
+sampler~\cite{foremanmackey2013}, uniform prior on each log-hyperparameter
+within the ML search range, 800 steps of which 300 burn-in, 200 posterior
+draws; $N=20$ only, for cost); and (iii) the GP SD recalibrated by the LOO
+standardised residuals $z_i=r_i/s_{-i}(\mathbf x_i)$: pointwise
+$\hat z\pm q\,s(\mathbf x)$ with $q$ the $\lceil0.95(N+1)\rceil$-th
+smallest $|z_i|$, $E=s(\mathbf x)\,z_J$ in equation~\eqref{eq:contrib}, and
+sample paths with the covariance scaled by the mean of $z_i^2$. The last is
+a hybrid that keeps the GP's localisation of the error and takes its scale
+from the runs. Each variant is assessed in the same three ways.
+
 \section{Test models}
 \label{sec:models}
 Table~\ref{tab:models} lists the twelve models. Eight have independent uniform
@@ -103,6 +122,15 @@ against the independent implementation in UQTestFuns~\cite{wicaksono2023}
 (relative differences below $10^{-10}$ for outputs and $10^{-6}$ for
 marginal quantiles).
 
+A further analytical model, reported separately, tests the limits of the
+procedure: a smooth
+function of four uniform inputs on $[0,1]^4$ plus a narrow Gaussian bump,
+$f=x_1+x_2^2+0.5\sin(2\uppi x_3)+0.5x_4+3.6\exp(-\lVert\mathbf x-0.7\rVert^2/(2\cdot0.13^2))$.
+The bump carries about 10\% of the output variance in a region (bump above
+10\% of its height) of 3\% of the input volume, which a Latin hypercube of
+20 runs misses with probability 0.53 and one of 40 runs with probability
+0.26 (Section~\ref{sec:res-robust}).
+
 Exceedance is assessed at a fixed threshold where the model has one (the
 IDLH level for ammonia, 210\,mg\,m$^{-3}$, about 300\,ppm, for the plume
 and CFD models), and otherwise at the reference 95th percentile, for which
@@ -131,6 +159,8 @@ Borehole (GUM) & 8 & normal, lognormal, uniform~\cite{harper1983} & as borehole;
 Plume (GUM) & 5 & lognormal, truncated Weibull, uniform, normal & as plume; heavier input and output tails\\
 Flood & 8 & truncated Gumbel and normal, triangular, uniform~\cite{iooss2015} & smooth, lower-tail threshold\\
 CFD dispersion & 6 & U: $U_{\mathrm{ref}}$, $z_0$, $H_{\mathrm b}$, $Sc_t$, $x_r$, $Q$ & RANS solution: wake recirculation, numerical error\\
+\midrule
+Bump (failure mode) & 4 & U$[0,1]^4$ & smooth part plus a narrow bump that the runs can miss\\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -254,4 +284,19 @@ method. Coverage of prediction and coverage intervals is the share of test
 points or of the reference distribution inside the interval, averaged over
 seeds; coverage of intervals for reported quantities is the share of seeds
 whose interval contains the true value, with a Wilson 95\% interval. The
-interval score~\cite{gneiting2007} combines width and coverage.
+interval score~\cite{gneiting2007} combines width and coverage. Because a
+practitioner has a single design, coverage is also reported per design, as
+the share of the 30 designs whose achieved coverage is below 90\%.
+
+A comparison without a significant difference does not show that two
+strategies are equivalent. Such comparisons are classified as equivalent
+within $\pm20\%$ (or $\pm10\%$) when the 95\% bootstrap interval of the median
+ratio lies inside $[0.8,1.25]$ (or $[0.9,1/0.9]$), and as inconclusive
+otherwise. These margins, the thresholds for coverage (at least 93\%
+pointwise; at least 26 of 30 seeds for a reported quantity, the smallest
+count not rejected against 95\% by a one-sided exact binomial test at the
+5\% level) and the decisions that the results would trigger were fixed in a
+research plan committed to the repository~\repocite\ before the runs.
+Finally, the sparse PCE and GP implementations were checked against an
+independent one, OpenTURNS~1.27~\cite{baudin2017}, on the 30 designs of six
+models with uniform inputs.

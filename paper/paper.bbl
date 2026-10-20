@@ -154,6 +154,11 @@ Y.~J. Vora and W.~H. Ng, ``Surrogate models for {GUM} {S}upplement 1
   records and figure scripts.''
   \url{https://github.com/Yugam2508/fyp-active-learning-cfd}, 2026.
 
+\bibitem{foremanmackey2013}
+D.~Foreman-Mackey, D.~W. Hogg, D.~Lang, and J.~Goodman, ``emcee: The {MCMC}
+  hammer,'' {\em Publications of the Astronomical Society of the Pacific},
+  vol.~125, no.~925, pp.~306--312, 2013.
+
 \bibitem{harper1983}
 W.~V. Harper and S.~K. Gupta, ``Sensitivity/uncertainty analysis of a borehole
   scenario comparing {L}atin hypercube sampling and deterministic sensitivity
@@ -212,6 +217,17 @@ Y.~Tominaga and T.~Stathopoulos, ``Turbulent {S}chmidt numbers for {CFD}
 T.~Gneiting and A.~E. Raftery, ``Strictly proper scoring rules, prediction, and
   estimation,'' {\em Journal of the American Statistical Association},
   vol.~102, no.~477, pp.~359--378, 2007.
+
+\bibitem{baudin2017}
+M.~Baudin, A.~Dutfoy, B.~Iooss, and A.-L. Popelin, ``{OpenTURNS}: An industrial
+  software for uncertainty quantification in simulation,'' in {\em Handbook of
+  Uncertainty Quantification} (R.~Ghanem, D.~Higdon, and H.~Owhadi, eds.),
+  pp.~2001--2038, Cham: Springer, 2017.
+
+\bibitem{schobi2015}
+R.~Sch{\"o}bi, B.~Sudret, and J.~Wiart, ``Polynomial-chaos-based {K}riging,''
+  {\em International Journal for Uncertainty Quantification}, vol.~5, no.~2,
+  pp.~171--193, 2015.
 
 \bibitem{jcgm102}
 {BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML}, ``Evaluation of

@@ -112,11 +112,10 @@ def budgets():
                        for sd in seeds]
             if not cs or not sel:
                 continue
-            gen = {c: load(b, c, N=N) for c in cs}
             rows = []
             for r in sel:
                 sd = r["seed"]
-                if not all(sd in cov[c] and sd in gen[c] for c in cs):
+                if not all(sd in cov[c] for c in cs):
                     continue
                 c = min(cs, key=lambda c: r[f"loo_rmse_{c}"])
                 x = cov[c][sd]
@@ -125,7 +124,8 @@ def budgets():
                              "pw_jkplus_unbounded": bool(np.isinf(x["pw_jkplus_width"])),
                              "dq_q95_jack_cov": x["dq_q95_jack_cov"],
                              "dq_p_thr_jack_cov": x["dq_p_thr_jack_cov"],
-                             "nrmse": gen[c][sd], "oracle": min(gen[k][sd] for k in cs)})
+                             "nrmse": x["nrmse"],      # the same fit as in the main study
+                             "oracle": min(cov[k][sd]["nrmse"] for k in cs)})
             if len(rows) < 5:
                 continue
             v = lambda k: np.array([x[k] for x in rows], float)

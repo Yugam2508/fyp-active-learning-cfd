@@ -41,6 +41,31 @@ in the inputs, and the wing weight model (ratio 0.50), and again made the
 20-input model worse (1.18). A trend is therefore a candidate to be tested
 by the selection step, not a default.
 
+\emph{Independent check of the implementations.} On the six models with
+uniform inputs, our sparse PCE matched that of OpenTURNS~\cite{baudin2017}
+on the same designs (median ratio of nRMSE 0.98--1.00, equivalent within
+$\pm20\%$ on all six), and the Mat\'ern GP matched OpenTURNS' GP on five of
+them (0.95--1.00). On the physics model the OpenTURNS GP was 9.2 times more
+accurate. The cause is the upper end of the amplitude search range, $10^3$
+in standardised output units, which the estimated amplitude reached in
+nearly every design on that model; among all models and specifications it
+was reached elsewhere only by the log-scale GP on the CFD case (3 of 6
+designs checked), where widening the range changed the median nRMSE from
+0.080 to 0.077. With the range widened to $10^6$, the median nRMSE on the
+physics model fell from 0.033 to 0.00097 for the GP with estimated
+amplitude, from 0.036 to 0.0022 with ARD and from 0.079 to 0.013 for the
+Mat\'ern ARD GP. The pre-specified range thus understates the gain from
+estimating the amplitude on this model, about 600-fold rather than
+eighteen-fold, which strengthens the conclusion that the earlier failure
+was an artefact of restricting this hyperparameter; the GP with a quadratic
+trend (0.00018) remains the most accurate GP there. Universal kriging with
+a full quadratic basis (OpenTURNS; $1+d+d(d+1)/2$ coefficients estimated by
+generalised least squares) was 1.3--3.3 times less accurate than the
+kernel-form trend used here on five of the six models, and
+PC-Kriging~\cite{schobi2015}, the GP with the selected sparse PCE basis as
+trend, was not more accurate than the candidate chosen by LOO error on any
+of them.
+
 \subsection{Sparse PCE and committees}
 Sparse PCE matched the trend GP on the physics model and the Mat\'ern GP on
 the Ishigami model, and was 1.2 to 3.8 times worse than the GP on the other
@@ -85,6 +110,18 @@ percentile instead reduced the error of $P(Y>y_{0.95})$ on the log scale by
 median factors of 0.68 (plume) and 0.55 (plume with GUM-type inputs), but
 neither reduction survived the Holm adjustment, and on the CFD case it made
 no difference (0.95).
+
+\emph{What the comparisons without a difference show.} Of the 228 paired
+comparisons, 105 showed no significant difference after the Holm
+adjustment. Of these, 55 were equivalent within $\pm20\%$ and 24 within
+$\pm10\%$; the rest are inconclusive with 30 seeds. The statements of no
+gain above are equivalences where they concern the committee against the
+GP with trend (6 of its 7 ties), the quadratic trend on responses without
+one (9 of 10) and the kernel specification on the plume (both input
+models), Ishigami and CFD models (4 of 4), but only in part for the GP-SD design (14 of 27), whose
+effect varies too much between designs for 30 seeds to show either a gain
+or its absence in the other 13 cases. All 12 non-significant comparisons of
+AK-MCS are inconclusive rather than equivalent.
 
 \subsection{Propagated quantities}
 Table~\ref{tab:prop} gives the validation errors of the reported quantities
