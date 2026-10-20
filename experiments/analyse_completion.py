@@ -34,13 +34,16 @@ def suffix(N, design="lhs"):
     return ("" if N == 20 else f"_N{N}") + ("" if design == "lhs" else f"_d{design}")
 
 
+POS = POSITIVE | {"borehole_corr"}                     # positive outputs
+
+
 def cands(b):
     return ["gp_m52", "gp_quad", "spce"] + (["gp_log", "gp_quadlog", "spce_log"]
-                                            if b in POSITIVE else [])
+                                            if b in POS else [])
 
 
 def trend(b):
-    return "gp_quadlog" if b in POSITIVE else "gp_quad"
+    return "gp_quadlog" if b in POS else "gp_quad"
 
 
 def cov_records(b, s, N=20, design="lhs"):
@@ -335,6 +338,20 @@ def correlated():
         if R:
             out["coverage"][c] = {k: float(np.mean([x[k] for x in R.values()]))
                                   for k in ("ci_resample_cov", "ci_plain_cov", "pw_jkplus_cov")}
+    # the comparisons of the main study, here and on the same model with
+    # independent inputs (borehole_gum)
+    pairs = [("gp_log", "gp_m52", "nrmse"), ("gp_quadlog", "gp_log", "nrmse"),
+             ("pas_ard:cv", "gp_quad", "nrmse"), ("al_gp", "gp_m52", "nrmse"),
+             ("ak_log", "gp_log", "exc_abserr")]
+    tests = []
+    for a, c, m in pairs:
+        t = paired(load(b, a, metric=m), load(b, c, metric=m))
+        if t:
+            ind = paired(load("borehole_gum", a, metric=m), load("borehole_gum", c, metric=m))
+            t["ratio_independent"] = ind["ratio"] if ind else None
+            out.setdefault("tests", {})[f"{a}_vs_{c}_{m}"] = t
+            tests.append(t)
+    holm(tests)
     sel = jload(f"results_sel_{b}.json")
     if sel and out["nrmse_median"]:
         data = {c: load(b, c) for c in cands(b)}

@@ -157,6 +157,20 @@ the components independently, or independent normal errors, covered
 96.7--98.4\% but with regions 5.7--7.2 times the reference volume: ignoring
 the correlation of the surrogate errors over-states the joint uncertainty.
 
+\emph{Dependent inputs.} With the Gaussian copula on the borehole model,
+every comparison of the main study came out as with independent inputs (in
+parentheses): the log scale reduced the nRMSE of the GP by a factor of 0.30
+(0.26), the trend on the log scale made no significant difference (1.01;
+1.04), the committee was 2.7 times worse than the GP with trend (2.2), the
+GP-SD design made no significant difference (0.98; 0.96), and AK-MCS
+reduced the error of $P(Y>T)$ by a factor of 0.45 (0.27). The selection by
+LOO error matched the best candidate in hindsight (median ratio 1.00),
+stacking was 11\% worse than the selection, and with the LOO residuals added
+the GUM~S1 coverage interval covered 93.7--95.0\% of the reference
+distribution with every candidate, against as little as 89.9\% without
+them. Designs drawn in the space of independent variables and mapped
+through the copula were all the procedure needed for dependent inputs.
+
 \begin{table*}[tb]
 \centering
 \caption{GP-based descriptions of the surrogate error against the
