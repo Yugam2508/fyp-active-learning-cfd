@@ -7,8 +7,8 @@
 set -u
 cd "$(dirname "$0")/.."
 OPTS=$1
-busy() { pgrep -f "experiments/(campaign_|crosscheck_)" > /dev/null; }
-pre_alive() { pgrep -f "experiments/cfd_precompute[.]py $OPTS\$" > /dev/null; }
+busy() { pgrep -fx "python experiments/(campaign_|crosscheck_).*" > /dev/null; }
+pre_alive() { pgrep -fx "python experiments/cfd_precompute\.py $OPTS" > /dev/null; }
 until pre_alive; do sleep 120; done            # the stage's precompute job has started
 while pre_alive && busy; do sleep 120; done
 sleep 120
