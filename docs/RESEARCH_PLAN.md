@@ -19,11 +19,35 @@ Each item below gives the question, what is run, the cost (wall time on the
 4-core machine), and a **decision rule**: which result changes which
 statement in the papers.
 
-## Status
+## Status (2026-10-20, 15:36 UTC): Tiers 1 and 2 complete
 
-| Done | In progress (extension campaign, about 4–5 h left) |
-|---|---|
-| 10 models (d ≤ 8), N = 10–80, 30 paired seeds, Holm-adjusted tests, bootstrap intervals; coverage validation at N = 20; LOO selection; 2-D RANS CFD case with an 800-run reference, grid and iteration checks; procedure module, worked example with budget; unit tests, cross-machine reproducibility CI | wing weight (d = 10) and OTL circuit with 20 inputs; AK-MCS at the reference 95th percentile (plume, plume GUM, CFD); coverage of the log GP with trend; end-to-end coverage of the procedure (selection + contribution) on all models |
+All runs finished (`results/logs/completion_master.log`: ALL STAGES
+FINISHED; every record has 30 seeds). Outcomes, and the decisions they
+triggered by the rules below; the numbers are in `results/journal/completion.json`
+and the manuscript, where `paper/check_numbers_journal.py` audits them.
+
+| Item | Outcome | Decision applied |
+|---|---|---|
+| T1.1 budgets | procedure's GUM S1 coverage 93.4–96.9 % at N = 10, 94.2–96.1 % at 20, 94.7–95.7 % at 40, 94.7–95.1 % at 80; selection within 4.4 % of the best candidate from N = 20, up to 37 % worse at N = 10 | contribution recommended from 10 runs, selection from 20 (procedure, abstract) |
+| T1.2 Bayesian/recalibrated GP | y95 intervals nominal (≥ 26/30) in 13, 15, 24, 23 of 42 cases (plug-in, Student-t, MCMC, recalibrated) against 39 for the jackknife | no GP variant valid on all models; LOO residuals stay the recommendation |
+| T1.3 OpenTURNS | PCE ratio 0.98–1.00; GP 0.95–1.00 except physics (amplitude bound, see below) | implementations confirmed; amplitude-bound finding reported |
+| T1.4 equivalence | 55 of the 105 null comparisons equivalent within ±20 %, 24 within ±10 % | "no gain" statements qualified per comparison |
+| T1.5 per design | GUM S1 coverage below 90 % in at most 10 % of the designs at N = 20 | limitation |
+| T1.6 bump | y95 intervals fail when the design misses the bump | limitation and procedure caveat; no claim withdrawn |
+| T1.7 adaptive MC, LPU | M = 1.15e6 by GUM S1 7.9; LPU interval covers 85.5 % with a negative lower limit | worked example |
+| T2.1 design type | 2 of 132 comparisons significant (OTL, Sobol'); coverage unchanged | "the design type does not matter" |
+| T2.2 IMSE | no gain at N = 20 (one model); better than passive at N = 40 on 6 of 9 smooth models; none on CFD | adaptive designs remain budget-dependent |
+| T2.3 stacking | 0.96–1.17 × the selected candidate | selection kept |
+| T2.4 vector output | joint residual resampling: 95.6 % / 96.9 % coverage; independent: over-coverage with 5.7–7.2 × the volume | GUM S2 limitation replaced by the result |
+| T2.5 dependent inputs | every comparison as with independent inputs | stated in the robustness section |
+| T2.6 CFD numerics | convergence oscillatory (21 of 24), discretisation error about 6 % (≤ 8.1 %); second reference within 1.8 combined standard uncertainties | CFD section |
+| T2.7 stopping | surrogate share < 1 %: u within 0.6 % (median) of the reference | flowchart and procedure |
+| T2.8 cost | the procedure costs about one or two model runs | procedure |
+| T2.9 theory note | written | methods |
+| T2.10 long-term reproducibility | Dockerfile; image built and checks passed in CI | `docs/REPRODUCIBILITY.md` §9 |
+
+Left to the authors: W2–W4 and W7 below, and the items marked [CONFIRM] in
+`paper/measurement_title_page.tex` and `paper/measurement_cover_letter.tex`.
 
 ## Tier 1: would be a major reviewer comment if missing
 

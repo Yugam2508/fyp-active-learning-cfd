@@ -136,13 +136,18 @@ Notes.
   `buoyantBoussinesqSimpleFoam` with zero gravity and zero expansion
   coefficient, which is the same transport equation (diffusivity
   nu/Pr + nu_t/Pr_t with Pr = Sc, Pr_t = Sc_t).
-- The CFD cache ends with 2900 runs: 1550 from `cfd_precompute.py` (30 x 25
-  design runs and 800 reference flow states) and 1350 added by the three
-  adaptive CFD arms (30 seeds x 15 sequential runs each). The adaptive arms
+- The CFD cache of the main study ends with 2900 runs: 1550 from
+  `cfd_precompute.py` (30 x 25 design runs and 800 reference flow states)
+  and 1350 added by the three adaptive CFD arms (30 seeds x 15 sequential
+  runs each). The research-plan runs (section 8: budgets 10 and 40, maximin
+  and Sobol' designs, the second reference, the adaptive arms at N = 40 and
+  the IMSE design) bring it to 8170 runs. The adaptive arms
   were run as nine blocks of 10 seeds in parallel (`RESULTS_DIR=results/parts/...`)
   and merged with `experiments/merge_parts.py`, as `run_cfd_campaign.sh` does.
 - `paper/check_numbers_journal.py` recomputes every number typed into the
-  journal prose; `.github/workflows/ci.yml` runs it together with
+  journal prose (and `analyse_completion.py --check` verifies that
+  `results/journal/completion.json` is reproduced from the records);
+  `.github/workflows/ci.yml` runs both together with
   `check_benchmarks.py`, `test_reproducibility.py --quick`, the extended
   abstract's `check_numbers.py` and `analyse_journal.py --check`.
 - Cross-machine reproducibility (checked by the CI on GitHub's runners,
@@ -185,6 +190,12 @@ Outputs of `run_completion_campaign.sh`:
 
 Notes.
 
+- The campaign ran from 2026-10-19 07:37 to 2026-10-20 15:36 UTC
+  (`results/logs/completion_master.log`). The cloud container was restarted
+  several times; each time `experiments/resume_completion.sh` resumed the
+  unfinished stage, and finished seeds were skipped. The one script that
+  was not resumable, `cfd_gci.py`, re-ran once and reproduced its earlier
+  output exactly; it now skips when its output is complete.
 - The new GP intervals use their own random stream, RandomState(seed + 2e6),
   so the published fields of the coverage records do not change.
 - At N = 10 a 95 % jackknife+ interval is unbounded (its upper rank

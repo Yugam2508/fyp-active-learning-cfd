@@ -382,6 +382,12 @@ def cfd_numerics():
         if I:
             out["gci"]["coarse_iter_change_max"] = max(I["max_rel_change_1000"],
                                                        I["max_rel_change_2000"])
+    # convergence of every cached CFD run, those of the research plan included
+    recs = [json.load(open(f)) for f in glob.glob(os.path.join(RES, "cfd_runs", "*.json"))]
+    if recs:
+        it = np.array([r["iterations"] for r in recs]); conv = np.array([r["converged"] for r in recs])
+        out["all_runs"] = {"n": len(recs), "share_converged": float(conv.mean()),
+                           "iterations_median": float(np.median(it))}
     R2 = jload("cfd_reference2.json")
     if R2:
         out["reference2"] = R2
