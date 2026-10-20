@@ -44,8 +44,15 @@ partly averages out in the distribution of $Y$, and adding the LOO error
 to each trial restores its nominal coverage. A 95th percentile or an
 exceedance probability is not robust: it depends on the surrogate in a
 small region. Intervals from the GP posterior contained the true value in
-only about half of the seeds (median over model and surrogate), whereas the
-jackknife over LOO fits did so in a median 97\% of seeds. We therefore recommend the LOO error as the
+a median 63\% of the seeds (median over model and surrogate), whereas the
+jackknife over LOO fits did so in a median 97\%. Integrating out the
+hyperparameters narrowed this gap but did not close it
+(Section~\ref{sec:res-robust}): the shortfall comes from covariance models
+that do not fit the response, not only from plug-in estimates, and a
+Bayesian treatment inherits the covariance model. Rescaling the GP SD by the
+LOO standardised residuals, which keeps the GP's localisation of the error
+and takes its scale from the runs, came closer, but the jackknife remained
+the more reliable description. We therefore recommend the LOO error as the
 surrogate contribution, and the jackknife over LOO fits for the uncertainty
 of quantities derived from the propagated distribution.
 
@@ -59,9 +66,16 @@ two-dimensional and steady, with a standard $k$--$\varepsilon$ model; it is a
 benchmark with the features a dispersion simulation has, not a validated
 prediction for a site, and its reference distribution is built from 800
 runs rather than $2\times10^5$. The coverage results are averages over
-seeds: an individual evaluation can still be unlucky, and the jackknife+
-guarantee (at least 90\% for nominal 95\%) holds on average over designs,
-not for every design. Only scalar outputs were studied; for several
+seeds; for single designs the GUM~S1 interval fell below 90\% in at most
+10\% of the designs of a model at $N=20$, and the jackknife+ guarantee (at
+least 90\% for nominal 95\%) holds on average over designs, not for every
+design. The LOO residuals describe only the errors that the runs can
+reveal: a local feature that no run hits goes unnoticed
+(Section~\ref{sec:res-robust}), and an error at the level of the
+observation noise, shared by all LOO fits, is not seen by the jackknife.
+The hyperparameter search ranges were fixed in advance; on the physics
+model the amplitude reached the upper end of its range, which understates
+the GP there (Section~\ref{sec:res-main}). Only scalar outputs were studied; for several
 output quantities, as in GUM~S2~\cite{jcgm102}, the LOO residuals of all
 components should be resampled together, run by run, so that their
 correlation is preserved. The log transformation applies only to positive
@@ -81,7 +95,13 @@ LOO error as surrogate contribution restored the nominal coverage of the
 GUM~S1 coverage interval (Section~\ref{sec:res-coverage}). Candidates should
 include a GP with an estimated amplitude, one length scale per input and a
 quadratic trend, and a sparse PCE, each on the log scale when the output
-is positive. Adaptive designs are optional: a targeted design such as
+is positive; a fitted hyperparameter at the end of its search range is a
+sign that the range should be widened. With fewer than 19 runs a 95\%
+jackknife+ interval is unbounded, but the GUM~S1 coverage interval with the
+LOO residuals remained valid down to ten runs. The LOO error covers what the
+runs can reveal: where a narrow feature is plausible (a narrow plume, a
+local flow structure), prior knowledge or runs placed there are needed.
+Adaptive designs are optional: a targeted design such as
 AK-MCS is worthwhile when a threshold decision is the purpose and the
 threshold lies in a tail of the distribution, and
 variance-driven designs when the budget is several times the number of
