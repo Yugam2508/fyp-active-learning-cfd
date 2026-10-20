@@ -627,6 +627,19 @@ check_true("GCI: standard mesh largest at the oscillatory points",
 check(F, "(median 5.9\\%, at most 8.1\\%)", GC["band_median"],
       lambda v: f"(median {pct(v)}\\%, at most {pct(GC['band_max'])}\\%)")
 check_true("GCI: coarse-mesh iteration change below 4e-5", GC["coarse_iter_change_max"] < 4e-5)
+RZ, R2 = CP["cfd_numerics"]["reference2_z"], CP["cfd_numerics"]["reference2"]
+_e1, _e2 = R2["references"]["set1"]["est"], R2["references"]["set2"]["est"]
+check(F, "agreed with the first within 1.8 combined standard\nuncertainties", max(RZ.values()),
+      "agreed with the first within {:.1f} combined standard\nuncertainties")
+check(F, "(95th percentile 1192 against\n1252\\,mg\\,m$^{-3}$, $P(C>\\mathrm{IDLH})$ 0.662 against 0.673)", _e2["q95"],
+      lambda v: f"(95th percentile {v:.0f} against\n{_e1['q95']:.0f}\\,mg\\,m$^{{-3}}$, $P(C>\\mathrm{{IDLH}})$ "
+      f"{_e2['p_idlh']:.3f} against {_e1['p_idlh']:.3f})")
+ME = R2["median_errors"]
+check(F, "GP was within 4.3\\% (6.9\\% against the first reference alone) and\n$P(C>\\mathrm{IDLH})$ within 0.004 (0.009)",
+      ME["gp_log"]["both_q95"], lambda v: f"GP was within {pct(v)}\\% ({pct(ME['gp_log']['set1_q95'])}\\% against the first "
+      f"reference alone) and\n$P(C>\\mathrm{{IDLH}})$ within {ME['gp_log']['both_p']:.3f} ({ME['gp_log']['set1_p']:.3f})")
+check(F, "GP hardly changed (18\\% and 0.020)", ME["gp_m52"]["both_q95"],
+      lambda v: f"GP hardly changed ({100 * v:.0f}\\% and {ME['gp_m52']['both_p']:.3f})")
 GP_CANDS = ("gp_m52", "gp_quad", "gp_log", "gp_quadlog")
 F = "journal_discussion.tex"
 ST, CO = CP["stopping"], CP["cost"]

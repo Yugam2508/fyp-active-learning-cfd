@@ -385,6 +385,10 @@ def cfd_numerics():
     R2 = jload("cfd_reference2.json")
     if R2:
         out["reference2"] = R2
+        r1, r2 = R2["references"]["set1"], R2["references"]["set2"]
+        # difference between the two independent sets in units of its standard uncertainty
+        out["reference2_z"] = {k: abs(r1["est"][k] - r2["est"][k]) / np.hypot(r1["u"][k], r2["u"][k])
+                               for k in r1["est"]}
     return out
 
 
