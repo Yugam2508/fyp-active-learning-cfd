@@ -8,6 +8,7 @@ on:
       - Dockerfile
       - .dockerignore
       - requirements-lock.txt
+      - experiments/cfd_smoke.py
       - .github/workflows/docker.yml
   workflow_dispatch:
 
@@ -20,3 +21,5 @@ jobs:
         run: docker build -t fyp-surrogate-gum .
       - name: Run the checks inside the image
         run: docker run --rm fyp-surrogate-gum
+      - name: OpenFOAM inside the image reproduces a stored CFD run
+        run: docker run --rm fyp-surrogate-gum python experiments/cfd_smoke.py

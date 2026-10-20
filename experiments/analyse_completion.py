@@ -268,8 +268,8 @@ def worked():
 
 # ── Tier 2 ───────────────────────────────────────────────────────────────
 def designs():
-    out = {}
-    for b in BENCHES:
+    out, tests = {}, []
+    for b in BENCHES + ["bump"]:
         for D in ("maximin", "sobol"):
             for c in cands(b):
                 g = jload(f"results_gen_{b}_{c}{suffix(20, D)}.json")
@@ -279,16 +279,18 @@ def designs():
                 if t:
                     t["equivalent"] = MARGIN[0] <= t["ci"][0] and t["ci"][1] <= MARGIN[1]
                     out.setdefault(b, {})[f"{c}_{D}_vs_lhs"] = t
+                    tests.append(t)
             R = cov_records(b, trend(b), 20, D)
             if R:
                 out.setdefault(b, {})[f"ci_resample_cov_{D}"] = float(
                     np.mean([x["ci_resample_cov"] for x in R.values()]))
+    holm(tests)
     return out
 
 
 def imse():
     tests = []
-    for b in BENCHES:
+    for b in BENCHES + ["bump"]:
         for N in (20, 40):
             for ref in ("al_gp", "gp_m52"):
                 t = paired(load(b, "al_imse", N=N), load(b, ref, N=N))
@@ -300,7 +302,7 @@ def imse():
 
 def stacking():
     out = {}
-    for b in BENCHES + ["borehole_corr"]:
+    for b in BENCHES + ["bump", "borehole_corr"]:
         R = jload(f"results_stack_{b}.json")
         if not R or len(R) < 5:
             continue
@@ -345,13 +347,22 @@ def cfd_numerics():
     out = {}
     G = jload("cfd_gci.json")
     if G:
-        p = [v for c in G["cases"] for v in c["p"] if v is not None]
-        e = [abs(v) for c in G["cases"] for v in c["err_standard"] if v is not None]
-        out["gci"] = {"n_monotone": len(p), "n_total": sum(len(c["p"]) for c in G["cases"]),
-                      "p_range": [min(p), max(p)] if p else None,
-                      "p_median": float(np.median(p)) if p else None,
-                      "err_standard_median": float(np.median(e)) if e else None,
-                      "err_standard_max": float(max(e)) if e else None}
+        # per state and receptor distance: coarse c, standard m, fine f;
+        # convergence is monotone when (f - m)(m - c) > 0, else oscillatory
+        c, m, f = (np.concatenate([x[k] for x in G["cases"]])
+                   for k in ("C_coarse", "C_standard", "C_fine"))
+        mono = (f - m) * (m - c) > 0
+        p = np.log(np.abs((m - c) / (f - m)))[mono] / np.log(2)
+        band = np.maximum(np.abs(c - m), np.abs(f - m)) / m
+        out["gci"] = {"n_points": int(len(m)), "n_monotone": int(mono.sum()),
+                      "p_monotone": p.tolist(),
+                      "rel_coarse_range": [float(np.min((c - m) / m)), float(np.max((c - m) / m))],
+                      "rel_fine_range": [float(np.min((f - m) / m)), float(np.max((f - m) / m))],
+                      "band_median": float(np.median(band)), "band_max": float(np.max(band))}
+        I = jload("cfd_gci_iterations.json")
+        if I:
+            out["gci"]["coarse_iter_change_max"] = max(I["max_rel_change_1000"],
+                                                       I["max_rel_change_2000"])
     R2 = jload("cfd_reference2.json")
     if R2:
         out["reference2"] = R2
