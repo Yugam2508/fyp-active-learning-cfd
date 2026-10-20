@@ -29,8 +29,9 @@
 \node[box, below=of prop] (rep) {Report $y$, $u(y)$ and the coverage
   interval (trials by GUM S1 7.9); state the surrogate contribution;
   intervals for derived quantities by the jackknife over the LOO fits};
-\node[side, right=of ok] (more) {Add runs: extend the design (space
-  filling); a targeted design only for a threshold decision};
+\node[side, right=of ok] (more) {Add runs, e.g.\ while the surrogate
+  share of $u^2(y)$ exceeds 1\%: extend the design (space filling); a
+  targeted design only for a threshold decision};
 \node[side, right=of prop] (no) {Not the GP posterior SD, nor a committee
   envelope: both understate the surrogate error};
 \draw[arr] (start) -- (design);

@@ -108,6 +108,26 @@ threshold lies in a tail of the distribution, and
 variance-driven designs when the budget is several times the number of
 inputs and the model is smooth.
 
+\emph{When to stop adding runs.} The procedure also indicates whether more
+runs are worthwhile. The share of the variance of $Y$ due to the surrogate
+error, $1-u_0^2/u^2$ with $u_0$ the standard uncertainty without and $u$
+with the LOO residuals added, is computed from the runs alone. Over the
+7020 evaluations of the study (models, candidates, budgets and seeds) it
+ranked the actual surrogate error well (Spearman correlation 0.86 with the
+nRMSE). Where the share was below 1\% (2512 evaluations), the median nRMSE
+was 0.026 and the standard uncertainty was within 0.6\% (median) of the
+reference; for shares of 1--5\%, 0.13 and 2.5\%; above 5\%, 0.51 and 16\%.
+A share below about 1\% therefore indicates that further runs would hardly
+change the uncertainty statement.
+
+\emph{Cost.} On one processor core, fitting and propagating a GP took
+0.3--0.8\,s and a sparse PCE 0.1\,s; the LOO step of the procedure, every
+candidate refitted once per run, took 37\,s (median, at most 74\,s) with
+20 runs; the committee took 9\,s and the adaptive committee 78\,s per
+design. One run of the CFD model, itself small, took 39\,s on the same core.
+The cost of the procedure is therefore that of one or two runs of the
+model, and it falls further behind as the model becomes more expensive.
+
 \begin{figure}[tb]
 \centering
 \input{fig_flowchart}
