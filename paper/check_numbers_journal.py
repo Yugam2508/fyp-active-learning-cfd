@@ -585,6 +585,36 @@ check(F, "by 4\\% and 2\\%, and\nhigher on the borehole model with GUM-type inpu
       f"with GUM-type inputs, by {100 * (_sig['borehole_gum'] - 1):.0f}\\%")
 check(F, "0.99 to\n1.26 times that of the best candidate in hindsight", min(_so),
       lambda v: f"{v:.2f} to\n{max(_so):.2f} times that of the best candidate in hindsight")
+F = "journal_results_coverage.tex"
+CR = CP["correlated"]
+_ct = CR["tests"]
+_r = lambda k: _ct[k]["ratio"]
+_ri = lambda k: _ct[k]["ratio_independent"]
+_sig = lambda k: _ct[k]["p_holm"] < 0.05
+check(F, "factor of 0.30\n(0.26)", _r("gp_log_vs_gp_m52_nrmse"),
+      lambda v: f"factor of {v:.2f}\n({_ri('gp_log_vs_gp_m52_nrmse'):.2f})")
+check(F, "no significant difference (1.01;\n1.04)", _r("gp_quadlog_vs_gp_log_nrmse"),
+      lambda v: f"no significant difference ({v:.2f};\n{_ri('gp_quadlog_vs_gp_log_nrmse'):.2f})")
+check(F, "the committee was 2.7 times worse than the GP with trend (2.2)", _r("pas_ard:cv_vs_gp_quad_nrmse"),
+      lambda v: f"the committee was {v:.1f} times worse than the GP with trend ({_ri('pas_ard:cv_vs_gp_quad_nrmse'):.1f})")
+check(F, "GP-SD design made no significant difference (0.98; 0.96)", _r("al_gp_vs_gp_m52_nrmse"),
+      lambda v: f"GP-SD design made no significant difference ({v:.2f}; {_ri('al_gp_vs_gp_m52_nrmse'):.2f})")
+check(F, "by a factor of 0.45 (0.27)", _r("ak_log_vs_gp_log_exc_abserr"),
+      lambda v: f"by a factor of {v:.2f} ({_ri('ak_log_vs_gp_log_exc_abserr'):.2f})")
+check_true("dependent inputs: significance as stated",
+           _sig("gp_log_vs_gp_m52_nrmse") and _sig("pas_ard:cv_vs_gp_quad_nrmse") and _sig("ak_log_vs_gp_log_exc_abserr")
+           and not _sig("gp_quadlog_vs_gp_log_nrmse") and not _sig("al_gp_vs_gp_m52_nrmse"))
+check(F, "(median ratio 1.00)", CR["selection_ratio_to_oracle_median"], "(median ratio {:.2f})")
+_skc = CP["stacking"]["borehole_corr"]["stack_vs_selected"]
+check(F, "stacking was 11\\% worse than the selection", _skc["ratio"],
+      lambda v: f"stacking was {100 * (v - 1):.0f}\\% worse than the selection")
+check_true("dependent inputs: stacking worse, significantly", _skc["p_holm"] < 0.05 and _skc["ratio"] > 1)
+_cv = [c["ci_resample_cov"] for c in CR["coverage"].values()]
+_cp = [c["ci_plain_cov"] for c in CR["coverage"].values()]
+check(F, "covered 93.7--95.0\\% of the reference\ndistribution with every candidate, against as little as 89.9\\%", min(_cv),
+      lambda v: f"covered {pct(v)}--{pct(max(_cv))}\\% of the reference\ndistribution with every candidate, "
+      f"against as little as {pct(min(_cp))}\\%")
+check_true("dependent inputs: all six candidates", len(CR["coverage"]) == 6)
 F = "journal_results_cfd.tex"
 GC = CP["cfd_numerics"]["gci"]
 check(F, "gave values\nbetween 8.1\\% lower and 0.5\\% higher", GC["rel_coarse_range"][0],
