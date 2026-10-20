@@ -18,27 +18,32 @@ This repository is a **research record, including negative results.**
 | Deliverable | Where | State |
 |---|---|---|
 | IMEKO World Congress 2027 extended abstract (4 models, N = 20, coverage validation, CFD case) | `paper/imeko2027/` | ready to submit (see its README); numbers audited by `check_numbers.py` |
-| Journal manuscript (10 models, N = 10–80, coverage validation, CFD case, procedure) | `paper/paper.tex` → `paper/paper.pdf` | complete draft; numbers audited by `paper/check_numbers_journal.py` |
+| Journal manuscript (12 models, N = 10–80, coverage validation, CFD case, procedure, research-plan checks) | `paper/paper.tex` → `paper/paper.pdf` | complete draft; numbers audited by `paper/check_numbers_journal.py` |
+| The same, anonymized for *Measurement* (Elsevier), with title page, cover letter and highlights | `paper/measurement_*.tex` | items marked [CONFIRM] need the authors' decision |
+
+The research plan that defines when the study is complete, with thresholds
+fixed before the runs, is `docs/RESEARCH_PLAN.md`.
 
 Findings (30 paired seeds per strategy; see the journal manuscript for
 effect sizes with bootstrap intervals and Holm-adjusted tests):
 
 | Claim | Status | Evidence |
 |---|---|---|
-| Passive GP surrogates fail on large domains (earlier analysis) | **withdrawn — artefact** | the original kernel fixed the amplitude; estimating it: physics nRMSE 0.59 → 0.033 |
-| GP specification (amplitude, ARD, quadratic trend, log scale for positive outputs) is first-order | supported | trend 400× on physics; log scale 1.3–9× on all six positive analytical models and 6× on the CFD case |
-| Choosing the surrogate by leave-one-out (LOO) error works without the true model | supported | median nRMSE within 0–4.4 % of the best candidate in hindsight on all 10 models |
-| A committee beats a well-specified GP | **not supported** | never better than a GP with trend; 1.7–2.4× worse on 4 of 10 models |
-| CV inverse-error weighting is needed for committees | supported | never worse than uniform, up to 2000× better |
-| Variance-driven adaptive designs help | **budget-dependent** | GP-SD design: never at N ≤ 20, at N = 40–80 on smooth models (0.22–0.87×), worse on the plume; adaptive committee better than the passive one on 4 of 7 models (incl. CFD) but worse exceedance estimates on plume and CFD |
+| Passive GP surrogates fail on large domains (earlier analysis) | **withdrawn — artefact** | the original kernel fixed the amplitude; estimating it: physics nRMSE 0.59 → 0.033 (and lower with a wider search range) |
+| GP specification (amplitude, ARD, quadratic trend, log scale for positive outputs) is first-order | supported | trend 400× on physics; log scale up to 9× on positive models, 6× on the CFD case; confirmed against OpenTURNS |
+| Choosing the surrogate by leave-one-out (LOO) error works without the true model | supported from 20 runs | within 4.4 % of the best candidate in hindsight at N = 20–80; up to 37 % worse at N = 10 |
+| A committee, or stacking of the candidates, beats the selected surrogate | **not supported** | committee never better than a GP with trend; stacking 0.96–1.17 × the selection |
+| Variance-driven adaptive designs (GP-SD, IMSE) help | **budget-dependent** | none at N = 20; at N = 40 IMSE better than passive on 6 of 9 smooth models |
+| The type of space-filling design (random/maximin LHS, Sobol') matters | **not supported** | 2 of 120 comparisons significant; coverage unchanged |
 | UEigV (spectral) beats variance acquisition | **refuted** | never better; worse on 3 of 6 models |
-| Threshold-targeted design (AK-MCS) helps exceedance probabilities | supported for tail thresholds | error reduced 2–9× in 8 of 15 analytical comparisons, never worse; no gain on the CFD case, where the threshold is exceeded in 67 % of cases |
-| The GP's predictive variance is a valid surrogate contribution | **not supported** | pointwise coverage down to 68 %; intervals for y95 cover the truth in a median 53 % of seeds |
-| LOO residuals added to each Monte Carlo trial give a valid contribution | supported | GUM S1 95 % interval coverage 91–97 % on all models; jackknife+ 95–99 % pointwise |
+| Threshold-targeted design (AK-MCS) helps exceedance probabilities | supported for tail thresholds | error reduced 2–9×, never worse; no gain where the threshold lies in the bulk |
+| The GP's predictive variance is a valid surrogate contribution | **not supported** | pointwise coverage down to 68 %; intervals for y95 nominal in 13 of 42 cases (24 with MCMC hyperparameters) |
+| LOO residuals added to each Monte Carlo trial give a valid contribution | supported | GUM S1 95 % interval coverage 93–97 % at N = 10–80, with dependent inputs and (resampled jointly) for vector outputs |
+| …for local features no run reaches | **limit** | bump model: coverage of y95 intervals drops when the design misses the bump |
 
-Limits: up to eight inputs; 2-D steady RANS CFD case with a reference from
-800 runs (its own uncertainty ≈ 3 % for y95); adaptive committees only to
-N = 40. See the journal manuscript, Section 6.3.
+Limits: up to 20 inputs; 2-D steady RANS CFD case (discretisation error
+about 6 %, part of the model as defined) with a reference from 800 runs;
+adaptive committees only to N = 40. See the journal manuscript, Section 6.
 
 ## Layout
 
@@ -90,6 +95,8 @@ docs/                      research plan, reproducibility record, reference chec
 pip install -r requirements-lock.txt   # exact versions (CPU PyTorch: add
                                        # --extra-index-url https://download.pytorch.org/whl/cpu)
 sudo apt-get install openfoam          # only to recompute CFD runs (v1912)
+# or the whole environment, checks included:
+docker build -t fyp-surrogate-gum . && docker run --rm fyp-surrogate-gum
 ```
 
 `requirements.txt` gives minimum versions. Without PyTorch the committee's
@@ -107,6 +114,8 @@ bash experiments/run_selection_campaign.sh 2     # LOO selection
 CFD_WORKERS=4 python experiments/cfd_precompute.py   # CFD runs (or use results/cfd_runs/)
 bash experiments/run_cfd_campaign.sh 4           # CFD case, all arms
 python experiments/analyse_journal.py            # tables + figures
+bash experiments/run_completion_campaign.sh 4    # research-plan runs (Tiers 1-2)
+python experiments/analyse_completion.py         # their statistics
 python paper/check_numbers_journal.py            # audit the journal prose
 python paper/imeko2027/check_numbers.py          # audit the extended abstract
 ```
