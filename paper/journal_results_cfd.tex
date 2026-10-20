@@ -1,6 +1,7 @@
 % journal_results_cfd.tex — results on the CFD dispersion case (Section 5.7).
 % Numbers: results/journal/summary.json, results/cfd_reference.json,
-% results/cfd_grid_check.json, results/cfd_iteration_check.json.
+% results/cfd_grid_check.json, results/cfd_iteration_check.json,
+% results/journal/completion.json (cfd_numerics).
 
 \subsection{CFD dispersion case}
 \label{sec:res-cfd}
@@ -17,8 +18,18 @@ the residuals oscillating, the receptor concentration varied by less than
 0.16\% over the last 2000 iterations, so the iteration error is negligible.
 Refining the mesh twice in each direction changed the receptor
 concentration by 0.9--6.5\% (median 3.7\%) in six flow states spread over
-the input box: a discretisation error that is part of the model as
-defined, as it would be for any production CFD model. The reference gives
+the input box, and a mesh with half the cells in each direction gave values
+between 8.1\% lower and 0.5\% higher. The convergence was oscillatory at 21
+of the 24 combinations of flow state and receptor distance, the standard
+mesh giving the largest value, and at the other three the differences grew
+with refinement. The solutions are therefore not in the asymptotic range,
+where the grid convergence index applies~\cite{celik2008}; estimated from
+the range of the three solutions, the discretisation error of the standard
+mesh is about 6\% (median 5.9\%, at most 8.1\%). It is part of the model
+as defined, as it would be for any production CFD model. (The coarse-mesh
+runs reached the iteration limit without meeting the residual criterion
+of the scalar, but their receptor values changed by less than
+$4\times10^{-5}$ after 1000 iterations.) The reference gives
 a mean of 434\,mg\,m$^{-3}$, an SD of 413\,mg\,m$^{-3}$, a 95th percentile
 of 1252\,mg\,m$^{-3}$ and $P(C>\mathrm{IDLH})=0.673$, with standard
 uncertainties from a bootstrap over the 800 reference runs of 2.3\%,

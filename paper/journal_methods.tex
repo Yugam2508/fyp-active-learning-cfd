@@ -154,6 +154,26 @@ The bump carries about 10\% of the output variance in a region (bump above
 10\% of its height) of 3\% of the input volume, which a Latin hypercube of
 20 runs misses with probability 0.53 and one of 40 runs with probability
 0.26 (Section~\ref{sec:res-robust}).
+Two variants test assumptions of the main study. In the first, the inputs
+are dependent: the borehole model with GUM-type inputs, with a Gaussian
+copula of correlation 0.5 between the two transmissivities and between the
+two heads. Designs are drawn in the space of independent uniform variables
+and mapped to the inputs by the inverse Rosenblatt transformation of the
+copula, so the surrogates and the propagation are otherwise unchanged. In
+the second, the output is a vector: the plume model at three receptors on
+the plume axis, at $x$, $x+200$\,m and $x+400$\,m, gives three strongly
+correlated output quantities, propagated as in GUM~S2~\cite{jcgm102}. Each
+component has its own log-scale GP, and the surrogate error is added on the
+log scale in one of three ways: as the LOO residual vector of one run, drawn
+with equal probabilities (\emph{joint} resampling, which keeps the
+correlation between the components), as residuals drawn independently for
+each component, or as independent normal errors with the LOO RMS error of
+each component. The coverage region is the hyperellipsoidal region of
+GUM~S2, from the mean and covariance matrix of the propagated sample with
+the coverage factor set so that 95\% of the sample lies inside, computed on
+the original and on the log scale. Its achieved coverage is evaluated under
+$2\times10^5$ draws of the true model, and its volume is compared with that
+of the same region computed from the true model.
 
 Exceedance is assessed at a fixed threshold where the model has one (the
 IDLH level for ammonia, 210\,mg\,m$^{-3}$, about 300\,ppm, for the plume
@@ -164,7 +184,9 @@ of the underflow, $P(Y<T)=0.05$.
 
 \begin{table*}[tb]
 \centering
-\caption{Test models. $d$: number of inputs; U: independent uniform inputs.}
+\caption{Test models. $d$: number of inputs; U: independent uniform inputs.
+The models below the line test the limits and assumptions of the procedure
+and are reported separately.}
 \label{tab:models}
 \small
 \begin{tabular}{llp{53mm}p{54mm}}
@@ -185,6 +207,8 @@ Flood & 8 & truncated Gumbel and normal, triangular, uniform~\cite{iooss2015} & 
 CFD dispersion & 6 & U: $U_{\mathrm{ref}}$, $z_0$, $H_{\mathrm b}$, $Sc_t$, $x_r$, $Q$ & RANS solution: wake recirculation, numerical error\\
 \midrule
 Bump (failure mode) & 4 & U$[0,1]^4$ & smooth part plus a narrow bump that the runs can miss\\
+Borehole, dependent & 8 & as Borehole (GUM), Gaussian copula & dependent inputs\\
+Plume, 3 receptors & 5 & as Plume & vector output (GUM~S2)\\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -273,6 +297,12 @@ $\mathrm{MSE}_{\mathrm{CV},k}$ the three-fold cross-validation error of
 member $k$ and $\pi_k\ge0$ a penalty for predictions below a known
 physical bound~\cite{goel2007,viana2009}.
 
+\paragraph{Stacking.} As an alternative to choosing one candidate surrogate
+(Section~\ref{sec:res-select}), the candidates are combined by
+stacking~\cite{breiman1996}: non-negative weights that minimise the squared
+error of the weighted sum of their LOO predictions (non-negative least
+squares) are applied to the candidates fitted to all runs.
+
 \subsection{Designs}
 Passive designs are $N$-point Latin hypercubes drawn on $[0,1]^d$ and mapped
 to the inputs by the inverse distribution functions. Adaptive designs start
@@ -284,8 +314,17 @@ variance of their predictions or by the spectral measure
 UEigV~\cite{lin2024} of the earlier analysis; and \emph{AK-MCS} adds the
 candidate minimising $|\hat z(\mathbf x)-\varphi(T)|/s(\mathbf x)$, the
 learning function of Echard et al.~\cite{echard2011}, which concentrates
-runs near the threshold $T$ of the exceedance probability. Candidates are
-random draws from the input distribution (300 for GP-SD, 2000 for AK-MCS).
+runs near the threshold $T$ of the exceedance probability. \emph{IMSE}
+adds the candidate that most reduces the integrated posterior variance of
+the GP~\cite{sacks1989}, averaged over 1000 draws from the input
+distribution, a criterion aimed at the whole distribution of the output
+rather than at the largest local uncertainty. Candidates are random draws
+from the input distribution (300 for GP-SD and IMSE, 2000 for AK-MCS).
+To test whether the results depend on the type of passive design, the
+Latin hypercube is replaced, in a separate comparison at $N=20$, by the
+maximin Latin hypercube~\cite{morris1995} (the one with the largest
+smallest distance between two runs among 200 random ones) and by the first
+$N$ points of a randomly scrambled Sobol' sequence~\cite{sobol1967}.
 
 \subsection{Protocol and statistics}
 Every strategy is run with the 30 seeds 1000--1029 and budgets
@@ -303,8 +342,9 @@ percentile-bootstrap confidence interval (10\,000 resamples of the seeds).
 Two strategies are compared on the same seeds by the median of the per-seed
 ratio of their errors, with a paired bootstrap 95\% confidence interval,
 and by a two-sided Wilcoxon signed-rank test on the log ratios; the
-$p$-values of all comparisons reported are adjusted together by Holm's
-method. Coverage of prediction and coverage intervals is the share of test
+$p$-values of all comparisons of the main study are adjusted together by
+Holm's method, and those of each further comparison (design types, IMSE,
+stacking) within that comparison. Coverage of prediction and coverage intervals is the share of test
 points or of the reference distribution inside the interval, averaged over
 seeds; coverage of intervals for reported quantities is the share of seeds
 whose interval contains the true value, with a Wilson 95\% interval. The

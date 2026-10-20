@@ -75,10 +75,11 @@ reveal: a local feature that no run hits goes unnoticed
 observation noise, shared by all LOO fits, is not seen by the jackknife.
 The hyperparameter search ranges were fixed in advance; on the physics
 model the amplitude reached the upper end of its range, which understates
-the GP there (Section~\ref{sec:res-main}). Only scalar outputs were studied; for several
-output quantities, as in GUM~S2~\cite{jcgm102}, the LOO residuals of all
-components should be resampled together, run by run, so that their
-correlation is preserved. The log transformation applies only to positive
+the GP there (Section~\ref{sec:res-main}). Several output quantities were
+studied on one model only; there, resampling the LOO residual vectors run
+by run, which preserves their correlation, gave the nominal coverage of the
+GUM~S2 region~\cite{jcgm102}, and resampling the components independently
+over-stated the region. The log transformation applies only to positive
 outputs, and its back-transformation to the predictive median slightly
 underestimates the mean of a skewed output; the bias is included in the
 validation errors reported. Finally, the paired tests are exploratory: all

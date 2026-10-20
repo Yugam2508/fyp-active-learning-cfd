@@ -92,6 +92,8 @@ the benchmarks are cross-checked against).
 | celik2008 | Celik, Ghia, Roache, Freitas, Coleman, Raad, *J. Fluids Eng.* 130(7) 078001 (2008) | ResearchGate, Semantic Scholar and citing literature (DOI 10.1115/1.2960953) | yes |
 | vovk2019 | Vovk, Shen, Manokhin, Xie, *Mach. Learn.* 108(3) 445–474 (2019) | Royal Holloway repository, NSF PAR record, PMLR v60 conference version (DOI 10.1007/s10994-018-5755-8) | yes |
 | arlot2010 | Arlot, Celisse, *Stat. Surv.* 4 40–79 (2010) | Project Euclid, arXiv 0907.4728, HAL (DOI 10.1214/09-SS054) | yes |
+| morris1995 | Morris, Mitchell, *J. Stat. Plan. Inference* 43(3) 381–402 (1995) | ORNL technical report (1992) of the same title, citation databases (OrDB, ModelDB) | yes |
+| sobol1967 | Sobol', *USSR Comput. Math. Math. Phys.* 7(4) 86–112 (1967) | Math-Net.ru record of the Russian original (Zh. Vychisl. Mat. Mat. Fiz. 7(4) 784–802), DOI 10.1016/0041-5553(67)90144-9 | yes |
 
 Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
 input models), flood and Ishigami implementations in `src/benchmarks.py`

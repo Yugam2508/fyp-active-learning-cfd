@@ -201,6 +201,12 @@ B.~Iooss and P.~Lema{\^i}tre, ``A review on global sensitivity analysis
   Research/Computer Science Interfaces Series}, pp.~101--122, Boston, MA:
   Springer, 2015.
 
+\bibitem{jcgm102}
+{BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML}, ``Evaluation of
+  measurement data -- {S}upplement 2 to the ``{G}uide to the expression of
+  uncertainty in measurement'' -- {E}xtension to any number of output
+  quantities.'' Joint Committee for Guides in Metrology, JCGM 102:2011, 2011.
+
 \bibitem{weller1998}
 H.~G. Weller, G.~Tabor, H.~Jasak, and C.~Fureby, ``A tensorial approach to
   computational continuum mechanics using object-oriented techniques,'' {\em
@@ -222,6 +228,20 @@ Y.~Tominaga and T.~Stathopoulos, ``Turbulent {S}chmidt numbers for {CFD}
   analysis with various types of flowfield,'' {\em Atmospheric Environment},
   vol.~41, no.~37, pp.~8091--8099, 2007.
 
+\bibitem{breiman1996}
+L.~Breiman, ``Stacked regressions,'' {\em Machine Learning}, vol.~24, no.~1,
+  pp.~49--64, 1996.
+
+\bibitem{morris1995}
+M.~D. Morris and T.~J. Mitchell, ``Exploratory designs for computational
+  experiments,'' {\em Journal of Statistical Planning and Inference}, vol.~43,
+  no.~3, pp.~381--402, 1995.
+
+\bibitem{sobol1967}
+I.~M. Sobol', ``On the distribution of points in a cube and the approximate
+  evaluation of integrals,'' {\em USSR Computational Mathematics and
+  Mathematical Physics}, vol.~7, no.~4, pp.~86--112, 1967.
+
 \bibitem{gneiting2007}
 T.~Gneiting and A.~E. Raftery, ``Strictly proper scoring rules, prediction, and
   estimation,'' {\em Journal of the American Statistical Association},
@@ -238,11 +258,11 @@ R.~Sch{\"o}bi, B.~Sudret, and J.~Wiart, ``Polynomial-chaos-based {K}riging,''
   {\em International Journal for Uncertainty Quantification}, vol.~5, no.~2,
   pp.~171--193, 2015.
 
-\bibitem{jcgm102}
-{BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML}, ``Evaluation of
-  measurement data -- {S}upplement 2 to the ``{G}uide to the expression of
-  uncertainty in measurement'' -- {E}xtension to any number of output
-  quantities.'' Joint Committee for Guides in Metrology, JCGM 102:2011, 2011.
+\bibitem{celik2008}
+I.~B. Celik, U.~Ghia, P.~J. Roache, C.~J. Freitas, H.~Coleman, and P.~E. Raad,
+  ``Procedure for estimation and reporting of uncertainty due to discretization
+  in {CFD} applications,'' {\em Journal of Fluids Engineering}, vol.~130,
+  no.~7, p.~078001, 2008.
 
 \bibitem{saltelli2010}
 A.~Saltelli, P.~Annoni, I.~Azzini, F.~Campolongo, M.~Ratto, and S.~Tarantola,

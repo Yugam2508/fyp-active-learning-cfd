@@ -146,6 +146,17 @@ describe only the errors that the runs reveal. A local feature smaller than
 the spacing of the design needs prior knowledge of where to look, or runs
 placed there.
 
+\emph{Several output quantities.} For the plume model at three receptors,
+the LOO residuals of the three components were strongly correlated (median
+correlation 0.83 over the 30 designs). Without the surrogate error, the
+GUM~S2 hyperellipsoidal region covered 93.4\% of the reference distribution
+on the original scale and 92.4\% on the log scale. With the residual
+vectors resampled jointly it covered 95.6\% and 96.9\%, with a volume 2.7
+and 2.6 times that of the region computed from the true model. Resampling
+the components independently, or independent normal errors, covered
+96.7--98.4\% but with regions 5.7--7.2 times the reference volume: ignoring
+the correlation of the surrogate errors over-states the joint uncertainty.
+
 \begin{table*}[tb]
 \centering
 \caption{GP-based descriptions of the surrogate error against the
