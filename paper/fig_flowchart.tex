@@ -19,15 +19,16 @@
 \node[dec, below=of design] (pos) {$Y>0$, multiplicative?};
 \node[box, below=of pos] (fit) {Fit candidates on the log scale if \emph{yes}:
   GP (Mat\'ern-5/2, ARD, estimated amplitude, nugget; $\pm$ quadratic
-  trend) and sparse PCE (LAR, corrected LOO)};
+  trend) and sparse PCE (LAR, corrected LOO); no hyperparameter at the
+  end of its search range};
 \node[box, below=of fit] (sel) {Keep the candidate with the smallest
   leave-one-out (LOO) error};
 \node[dec, below=of sel] (ok) {LOO error fit\\for purpose?};
 \node[box, below=of ok] (prop) {GUM S1 propagation through the surrogate,
   adding to every trial a draw of the LOO residuals};
 \node[box, below=of prop] (rep) {Report $y$, $u(y)$ and the coverage
-  interval; state the surrogate contribution; interval for derived
-  quantities by the jackknife over the LOO fits};
+  interval (trials by GUM S1 7.9); state the surrogate contribution;
+  intervals for derived quantities by the jackknife over the LOO fits};
 \node[side, right=of ok] (more) {Add runs: extend the design (space
   filling); a targeted design only for a threshold decision};
 \node[side, right=of prop] (no) {Not the GP posterior SD, nor a committee
