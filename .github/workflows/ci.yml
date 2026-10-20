@@ -31,4 +31,5 @@ jobs:
         run: |
           python paper/imeko2027/check_numbers.py
           python experiments/analyse_journal.py --check
+          python experiments/analyse_completion.py --check
           python paper/check_numbers_journal.py

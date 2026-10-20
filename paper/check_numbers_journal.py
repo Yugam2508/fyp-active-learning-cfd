@@ -539,19 +539,20 @@ check(F, "covered\n96.7--98.4\\% but with regions 5.7--7.2 times", min(_ind),
       lambda v: f"covered\n{pct(v)}--{pct(max(_ind))}\\% but with regions {min(_vol):.1f}--{max(_vol):.1f} times")
 F = "journal_results_main.tex"
 DS, IM, SK = CP["designs"], CP["imse"], CP["stacking"]
-_dt = [v for b in DS if b != "cfd" for v in DS[b].values() if isinstance(v, dict)]
+_dt = [v for b in DS for v in DS[b].values() if isinstance(v, dict)]
 _dr = [v["ratio"] for v in _dt]
-check(F, "by factors of 0.73 to 1.25 (median 0.99)\nin the 120 comparisons on the twelve analytical models", min(_dr),
+check(F, "by factors of 0.73 to 1.25 (median 0.99)\nin the 132 comparisons on the twelve analytical models and the CFD case", min(_dr),
       lambda v: f"by factors of {v:.2f} to {max(_dr):.2f} (median {np.median(_dr):.2f})\nin the {len(_dt)} comparisons "
-      f"on the {'twelve' if len([b for b in DS if b != 'cfd']) == 12 else '??'} analytical models")
-_ds = [(b, k) for b in DS if b != "cfd" for k, v in DS[b].items() if isinstance(v, dict) and v["p_holm"] < 0.05]
+      f"on the {'twelve' if len([b for b in DS if b != 'cfd']) == 12 else '??'} analytical models"
+      f"{' and the CFD case' if 'cfd' in DS else ''}")
+_ds = [(b, k) for b in DS for k, v in DS[b].items() if isinstance(v, dict) and v["p_holm"] < 0.05]
 check_true("design type: the two significant differences are OTL with Sobol'",
            len(_ds) == 2 and all(b == "otl" and "sobol" in k for b, k in _ds))
 _dsr = [DS[b][k]["ratio"] for b, k in _ds]
-check(F, "Sobol' design on the OTL circuit\n(0.73--0.76), and 59 comparisons", min(_dsr),
+check(F, "Sobol' design on the OTL circuit\n(0.73--0.76), and 66 comparisons", min(_dsr),
       lambda v: f"Sobol' design on the OTL circuit\n({v:.2f}--{max(_dsr):.2f}), and "
       f"{sum(x['equivalent'] for x in _dt)} comparisons")
-_dc = [v for b in DS if b != "cfd" for v in DS[b].values() if not isinstance(v, dict)]
+_dc = [v for b in DS for v in DS[b].values() if not isinstance(v, dict)]
 check(F, "covered\n93.4--97.1\\% of the reference distribution with either design type", min(_dc),
       lambda v: f"covered\n{pct(v)}--{pct(max(_dc))}\\% of the reference distribution with either design type")
 _im = lambda N, ref: [x for x in IM if x["N"] == N and x["vs"] == ref and x["bench"] != "cfd"]
@@ -568,11 +569,16 @@ _b = _ims(40, "gp_m52")
 check(F, "on six of the nine models with records at that budget (0.48--0.86)", min(x["ratio"] for x in _b),
       lambda v: f"on {'six' if len(_b) == 6 else len(_b)} of the {'nine' if len(_im(40, 'gp_m52')) == 9 else '??'} "
       f"models with records at that budget ({v:.2f}--{max(x['ratio'] for x in _b):.2f})")
+_ic = {x["vs"]: x for x in IM if x["bench"] == "cfd" and x["N"] == 20}
+check(F, "(0.92 against the passive\nand 0.94 against the GP-SD design)", _ic["gp_m52"]["ratio"],
+      lambda v: f"({v:.2f} against the passive\nand {_ic['al_gp']['ratio']:.2f} against the GP-SD design)")
+check_true("IMSE on CFD not significant", all(x["p_holm"] >= 0.05 for x in _ic.values()))
 check_true("IMSE N=40: not significant on plume, ishigami, bump; all significant ones better",
            {x["bench"] for x in _im(40, "gp_m52")} - {x["bench"] for x in _b} == {"plume", "ishigami", "bump"}
            and all(x["ratio"] < 1 for x in _b))
-_sk = {b: v["stack_vs_selected"] for b, v in SK.items() if b not in ("cfd", "borehole_corr")}
-_so = [v["stack_vs_oracle"]["ratio"] for b, v in SK.items() if b not in ("cfd", "borehole_corr")]
+_sk = {b: v["stack_vs_selected"] for b, v in SK.items() if b != "borehole_corr"}
+_so = [v["stack_vs_oracle"]["ratio"] for b, v in SK.items() if b != "borehole_corr"]
+check_true("stacking: CFD included", "cfd" in _sk)
 _sr = [v["ratio"] for v in _sk.values()]
 check(F, "0.96 to 1.17 times that of the selected candidate", min(_sr),
       lambda v: f"{v:.2f} to {max(_sr):.2f} times that of the selected candidate")
@@ -627,6 +633,9 @@ check_true("GCI: standard mesh largest at the oscillatory points",
 check(F, "(median 5.9\\%, at most 8.1\\%)", GC["band_median"],
       lambda v: f"(median {pct(v)}\\%, at most {pct(GC['band_max'])}\\%)")
 check_true("GCI: coarse-mesh iteration change below 4e-5", GC["coarse_iter_change_max"] < 4e-5)
+AR = CP["cfd_numerics"]["all_runs"]
+check(F, "as did 80\\% of all 8170 runs", AR["share_converged"],
+      lambda v: f"as did {100 * v:.0f}\\% of all {AR['n']} runs")
 RZ, R2 = CP["cfd_numerics"]["reference2_z"], CP["cfd_numerics"]["reference2"]
 _e1, _e2 = R2["references"]["set1"]["est"], R2["references"]["set2"]["est"]
 check(F, "agreed with the first within 1.8 combined standard\nuncertainties", max(RZ.values()),
@@ -663,6 +672,10 @@ check(F, "the committee took 9\\,s and the adaptive committee 78\\,s", CO["pas_a
 check(F, "One run of the CFD model, itself small, took 39\\,s", CO["cfd_run_s"],
       "One run of the CFD model, itself small, took {:.0f}\\,s")
 NOMINAL_MIN = 26                                       # of 30 seeds (plan)
+_BG0 = CP["bayes_gp"]["rows"]
+check("journal_conclusion.tex", "reached it in 39 of 42 cases with 20 runs",
+      sum(r["dq_q95_jack_cov_count"] >= NOMINAL_MIN for b in _BG0 for r in _BG0[b].values()),
+      lambda v: f"reached it in {v} of {sum(len(_BG0[b]) for b in _BG0)} cases with 20 runs")
 # ── abstract ─────────────────────────────────────────────────────────────
 F = "journal_abstract.tex"
 logs = [R(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd")]

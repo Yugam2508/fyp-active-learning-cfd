@@ -115,9 +115,10 @@ B.~Sudret, Global sensitivity analysis using polynomial chaos expansions,
   {Reliab. Eng. Syst. Saf.}, vol.~93, 2008, no.~7, pp. 964--979.
 
 \bibitem{repo}
-Y.~J. Vora, Surrogate committees for uncertainty propagation: code, per-seed
-  records and figure scripts,
-  \url{https://github.com/Yugam2508/fyp-active-learning-cfd}, 2026.
+Y.~J. Vora,~W.~H. Ng, Surrogate models for {GUM} {S}upplement 1 uncertainty
+  propagation with small budgets of model runs: code, per-seed records and
+  figure scripts, \url{https://github.com/Yugam2508/fyp-active-learning-cfd},
+  2026.
 
 \bibitem{barber2021}
 R.~F. Barber, E.~J. Cand{\`e}s, A.~Ramdas,~R.~J. Tibshirani, Predictive

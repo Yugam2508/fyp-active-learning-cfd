@@ -1,8 +1,7 @@
-Highlights (Measurement: 3-5 bullets, at most 85 characters each)
-DRAFT - final after the research-plan runs (docs/RESEARCH_PLAN.md)
+Highlights (Measurement: 3-5 bullets, at most 85 characters each, spaces included)
 
 - Surrogate specification mattered more than adaptive designs or committees
-- Selecting candidates by leave-one-out error matched the best in hindsight
-- Resampled leave-one-out residuals restored nominal GUM S1 coverage
+- Leave-one-out selection matched the best surrogate in hindsight from 20 runs
+- Resampled leave-one-out residuals restored nominal GUM S1 coverage, N = 10-80
 - GP intervals for reported quantities fell short, even with Bayesian GPs
 - A validated procedure, with a CFD worked example and an uncertainty budget

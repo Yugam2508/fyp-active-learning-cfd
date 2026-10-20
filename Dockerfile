@@ -38,4 +38,5 @@ CMD ["sh", "-c", "python -m pytest -q && python experiments/check_benchmarks.py 
  && python experiments/test_reproducibility.py --quick --rtol 1e-4 \
  && python paper/imeko2027/check_numbers.py \
  && python experiments/analyse_journal.py --check \
+ && python experiments/analyse_completion.py --check \
  && python paper/check_numbers_journal.py"]

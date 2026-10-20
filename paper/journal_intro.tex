@@ -93,9 +93,10 @@ general question above. Its contributions are:
 \begin{enumerate}\setlength\itemsep{1pt}
 \item a paired comparison, on twelve models with up to 20 inputs, uniform
 and GUM-type input distributions
-and a CFD dispersion case, of GP specifications, sparse PCE, committees and
-adaptive and targeted designs at budgets of 10 to 80 runs, scored on the
-quantities a GUM~S1 evaluation reports;
+and a CFD dispersion case, of GP specifications, sparse PCE, committees,
+stacking, and space-filling, adaptive and targeted designs at budgets of 10
+to 80 runs, scored on the quantities a GUM~S1 evaluation reports and
+cross-checked against an independent implementation;
 \item the finding that the GP failure of the earlier analysis is a
 kernel-specification artefact, and that specification (amplitude,
 anisotropy, trend) and variable transformation matter more than the choice
@@ -103,8 +104,12 @@ between single surrogates, committees and adaptive designs;
 \item a validation, against the true models, of three ways to include the
 surrogate error in GUM~S1: the GP posterior, a cross-validation (CV)
 normal error and resampled leave-one-out residuals, with jackknife+
-intervals as a distribution-free reference;
+intervals as a distribution-free reference, and of its robustness to the
+number of runs, the treatment of the GP hyperparameters, the type of design,
+dependent inputs and vector outputs, with its limit for features that no
+run reaches;
 \item a procedure for surrogate-based GUM~S1 evaluations
-(Fig.~\ref{fig:flowchart}), and code, per-seed records and an audit script
-that recompute every number reported~\repocite.
+(Fig.~\ref{fig:flowchart}) with an indicator of when to stop adding runs,
+and code, per-seed records and an audit script that recompute every number
+reported~\repocite.
 \end{enumerate}

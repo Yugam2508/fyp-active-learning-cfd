@@ -33,14 +33,16 @@ fluid dynamics simulation, at budgets of 10 to 80 runs, with every
 uncertainty statement checked against reference Monte Carlo evaluations of
 the true models. Its main findings are:
 \begin{itemize}
-\item the specification of the surrogate matters more than committees of
-surrogates or adaptive designs, and choosing among a few candidates by
-their leave-one-out error is as good as the best choice in hindsight;
+\item the specification of the surrogate matters more than committees or
+stacking of surrogates, the type of design or adaptive designs, and from
+20 runs on, choosing among a few candidates by their leave-one-out error is
+practically as good as the best choice in hindsight;
 \item adding the surrogate's resampled leave-one-out residuals to every
 Monte Carlo trial gives GUM~S1 coverage intervals with the nominal
-coverage, whereas intervals from the Gaussian process predictive
-variance, the usual choice, often fell short of their nominal coverage,
-also with the hyperparameters treated in a fully Bayesian way;
+coverage from 10 to 80 runs, also with dependent inputs and for vector
+outputs, whereas intervals from the Gaussian process predictive variance,
+the usual choice, often fell short of their nominal coverage, also with the
+hyperparameters treated in a fully Bayesian way;
 \item the results are condensed into a procedure, applied in a worked
 example with an uncertainty budget for a gas-dispersion simulation.
 \end{itemize}

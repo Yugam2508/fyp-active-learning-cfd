@@ -67,7 +67,7 @@ experiments/               runnable studies, launch from anywhere
   campaign_selection.py      LOO errors of the candidates (selection step)
   run_journal_campaign.sh    all analytical-model jobs of the journal study
   run_coverage_campaign.sh, run_selection_campaign.sh, run_cfd_campaign.sh
-  cfd_precompute.py          the 1550 CFD runs (designs + reference), cached
+  cfd_precompute.py          the CFD runs of the designs and references, cached
   cfd_grid_check.py, cfd_iteration_check.py, cfd_reference_stats.py, fig_cfd_case.py
   analyse_journal.py         statistics, tables, figures (--check for CI)
   run_extension_campaign.sh, run_completion_campaign.sh

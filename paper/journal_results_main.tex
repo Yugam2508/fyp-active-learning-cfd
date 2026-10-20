@@ -104,7 +104,9 @@ accurate than the passive design on one of the twelve analytical models
 model with GUM-type inputs (0.75), and than the GP-SD design on
 two (0.74--0.77); with 40 runs it was more accurate than the passive design
 on six of the nine models with records at that budget (0.48--0.86), all of
-them smooth, and not on the plume, Ishigami and bump models.
+them smooth, and not on the plume, Ishigami and bump models. On the CFD case
+it made no significant difference with 20 runs (0.92 against the passive
+and 0.94 against the GP-SD design).
 
 Targeting the threshold changes the picture for exceedance probabilities.
 AK-MCS reduced the median absolute error of $P(Y>T)$ significantly in 8 of
@@ -124,9 +126,10 @@ no difference (0.95).
 \emph{Type of passive design.} Replacing the random Latin hypercube by a
 maximin Latin hypercube or a scrambled Sobol' sequence changed the median
 nRMSE of the candidate surrogates by factors of 0.73 to 1.25 (median 0.99)
-in the 120 comparisons on the twelve analytical models. Two differences
+in the 132 comparisons on the twelve analytical models and the CFD case.
+Two differences
 survived the Holm adjustment, both for the Sobol' design on the OTL circuit
-(0.73--0.76), and 59 comparisons were equivalent within $\pm20\%$. With the
+(0.73--0.76), and 66 comparisons were equivalent within $\pm20\%$. With the
 GP with trend and its LOO residuals, the GUM~S1 coverage interval covered
 93.4--97.1\% of the reference distribution with either design type. The
 conclusions do not depend on the type of space-filling design.
@@ -175,7 +178,7 @@ therefore recovers practically all of the benefit of the right
 specification without access to the true model. Combining the candidates
 by stacking instead of choosing one did not help: its median nRMSE was
 0.96 to 1.17 times that of the selected candidate on the twelve analytical
-models (lower only on the Ishigami and bump models, by 4\% and 2\%, and
+models and the CFD case (lower only on the Ishigami and bump models, by 4\% and 2\%, and
 higher on the borehole model with GUM-type inputs, by 17\%) and 0.99 to
 1.26 times that of the best candidate in hindsight.
 
