@@ -84,3 +84,106 @@ Model & GP & CV & J+ & exact & +LOO N & +LOO res. & +GP & GP & J & GP & J\\
 \bottomrule
 \end{tabular}
 \end{table*}
+
+\subsection{Robustness of the surrogate contribution}
+\label{sec:res-robust}
+\emph{Hyperparameter uncertainty.} Integrating out the GP's hyperparameters
+narrowed the gap but did not close it (Table~\ref{tab:bayesgp}). Over the 42
+combinations of model and GP candidate at $N=20$, the median pointwise
+coverage rose from 80\% with the plug-in hyperparameters to 83\% for the
+Student-t process and 96\% for the fully Bayesian GP; the recalibrated GP
+reached 95\% (91--98\%) and the jackknife+ 97\%. For the reported quantities
+the gain was smaller. Intervals for $y_{0.95}$ contained the true value in
+at least 26 of the 30 seeds, the threshold fixed in advance, in 13 of the 42
+combinations with the plug-in GP, 15 with the Student-t process, 24 with
+the fully Bayesian GP, 23 with the recalibrated GP and 39 with the
+jackknife. The fully Bayesian GP fell as low as 8 of 30 seeds (Mat\'ern GP
+on the CFD case): averaging over hyperparameters cannot repair a covariance
+model that does not fit the response, here the raw scale of a positive,
+skewed output. The jackknife fell short of the threshold on three
+combinations, all raw-scale GPs on the plume model with GUM-type inputs
+and on the Ishigami model (24--25 of 30). By the rule fixed in advance,
+none of the GP-based descriptions is a valid surrogate contribution on all
+models, and the recommendation of the LOO residuals stands. The coverage
+interval of $Y$ itself was robust to the choice: 93\% or more with every
+error model. The MCMC chains had integrated autocorrelation times of 38--62
+steps, so the 500 steps kept per walker span 8--13 autocorrelation times.
+
+\emph{Number of runs.} The procedure (the candidate with the smallest LOO
+error in each seed, with its LOO residuals added) gave GUM~S1 coverage
+intervals that covered 93.4--96.9\% of the reference distribution at
+$N=10$, 94.2--96.1\% at 20, 94.7--95.7\% at 40 and 94.7--95.1\% at 80, on
+every model (Table~\ref{tab:budgets}). Treating the chosen surrogate as
+exact covered as little as 81.9\% at $N=10$, against 89.9\% at 20: the
+contribution matters most when the budget is smallest. With ten runs, a
+design's coverage fell below 90\% in up to 23\% of the designs of a model,
+with 20 runs in at most 3\% and with 40 or 80 runs in none. The selection
+was within 4.4\% of the best candidate in hindsight at every budget from 20
+runs, but up to 37\% worse at $N=10$, where ten LOO residuals rank the
+candidates less reliably. A 95\% jackknife+ interval needs at least 19 runs;
+with ten it is unbounded. The jackknife intervals for $y_{0.95}$ contained
+the true value in 19--30 of 30 seeds at $N=10$ and 23--30 at $N=40$. At
+$N=80$ they did so in 14 of 30 seeds on the physics model, whose surrogate
+error at that budget (a relative error of $y_{0.95}$ below $10^{-4}$) is at
+the level of the observation noise shared by all LOO fits, which no
+resampling of the fits can reveal.
+
+\emph{Single designs.} A practitioner has one design. At $N=20$, with the
+LOO residuals added, the achieved coverage of the GUM~S1 interval was below
+90\% in at most 10\% of the designs of any model and surrogate (median 0\%),
+and never below 80.8\%.
+
+\emph{A feature the runs miss.} On the bump model, 13 of the 30 designs of
+20 runs placed a run inside the bump. When the design missed it, the GUM~S1
+interval still covered 94--95\% of the reference distribution, because the
+bump holds only 3\% of the probability mass, and the jackknife+ intervals
+95--97\% of the test points; but the intervals for $y_{0.95}$ contained the
+true value in only 9--10 of the 17 designs, against 13 of 13 when the bump
+was hit. With 40 runs, 6 designs missed the bump, and their intervals for
+$y_{0.95}$ contained the true value in 1--4 of 6. Nothing computed from the
+runs can flag this: the LOO residuals, like every estimate from the runs,
+describe only the errors that the runs reveal. A local feature smaller than
+the spacing of the design needs prior knowledge of where to look, or runs
+placed there.
+
+\begin{table*}[tb]
+\centering
+\caption{GP-based descriptions of the surrogate error against the
+jackknife, $N=20$, for the GP with a quadratic trend on the recommended
+scale (log for positive outputs). Pointwise: mean coverage (\%) of 95\%
+prediction intervals on the test points. $y_{0.95}$: seeds (of 30) whose
+95\% interval for the 95th percentile contains the true value. Plug-in: ML
+hyperparameters; t: Student-t process; MCMC: all hyperparameters
+integrated out; recal.: GP SD recalibrated by the LOO standardised
+residuals; J+/J: jackknife+ and jackknife. Generated from the result
+records.}
+\label{tab:bayesgp}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{l rrrrr rrrrr}
+\toprule
+& \multicolumn{5}{c}{Pointwise coverage (\%)} & \multicolumn{5}{c}{$y_{0.95}$: seeds of 30 covered}\\
+\cmidrule(lr){2-6}\cmidrule(lr){7-11}
+Model & plug-in & t & MCMC & recal. & J+ & plug-in & t & MCMC & recal. & J\\
+\midrule
+\tabinput{../results/journal/tab_bayesgp.tex}
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table}[tb]
+\centering
+\caption{Achieved coverage (\%) of the GUM~S1 95\% coverage interval of $Y$
+for the procedure (candidate chosen by LOO error, LOO residuals added),
+mean over 30 seeds, against the number of runs. The CFD case was not run
+with 80 runs. Generated from the result records.}
+\label{tab:budgets}
+\small
+\begin{tabular}{l rrrr}
+\toprule
+Model & $N=10$ & 20 & 40 & 80\\
+\midrule
+\tabinput{../results/journal/tab_budgets.tex}
+\bottomrule
+\end{tabular}
+\end{table}

@@ -85,6 +85,11 @@ the benchmarks are cross-checked against).
 | forrester2008 | Forrester, Sóbester, Keane, *Engineering Design via Surrogate Modelling*, Wiley (2008) | UQTestFuns (wing_weight) | yes |
 | moon2010 | Moon, PhD thesis, Ohio State University (2010) | UQTestFuns (otl_circuit, otl_circuit_20d) | — |
 | owen2017 | Owen, Challenor, Menon, Bennani, *SIAM/ASA J. Uncertain. Quantif.* 5(1) 403–435 (2017) | University of Exeter repository, REF 2021 record, SIAM page, arXiv 1511.00926 | yes |
+| foremanmackey2013 | Foreman-Mackey, Hogg, Lang, Goodman, *Publ. Astron. Soc. Pac.* 125, 306–312 (2013) | arXiv 1202.3665, INSPIRE record (DOI 10.1086/670067) | yes |
+| baudin2017 | Baudin, Dutfoy, Iooss, Popelin, in *Handbook of Uncertainty Quantification*, Springer (2017) 2001–2038 | EconPapers/RePEc chapter record, arXiv 1501.05242 | yes |
+| schobi2015 | Schöbi, Sudret, Wiart, *Int. J. Uncertain. Quantif.* 5(2) 171–193 (2015) | HAL record (DOI), ETH research collection, arXiv 1502.03939 | yes |
+| breiman1996 | Breiman, *Mach. Learn.* 24(1) 49–64 (1996) | Berkeley technical report header, DBLP, Springer DOI page | yes |
+| celik2008 | Celik, Ghia, Roache, Freitas, Coleman, Raad, *J. Fluids Eng.* 130(7) 078001 (2008) | ResearchGate, Semantic Scholar and citing literature (DOI 10.1115/1.2960953) | yes |
 
 Formula checks: the OTL circuit, piston, borehole (uniform and Harper & Gupta
 input models), flood and Ishigami implementations in `src/benchmarks.py`
