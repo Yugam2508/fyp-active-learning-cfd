@@ -1,8 +1,9 @@
 """
 cfd_gci_iterations.py — iteration check of the coarse mesh of cfd_gci.py.
 The coarse-mesh runs stop at 4000 iterations without meeting the residual
-criteria: the flow residuals fall below 1e-8, but the initial residual of
-the scalar stalls near 9e-6 (criterion 1e-6). This reruns the six coarse
+criteria (in the first case, inspected by hand, the flow residuals fall
+below 1e-8 but the initial residual of the scalar stalls near 9e-6, the
+criterion being 1e-6). This reruns the six coarse
 cases with 1000 and 2000 iterations and records the largest relative change
 of the receptor concentration against the 4000-iteration values in
 results/cfd_gci.json. Writes results/cfd_gci_iterations.json.

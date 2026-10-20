@@ -522,6 +522,33 @@ avb = [b for b in S["n20"] if "al_var:cv" in S["n20"][b]]
 check_true("adaptive committee better on six of nine models (incl. CFD)",
            len(avb) == 9 and sum(sig(b, "al_var:cv", "pas_ard:cv") and R(b, "al_var:cv", "pas_ard:cv") < 1
                                  for b in avb) == 6)
+# ── research plan, Tier 2 (results/journal/completion.json) ──────────────
+F = "journal_results_coverage.tex"
+V = CP["vector"]
+check(F, "(median\ncorrelation 0.83 over the 30 designs)", V["loo_corr_median"],
+      lambda v: f"(median\ncorrelation {v:.2f} over the {V['n']} designs)")
+check(F, "region covered 93.4\\% of the reference distribution\non the original scale and 92.4\\% on the log scale",
+      V["orig_plain_cov"], lambda v: f"region covered {pct(v)}\\% of the reference distribution\n"
+      f"on the original scale and {pct(V['log_plain_cov'])}\\% on the log scale")
+check(F, "jointly it covered 95.6\\% and 96.9\\%, with a volume 2.7\nand 2.6 times", V["orig_joint_cov"],
+      lambda v: f"jointly it covered {pct(v)}\\% and {pct(V['log_joint_cov'])}\\%, with a volume "
+      f"{V['orig_joint_vol']:.1f}\nand {V['log_joint_vol']:.1f} times")
+_ind = [V[f"{s}_{m}_cov"] for s in ("orig", "log") for m in ("indep", "normal")]
+_vol = [V[f"{s}_{m}_vol"] for s in ("orig", "log") for m in ("indep", "normal")]
+check(F, "covered\n96.7--98.4\\% but with regions 5.7--7.2 times", min(_ind),
+      lambda v: f"covered\n{pct(v)}--{pct(max(_ind))}\\% but with regions {min(_vol):.1f}--{max(_vol):.1f} times")
+F = "journal_results_cfd.tex"
+GC = CP["cfd_numerics"]["gci"]
+check(F, "gave values\nbetween 8.1\\% lower and 0.5\\% higher", GC["rel_coarse_range"][0],
+      lambda v: f"gave values\nbetween {-100 * v:.1f}\\% lower and {100 * GC['rel_coarse_range'][1]:.1f}\\% higher")
+check(F, "oscillatory at 21\nof the 24 combinations", GC["n_points"] - GC["n_monotone"],
+      lambda v: f"oscillatory at {v}\nof the {GC['n_points']} combinations")
+check_true("GCI: the monotone points diverge (p < 0)", all(p < 0 for p in GC["p_monotone"]))
+check_true("GCI: standard mesh largest at the oscillatory points",
+           GC["rel_fine_range"][1] < 0)
+check(F, "(median 5.9\\%, at most 8.1\\%)", GC["band_median"],
+      lambda v: f"(median {pct(v)}\\%, at most {pct(GC['band_max'])}\\%)")
+check_true("GCI: coarse-mesh iteration change below 4e-5", GC["coarse_iter_change_max"] < 4e-5)
 # ── abstract ─────────────────────────────────────────────────────────────
 F = "journal_abstract.tex"
 logs = [R(b, "gp_log", "gp_m52") for b in ("plume", "borehole", "otl", "piston", "borehole_gum", "plume_gum", "cfd")]

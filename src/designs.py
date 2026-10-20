@@ -7,7 +7,8 @@ the design.
   lhs      random Latin hypercube (framework_core.lhs, the main study)
   maximin  the Latin hypercube with the largest smallest pairwise distance
            among 200 random ones
-  sobol    scrambled Sobol' sequence (Owen scrambling), first n points
+  sobol    scrambled Sobol' sequence (SciPy: linear matrix scrambling with a
+           digital shift), first n points
 """
 
 import warnings
