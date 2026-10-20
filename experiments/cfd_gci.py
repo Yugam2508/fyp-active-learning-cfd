@@ -22,6 +22,9 @@ import numpy as np
 import cfd_dispersion as cfd
 
 grid = json.load(open(os.path.join(ROOT, "results", "cfd_grid_check.json")))
+OUT = os.path.join(ROOT, "results", "cfd_gci.json")
+if os.path.exists(OUT) and len(json.load(open(OUT))["cases"]) == len(grid["cases"]):
+    sys.exit(print("results/cfd_gci.json is complete; nothing to do"))
 XR, out = grid["x_r"], []
 for case in grid["cases"]:
     f = tuple(case["flow"].values())
@@ -50,5 +53,4 @@ for case in grid["cases"]:
     print(case["flow"], "p", np.round([v if v is not None else np.nan for v in row["p"]], 2),
           "err std mesh", np.round([v if v is not None else np.nan for v in row["err_standard"]], 3),
           flush=True)
-    json.dump({"x_r": XR, "cases": out}, open(os.path.join(ROOT, "results", "cfd_gci.json"), "w"),
-              indent=1)
+    json.dump({"x_r": XR, "cases": out}, open(OUT, "w"), indent=1)
