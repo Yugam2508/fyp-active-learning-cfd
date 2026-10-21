@@ -68,7 +68,7 @@ def check_true(desc, cond):
 pct = lambda x: f"{100 * x:.1f}"
 F = "journal_results_main.tex"
 # ── 5.1 specification ────────────────────────────────────────────────────
-check(F, "factors of 0.14 (physics)", R("physics", "gp_m52", "gp_orig"), "factors of {:.2f} (physics)")
+check(F, "factors of 0.14 (bowl)", R("physics", "gp_m52", "gp_orig"), "factors of {:.2f} (bowl)")
 check(F, "to 0.71 (piston)", R("piston", "gp_m52", "gp_orig"), "to {:.2f} (piston)")
 check(F, "median nRMSE from 0.59 to 0.033, eighteen-fold", med("physics", "gp_orig"),
       lambda v: f"median nRMSE from {v:.2f} to {med('physics', 'gp_amp'):.3f}, "
@@ -183,8 +183,8 @@ check(F, "between 1.000 and 1.044", min(v["ratio_to_oracle"] for v in sel.values
       "between {:.3f} and " + f"{max(v['ratio_to_oracle'] for v in sel.values()):.3f}")
 check(F, "27--77\\% of seeds", min(v["share_oracle"] for v in sel.values()),
       lambda v: f"{100 * v:.0f}--{100 * max(x['share_oracle'] for x in sel.values()):.0f}\\% of seeds")
-check(F, "factor of 500 on the physics", 1 / sel["physics"]["ratio_to_gp_m52"],
-      lambda v: f"factor of {int(round(v, -2))} on the physics")
+check(F, "factor of 500 on the bowl", 1 / sel["physics"]["ratio_to_gp_m52"],
+      lambda v: f"factor of {int(round(v, -2))} on the bowl")
 pos = [sel[b]["ratio_to_gp_m52"] for b in ("plume", "borehole", "otl", "piston", "wingweight", "otl20", "borehole_gum", "plume_gum")]
 check_true("selection never chose a trend GP on otl20",
            not any(c in sel["otl20"]["chosen"] for c in ("gp_quad", "gp_quadlog")))
@@ -205,8 +205,8 @@ check(F, "wing weight (0.81 at $N=40$)", R("wingweight", "al_gp", "gp_m52", N=40
 check(F, "20-input OTL (0.83 at $N=80$)", R("otl20", "al_gp", "gp_m52", N=80), "20-input OTL ({:.2f} at $N=80$)")
 check(F, "wing weight model at\n$N=80$ (1.93)", R("wingweight", "al_gp", "gp_m52", N=80),
       "wing weight model at\n$N=80$ ({:.2f})")
-check(F, "physics\n(0.22--0.43)", R("physics", "al_gp", "gp_m52", N=80),
-      "physics\n({:.2f}--" + f"{R('physics', 'al_gp', 'gp_m52', N=40):.2f})")
+check(F, "bowl\n(0.22--0.43)", R("physics", "al_gp", "gp_m52", N=80),
+      "bowl\n({:.2f}--" + f"{R('physics', 'al_gp', 'gp_m52', N=40):.2f})")
 check(F, "borehole (0.77)", R("borehole", "al_gp", "gp_m52", N=40), "borehole ({:.2f})")
 check(F, "OTL (0.75 at $N=80$)", R("otl", "al_gp", "gp_m52", N=80), "OTL ({:.2f} at $N=80$)")
 check(F, "piston (0.81--0.87)", R("piston", "al_gp", "gp_m52", N=40),
@@ -438,8 +438,8 @@ check_true("jackknife+ unbounded at N = 10 in every seed", all(r["pw_jkplus_unbo
 check(F, "in 19--30 of 30 seeds at $N=10$ and 23--30 at $N=40$", rng("10", "dq_q95_jack_count")[0],
       lambda v: f"in {v}--{rng('10', 'dq_q95_jack_count')[1]} of 30 seeds at $N=10$ and "
       f"{rng('40', 'dq_q95_jack_count')[0]}--{rng('40', 'dq_q95_jack_count')[1]} at $N=40$")
-check(F, "did so in 14 of 30 seeds on the physics model", BR["80"]["physics"]["dq_q95_jack_count"],
-      "did so in {} of 30 seeds on the physics model")
+check(F, "did so in 14 of 30 seeds on the bowl model", BR["80"]["physics"]["dq_q95_jack_count"],
+      "did so in {} of 30 seeds on the bowl model")
 check_true("physics is the only N = 80 model below 26", [b for b, r in BR["80"].items() if r["dq_q95_jack_count"] < 26] == ["physics"])
 _phys80 = max(abs(r["dq_q95_hat"] - r["dq_q95_true"]) / abs(r["dq_q95_true"])
               for s_ in ("gp_quad", "spce") for r in json.load(open(os.path.join(ROOT, "results", f"results_cov_physics_{s_}_N80.json"))))
@@ -477,9 +477,9 @@ check(F, "(median ratio of nRMSE 0.98--1.00, equivalent within\n$\\pm20\\%$ on a
 gpe = [XC[b]["gp_m52_vs_ot_gp"] for b in XC if b != "physics"]
 check(F, "OpenTURNS' GP on five of\nthem (0.95--1.00)", min(t["ratio"] for t in gpe),
       lambda v: f"OpenTURNS' GP on five of\nthem ({v:.2f}--{max(t['ratio'] for t in gpe):.2f})")
-check_true("GP equivalent on the five non-physics models", all(t["equivalent"] for t in gpe) and len(gpe) == 5)
-check(F, "physics model the OpenTURNS GP was 9.2 times more\naccurate", XC["physics"]["gp_m52_vs_ot_gp"]["ratio"],
-      "physics model the OpenTURNS GP was {:.1f} times more\naccurate")
+check_true("GP equivalent on the five non-bowl models", all(t["equivalent"] for t in gpe) and len(gpe) == 5)
+check(F, "bowl model the OpenTURNS GP was 9.2 times more\naccurate", XC["physics"]["gp_m52_vs_ot_gp"]["ratio"],
+      "bowl model the OpenTURNS GP was {:.1f} times more\naccurate")
 SA = json.load(open(os.path.join(ROOT, "results", "sensitivity_amp_bound.json")))
 smed = lambda k, bnd: float(np.median([x["nrmse"] for x in SA[k][bnd].values()]))
 check(F, "changed the median nRMSE from\n0.080 to 0.077", smed("cfd/gp_log", "1e3"),
@@ -522,6 +522,19 @@ avb = [b for b in S["n20"] if "al_var:cv" in S["n20"][b]]
 check_true("adaptive committee better on six of nine models (incl. CFD)",
            len(avb) == 9 and sum(sig(b, "al_var:cv", "pas_ard:cv") and R(b, "al_var:cv", "pas_ard:cv") < 1
                                  for b in avb) == 6)
+# ── test models (formulas and input models, src/benchmarks.py) ──────────
+sys.path.insert(0, os.path.join(ROOT, "src"))
+from benchmarks import BENCHMARKS
+F = "journal_methods.tex"
+_w = BENCHMARKS["plume_gum"]().marginals[1]
+check(F, "4.6\\% of these wind speeds lie below\n1\\,m\\,s$^{-1}$", float(_w.cdf(1.0)),
+      lambda v: f"{pct(v)}\\% of these wind speeds lie below\n1\\,m\\,s$^{{-1}}$")
+_rs = np.random.RandomState(0)
+_X = _rs.uniform(-200, 200, (10 ** 6, 3))
+_osc = np.sin(2 * _X[:, 0]) * np.cos(2 * _X[:, 1]) + np.exp(-_X[:, 2] ** 2)
+_share = _osc.var() / BENCHMARKS["physics"]().evaluate(_X).var()
+check_true("bowl: oscillatory terms carry about 1e-8 of the variance", 5e-9 < _share < 5e-8)
+check_true("bowl: text quotes about 10^-8", "all but about\n$10^{-8}$ of the output variance" in TEXT[F])
 # ── research plan, Tier 2 (results/journal/completion.json) ──────────────
 F = "journal_results_coverage.tex"
 V = CP["vector"]

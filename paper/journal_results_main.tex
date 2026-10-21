@@ -13,9 +13,9 @@ confidence intervals.
 \subsection{GP specification and variable transformation}
 Estimating the kernel amplitude and one length scale per input (Mat\'ern ARD
 versus the original kernel) reduced the nRMSE on eight of the eleven
-analytical models, by factors of 0.14 (physics) to 0.71 (piston), and did
+analytical models, by factors of 0.14 (bowl) to 0.71 (piston), and did
 not change it on the plume (both input models) and Ishigami models, where neither kernel can resolve the response
-with 20 runs. On the physics model the original kernel, with its amplitude
+with 20 runs. On the bowl model the original kernel, with its amplitude
 fixed at the variance of the standardised output, cannot represent a
 quadratic bowl whose values far exceed one standard deviation and reverts
 towards the mean between runs. Estimating the amplitude alone reduced the
@@ -30,7 +30,7 @@ after the Holm adjustment. The GP then interpolates a nearly additive function
 of the log inputs, which is what products and power laws such as the
 plume, borehole and OTL formulas become.
 
-Adding a quadratic trend to the GP reduced the nRMSE on the physics model
+Adding a quadratic trend to the GP reduced the nRMSE on the bowl model
 by a factor of 400, to the level of the sparse PCE, and changed it by
 less than 0.5\% on nine of the other ten models. The exception is the OTL
 circuit with 20 inputs, where the trend made the GP 1.6 to 8 times worse in
@@ -46,14 +46,14 @@ by the selection step, not a default.
 uniform inputs, our sparse PCE matched that of OpenTURNS~\cite{baudin2017}
 on the same designs (median ratio of nRMSE 0.98--1.00, equivalent within
 $\pm20\%$ on all six), and the Mat\'ern GP matched OpenTURNS' GP on five of
-them (0.95--1.00). On the physics model the OpenTURNS GP was 9.2 times more
+them (0.95--1.00). On the bowl model the OpenTURNS GP was 9.2 times more
 accurate. The cause is the upper end of the amplitude search range, $10^3$
 in standardised output units, which the estimated amplitude reached in
 nearly every design on that model; among all models and specifications it
 was reached elsewhere only by the log-scale GP on the CFD case (3 of 6
 designs checked), where widening the range changed the median nRMSE from
 0.080 to 0.077. With the range widened to $10^6$, the median nRMSE on the
-physics model fell from 0.033 to 0.00097 for the GP with estimated
+bowl model fell from 0.033 to 0.00097 for the GP with estimated
 amplitude, from 0.036 to 0.0022 with ARD and from 0.079 to 0.013 for the
 Mat\'ern ARD GP. The pre-specified range thus understates the gain from
 estimating the amplitude on this model, about 600-fold rather than
@@ -68,7 +68,7 @@ trend, was not more accurate than the candidate chosen by LOO error on any
 of them.
 
 \subsection{Sparse PCE and committees}
-Sparse PCE matched the trend GP on the physics model and the Mat\'ern GP on
+Sparse PCE matched the trend GP on the bowl model and the Mat\'ern GP on
 the Ishigami model, and was 1.2 to 3.8 times worse than the GP on the other
 nine models; with 20 runs, the corrected LOO error selects low-degree
 expansions that cannot follow the borehole, OTL and flood responses as
@@ -81,17 +81,17 @@ The CV-weighted committee was never better than the GP with a quadratic
 trend on the same design. It tied on six models and was 1.5 to 2.4 times
 worse on the other five: the borehole (both input models), OTL, wing weight
 and flood models. Its
-advantage on the physics model in the earlier analysis is entirely that of
+advantage on the bowl model in the earlier analysis is entirely that of
 its degree-2 PCE member, which the trend GP reproduces (ratio 1.00). CV
 weighting remained necessary for a committee: it was never worse than
 uniform averaging and better on seven models, by up to three orders of
-magnitude on the physics model, where uniform averaging dilutes the exact
+magnitude on the bowl model, where uniform averaging dilutes the exact
 member with poor ones.
 
 \subsection{Adaptive and targeted designs}
 Space-filling adaptive designs gave no consistent gain at $N=20$. Adding
 runs at the largest GP posterior SD never changed the nRMSE significantly
-(ratios 0.86--1.22). The adaptive committee helped on the physics, borehole,
+(ratios 0.86--1.22). The adaptive committee helped on the bowl, borehole,
 OTL, wing weight and 20-input OTL models (0.60--0.80) and hurt on the
 plume model (1.25), where its estimate of $P(C>\mathrm{IDLH})$ was off by a median of 0.17, against 0.02
 for the passive committee. The spectral criterion UEigV was never better
@@ -168,7 +168,7 @@ best candidate in hindsight on the eleven analytical models, and was the best
 candidate itself in 27--77\% of seeds; the largest shortfalls were on the
 Ishigami and plume models, where several candidates are almost equally
 poor or equally good. Relative to always using the Mat\'ern GP, the
-selection reduced the nRMSE by a factor of 500 on the physics model (where
+selection reduced the nRMSE by a factor of 500 on the bowl model (where
 it chose the sparse PCE or the trend GP), by factors of 0.12--0.84 on the
 models with positive outputs (choosing a log-scale GP in most seeds), and
 left it unchanged on the flood and Ishigami models. On the 20-input model it
@@ -190,14 +190,14 @@ specifications is stable: the original kernel stays the worst GP at every
 budget, and the benefit of the log scale grows with $N$, from factors of
 0.62--1.00 at $N=10$ to 0.10--0.48 at $N=80$ on the six positive models,
 because the transformed response is smooth enough to be learned to high
-accuracy once the runs resolve it. Sparse PCE remains best on the physics
+accuracy once the runs resolve it. Sparse PCE remains best on the bowl
 model at every budget (at $N=10$ it already has an nRMSE of
 $1.6\times10^{-4}$, against 0.97 for the Mat\'ern GP) and worse than the GP
 on most of the others.
 
 The verdict on space-filling adaptive designs depends on the budget. At
 $N=10$ and 20, adding runs at the largest GP posterior SD never helped
-significantly. At $N=40$ and 80 it reduced the nRMSE on the physics
+significantly. At $N=40$ and 80 it reduced the nRMSE on the bowl
 (0.22--0.43), borehole (0.77), OTL (0.75 at $N=80$), piston (0.81--0.87),
 wing weight (0.81 at $N=40$) and 20-input OTL (0.83 at $N=80$) models,
 which are smooth and on which the GP's uncertainty is informative once its
@@ -206,7 +206,7 @@ hyperparameters are well determined, but increased it on the plume model
 that the posterior SD does not single out, and on the wing weight model at
 $N=80$ (1.93). The
 adaptive committee was better than the passive one at $N=40$ on the
-physics and borehole models (0.94 and 0.50), no different elsewhere, and
+bowl and borehole models (0.94 and 0.50), no different elsewhere, and
 no better at $N=10$.
 Adaptive selection is thus worth considering when the budget is several
 times the number of inputs, but not as a remedy for very small budgets,

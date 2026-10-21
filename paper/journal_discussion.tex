@@ -21,7 +21,7 @@ campaigns are kept in the repository~\repocite.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=0.62\textwidth]{fig_domain_sweep}
-\caption{Physics model on $[-h,h]^3$, $N=20$: median nRMSE over 30 seeds
+\caption{Bowl model on $[-h,h]^3$, $N=20$: median nRMSE over 30 seeds
 against the domain half-width, for the GP with the original kernel
 (amplitude fixed), the Mat\'ern ARD GP with amplitude, and the committee of
 the earlier analysis. Open markers: Schwefel function on $[-500,500]^3$.
@@ -73,7 +73,7 @@ design. The LOO residuals describe only the errors that the runs can
 reveal: a local feature that no run hits goes unnoticed
 (Section~\ref{sec:res-robust}), and an error at the level of the
 observation noise, shared by all LOO fits, is not seen by the jackknife.
-The hyperparameter search ranges were fixed in advance; on the physics
+The hyperparameter search ranges were fixed in advance; on the bowl
 model the amplitude reached the upper end of its range, which understates
 the GP there (Section~\ref{sec:res-main}). Several output quantities were
 studied on one model only; there, resampling the LOO residual vectors run
