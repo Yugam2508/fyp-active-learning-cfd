@@ -22,15 +22,17 @@ This repository is a **research record, including negative results.**
 | The same, anonymized for *Measurement* (Elsevier), with title page, cover letter and highlights | `paper/measurement_*.tex` | items marked [CONFIRM] need the authors' decision |
 
 The research plan that defines when the study is complete, with thresholds
-fixed before the runs, is `docs/RESEARCH_PLAN.md`.
+fixed before the runs, is `docs/RESEARCH_PLAN.md`; whether each test model
+and its input ranges are physically realistic is checked in
+`docs/TEST_MODEL_REALISM.md`.
 
 Findings (30 paired seeds per strategy; see the journal manuscript for
 effect sizes with bootstrap intervals and Holm-adjusted tests):
 
 | Claim | Status | Evidence |
 |---|---|---|
-| Passive GP surrogates fail on large domains (earlier analysis) | **withdrawn — artefact** | the original kernel fixed the amplitude; estimating it: physics nRMSE 0.59 → 0.033 (and lower with a wider search range) |
-| GP specification (amplitude, ARD, quadratic trend, log scale for positive outputs) is first-order | supported | trend 400× on physics; log scale up to 9× on positive models, 6× on the CFD case; confirmed against OpenTURNS |
+| Passive GP surrogates fail on large domains (earlier analysis) | **withdrawn — artefact** | the original kernel fixed the amplitude; estimating it: nRMSE on the FYP's "physics" benchmark (the bowl model of the papers) 0.59 → 0.033, and lower with a wider search range |
+| GP specification (amplitude, ARD, quadratic trend, log scale for positive outputs) is first-order | supported | trend 400× on the bowl model; log scale up to 9× on positive models, 6× on the CFD case; confirmed against OpenTURNS |
 | Choosing the surrogate by leave-one-out (LOO) error works without the true model | supported from 20 runs | within 4.4 % of the best candidate in hindsight at N = 20–80; up to 37 % worse at N = 10 |
 | A committee, or stacking of the candidates, beats the selected surrogate | **not supported** | committee never better than a GP with trend; stacking 0.96–1.17 × the selection |
 | Variance-driven adaptive designs (GP-SD, IMSE) help | **budget-dependent** | none at N = 20; at N = 40 IMSE better than passive on 6 of 9 smooth models |

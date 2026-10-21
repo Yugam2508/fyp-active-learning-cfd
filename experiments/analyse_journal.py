@@ -37,7 +37,7 @@ B_BOOT = 10_000
 
 BENCHES = ["physics", "plume", "borehole", "ishigami", "otl", "piston",
            "wingweight", "otl20", "borehole_gum", "plume_gum", "flood", "cfd"]
-LABEL = {"physics": "Physics", "plume": "Plume", "borehole": "Borehole",
+LABEL = {"physics": "Bowl", "plume": "Plume", "borehole": "Borehole",
          "ishigami": "Ishigami", "otl": "OTL circuit", "piston": "Piston",
          "borehole_gum": "Borehole (GUM inputs)", "plume_gum": "Plume (GUM inputs)",
          "flood": "Flood", "cfd": "CFD dispersion", "wingweight": "Wing weight",
@@ -302,7 +302,7 @@ def ptxt(p):
     return f"{p:.1g}" if p < 0.01 else f"{p:.2f}"
 
 
-SHORT = {"physics": "Phys.", "plume": "Plume", "borehole": "Bore.", "ishigami": "Ishi.",
+SHORT = {"physics": "Bowl", "plume": "Plume", "borehole": "Bore.", "ishigami": "Ishi.",
          "otl": "OTL", "piston": "Pist.", "borehole_gum": "Bore.G", "plume_gum": "Plume.G",
          "flood": "Flood", "cfd": "CFD", "wingweight": "Wing", "otl20": "OTL20"}
 

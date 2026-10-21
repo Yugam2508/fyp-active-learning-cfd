@@ -353,7 +353,7 @@ def fig_strategies():
             ("pas_ard:cv",   "Committee, CV-weighted"),
             ("al_var:cv",    "Committee, adaptive (var.)"),
             ("al_ueigv:cv",  "Committee, adaptive (UEigV)")]
-    benches = [("physics", "Physics", BLUE, "o"), ("plume", "Plume", ORANGE, "s"),
+    benches = [("physics", "Bowl", BLUE, "o"), ("plume", "Plume", ORANGE, "s"),
                ("borehole", "Borehole", "#1baf7a", "D"),
                ("ishigami", "Ishigami", "#eda100", "^")]
     fig, ax = plt.subplots(figsize=(COL_W - 0.75, 2.9))

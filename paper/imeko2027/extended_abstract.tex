@@ -88,7 +88,8 @@ surrogate's own error can be estimated from the training runs alone.
 \section{Proposed contribution}
 \subsection{Test models}
 Four models with uniform input distributions are used (Table~\ref{tab:models}).
-\emph{Physics} is the benchmark of the earlier analysis; its dominant
+\emph{Bowl} is the synthetic, dimensionless benchmark of the earlier
+analysis (there called \emph{physics}) on its large domain; its dominant
 quadratic term lies exactly in the class of one committee member.
 \emph{Plume} is the ground-level concentration of a continuous ammonia
 release from a Gaussian plume model with Briggs rural dispersion coefficients
@@ -110,7 +111,7 @@ experiments. No committee member matches the last three.
 \toprule
 Model & $d$ & Inputs; output\\
 \midrule
-Physics  & 3 & $[-200,200]^3$\\
+Bowl  & 3 & $[-200,200]^3$\\
 Plume    & 5 & release, wind, height, distance, offset;\\
          &   & concentration in \si{\milli\gram\per\cubic\metre}\\
 Borehole & 8 & standard ranges; flow in \si{\cubic\metre\per\year}\\
@@ -177,7 +178,7 @@ Code and every per-seed record are openly available~\cite{repo}.
 \section{Preliminary results and potential applications}
 \subsection{Kernel specification and variable transformation}
 Table~\ref{tab:kernel} shows that the specification of a single GP matters
-more than any other choice examined. On the physics model the original kernel
+more than any other choice examined. On the bowl model the original kernel
 reaches 0.59, close to a constant predictor; estimating the amplitude alone
 reduces this to 0.033 (all 30 seeds improve, adjusted $p<10^{-6}$). The
 catastrophic GP failure reported earlier is therefore a specification
@@ -195,7 +196,7 @@ ten-runs-per-input guideline~\cite{loeppky2009} would ask for 30 runs.
 \begin{figure}[tb]
 \centering
 \includegraphics[width=\columnwidth]{fig_domain_sweep}
-\caption{Physics model on $[-h,h]^3$: median normalised RMSE over 30 seeds
+\caption{Bowl model on $[-h,h]^3$: median normalised RMSE over 30 seeds
 against the domain half-width. Open markers: Schwefel function on
 $[-500,500]^3$. Dashed line: constant predictor.}
 \label{fig:dom}
@@ -231,17 +232,17 @@ constant predictor. Committees use GP members with amplitude and ARD.}
 
 \subsection{Committees and adaptive runs}
 Fig.~\ref{fig:strategies} compares all strategies. A committee outperforms
-the best single GP only on the physics model, by more than two orders of
+the best single GP only on the bowl model, by more than two orders of
 magnitude, and only because the degree-2 PCE represents its dominant term
 exactly; the weights then concentrate on that member. On the borehole model
 the CV-weighted committee is 2.3 times worse than the Mat\'ern-5/2 GP on the
 same design (0 of 30 seeds better), and on the plume and Ishigami models the
-two tie. Uniform averaging was worse than CV weighting on the physics (by a
+two tie. Uniform averaging was worse than CV weighting on the bowl (by a
 factor of about 2000) and borehole models (adjusted $p\le0.002$) and never
 better. Within the designs tested (five initial runs, 15 adaptive runs chosen
 by posterior SD, committee variance or UEigV), adaptive selection gave no
 consistent benefit. For the single GP it was never significantly better. For
-the committee it helped on the physics and borehole models (median ratios
+the committee it helped on the bowl and borehole models (median ratios
 0.80 and 0.61), hurt on the plume (1.25, adjusted $p=0.005$) and made no
 difference on the Ishigami function. UEigV was never better than variance
 acquisition after adjustment, and worse on the borehole model by a factor of
@@ -257,7 +258,7 @@ best per column.}
 \label{tab:prop}
 \begin{tabular}{l rrr rrr rrr rrr}
 \toprule
-& \multicolumn{3}{c}{Physics} & \multicolumn{3}{c}{Plume} &
+& \multicolumn{3}{c}{Bowl} & \multicolumn{3}{c}{Plume} &
 \multicolumn{3}{c}{Borehole} & \multicolumn{3}{c}{Ishigami}\\
 \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}\cmidrule(lr){11-13}
 Strategy & mean & $y_{0.95}$ & $P$ & mean & $y_{0.95}$ & $P$ &
@@ -276,7 +277,7 @@ Committee, adaptive & \textbf{0.21} & \textbf{0.41} & \textbf{0.15} & 55.1 & 20.
 Table~\ref{tab:prop} gives the validation errors of the quantities a GUM~S1
 evaluation reports, and they follow the normalised RMSE. With the best
 strategy for each model, the 95th percentile is within \qty{0.41}{\percent}
-(physics), \qty{6.9}{\percent} (plume), \qty{0.60}{\percent} (borehole) and
+(bowl), \qty{6.9}{\percent} (plume), \qty{0.60}{\percent} (borehole) and
 \qty{16}{\percent} (Ishigami) of the reference, and $P(Y>y_{0.95})$ within
 0.0015, 0.0076, 0.0018 and 0.029 of 0.05. At the fixed IDLH threshold
 (reference $P(C>\mathrm{IDLH})=0.123$), the log-variable GP has a median
@@ -333,7 +334,7 @@ jackknife).}
 \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
 Model & GP & J+ & exact & +LOO & GP & J\\
 \midrule
-Physics  & 98 & 97 & 92 & 95 &  90 &  87\\
+Bowl  & 98 & 97 & 92 & 95 &  90 &  87\\
 Plume    & 71 & 97 & 94 & 95 &  77 &  93\\
 Borehole & 97 & 97 & 95 & 95 &  97 & 100\\
 Ishigami & 71 & 97 & 86 & 97 &  73 &  83\\

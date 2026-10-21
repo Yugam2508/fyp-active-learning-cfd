@@ -114,10 +114,14 @@ from the runs. Each variant is assessed in the same three ways.
 \label{sec:models}
 Table~\ref{tab:models} lists the twelve models. Eight have independent uniform
 inputs, three have the non-uniform input distributions of a GUM-type
-evaluation, and one is a CFD simulation. The physics model is the benchmark
-of the earlier analysis; its quadratic term carries practically all the
-output variance on $[-200,200]^3$ and lies in the class of a degree-2
-polynomial. The plume model is the ground-level concentration of a
+evaluation, and one is a CFD simulation. The bowl model,
+$f=\sin(2x_1)\cos(2x_2)+e^{-x_3^2}+0.2\lVert\mathbf x\rVert^2$, is the
+benchmark of the earlier analysis, where it was called the physics
+benchmark: a synthetic, dimensionless function on the domain
+$[-200,200]^3$, which the earlier analysis chose as its case of a large
+domain with a large output range. Its quadratic term carries all but about
+$10^{-8}$ of the output variance there, so it lies practically in the class
+of a degree-2 polynomial. The plume model is the ground-level concentration of a
 continuous ammonia release from a Gaussian plume with ground reflection,
 \begin{equation}
 C=\frac{10^3\,Q}{2\uppi\,u\,\sigma_y\sigma_z}
@@ -126,6 +130,8 @@ C=\frac{10^3\,Q}{2\uppi\,u\,\sigma_y\sigma_z}
 \end{equation}
 with Briggs rural coefficients for neutral stability,
 $\sigma_y=0.08x(1+10^{-4}x)^{-1/2}$ and $\sigma_z=0.06x(1+1.5\times10^{-3}x)^{-1/2}$.
+It treats the release as a passive gas, a simplification for pressurised
+liquid ammonia, which can form a cloud denser than air near the source.
 The borehole~\cite{harper1983,morris1993,vlse},
 Ishigami~\cite{vlse}, OTL circuit and piston~\cite{benari2007} and wing
 weight~\cite{forrester2008} functions are standard test functions for
@@ -141,7 +147,14 @@ Gupta~\cite{harper1983} (normal borehole radius, lognormal radius of
 influence) and the plume model with GUM-type inputs: lognormal emission rate
 (median 500\,g\,s$^{-1}$, geometric SD 2), a Weibull wind speed (shape 2,
 scale 4\,m\,s$^{-1}$, truncated to $[0.5,15]$\,m\,s$^{-1}$) and a normal
-crosswind offset (SD 15\,m). All formulas and input models were checked
+crosswind offset (SD 15\,m); 4.6\% of these wind speeds lie below
+1\,m\,s$^{-1}$, where Gaussian plume models become unreliable. The
+borehole, OTL circuit, piston, wing weight and flood models have physical
+inputs with the ranges and distributions of their sources, and the plume
+and CFD models physically plausible ones; the bowl, Ishigami and bump
+models and the inactive inputs of the 20-input OTL model are synthetic,
+chosen for their mathematical character. As test models, all are used as
+stated. All formulas and input models were checked
 against the independent implementation in UQTestFuns~\cite{wicaksono2023}
 (relative differences below $10^{-10}$ for outputs and $10^{-6}$ for
 marginal quantiles).
@@ -193,20 +206,20 @@ and are reported separately.}
 \toprule
 Model & $d$ & Inputs & Character\\
 \midrule
-Physics & 3 & U$[-200,200]^3$, noise SD 0.1 & quadratic bowl plus small oscillatory terms\\
+Bowl & 3 & U$[-200,200]^3$, noise SD 0.1 & synthetic; quadratic bowl plus small oscillatory terms\\
 Plume & 5 & U: $Q$, $u$, $H$, $x$, $y$ & multiplicative, positive, heavy right tail\\
 Borehole & 8 & U, ranges of~\cite{vlse} & smooth, multiplicative, positive\\
-Ishigami & 3 & U$[-\uppi,\uppi]^3$ & strongly non-linear, interactions\\
+Ishigami & 3 & U$[-\uppi,\uppi]^3$ & synthetic; strongly non-linear, interactions\\
 OTL circuit & 6 & U~\cite{benari2007} & smooth, nearly additive, positive\\
 Piston & 7 & U~\cite{benari2007} & non-linear, positive\\
 Wing weight & 10 & U~\cite{forrester2008} & smooth, multiplicative, positive\\
-OTL circuit, 20 inputs & 20 & U, 14 inactive~\cite{moon2010} & as OTL circuit; sparse\\
+OTL circuit, 20 inputs & 20 & U, 14 inactive~\cite{moon2010} & as OTL circuit; 14 synthetic inactive inputs\\
 Borehole (GUM) & 8 & normal, lognormal, uniform~\cite{harper1983} & as borehole; input tails\\
 Plume (GUM) & 5 & lognormal, truncated Weibull, uniform, normal & as plume; heavier input and output tails\\
 Flood & 8 & truncated Gumbel and normal, triangular, uniform~\cite{iooss2015} & smooth, lower-tail threshold\\
 CFD dispersion & 6 & U: $U_{\mathrm{ref}}$, $z_0$, $H_{\mathrm b}$, $Sc_t$, $x_r$, $Q$ & RANS solution: wake recirculation, numerical error\\
 \midrule
-Bump (failure mode) & 4 & U$[0,1]^4$ & smooth part plus a narrow bump that the runs can miss\\
+Bump (failure mode) & 4 & U$[0,1]^4$ & synthetic; smooth part plus a narrow bump that the runs can miss\\
 Borehole, dependent & 8 & as Borehole (GUM), Gaussian copula & dependent inputs\\
 Plume, 3 receptors & 5 & as Plume & vector output (GUM~S2)\\
 \bottomrule
