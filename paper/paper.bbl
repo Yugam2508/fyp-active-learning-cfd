@@ -1,0 +1,273 @@
+\begin{thebibliography}{10}
+
+\bibitem{jcgm100}
+{JCGM}, ``Evaluation of measurement data -- {G}uide to the expression of
+  uncertainty in measurement.'' JCGM 100:2008, 2008.
+
+\bibitem{jcgm101}
+{JCGM}, ``Evaluation of measurement data -- {S}upplement 1 to the ``{G}uide to
+  the expression of uncertainty in measurement'' -- {P}ropagation of
+  distributions using a {M}onte {C}arlo method.'' JCGM 101:2008, 2008.
+
+\bibitem{cox2006}
+M.~G. Cox and B.~R.~L. Siebert, ``The use of a {M}onte {C}arlo method for
+  evaluating uncertainty and expanded uncertainty,'' {\em Metrologia}, vol.~43,
+  no.~4, pp.~S178--S188, 2006.
+
+\bibitem{harris2014}
+P.~M. Harris and M.~G. Cox, ``On a {M}onte {C}arlo method for measurement
+  uncertainty evaluation and its implementation,'' {\em Metrologia}, vol.~51,
+  no.~4, pp.~S176--S182, 2014.
+
+\bibitem{tan2017}
+W.~Tan, H.~Du, L.~Liu, T.~Su, and X.~Liu, ``Experimental and numerical study of
+  ammonia leakage and dispersion in a food factory,'' {\em J. Loss Prev.
+  Process Ind.}, vol.~47, pp.~129--139, 2017.
+
+\bibitem{heidenreich2017}
+S.~Heidenreich, H.~Gross, M.~B{\"a}r, and L.~Wright, ``Uncertainty propagation
+  in computationally expensive models: a survey of sampling methods and
+  application to scatterometry,'' {\em Measurement}, vol.~97, pp.~79--87, 2017.
+
+\bibitem{ohagan2006}
+A.~O'Hagan, ``Bayesian analysis of computer code outputs: a tutorial,'' {\em
+  Reliab. Eng. Syst. Saf.}, vol.~91, no.~10, pp.~1290--1300, 2006.
+
+\bibitem{wang2022}
+C.~Wang, X.~Qiang, M.~Xu, and T.~Wu, ``Recent advances in surrogate modeling
+  methods for uncertainty quantification and propagation,'' {\em Symmetry},
+  vol.~14, no.~6, p.~1219, 2022.
+
+\bibitem{sacks1989}
+J.~Sacks, W.~J. Welch, T.~J. Mitchell, and H.~P. Wynn, ``Design and analysis of
+  computer experiments,'' {\em Stat. Sci.}, vol.~4, no.~4, pp.~409--423, 1989.
+
+\bibitem{rw2006}
+C.~E. Rasmussen and C.~K.~I. Williams, {\em Gaussian Processes for Machine
+  Learning}.
+\newblock Cambridge, MA: MIT Press, 2006.
+
+\bibitem{kennedy2001}
+M.~C. Kennedy and A.~O'Hagan, ``Bayesian calibration of computer models,'' {\em
+  J. R. Stat. Soc. B}, vol.~63, no.~3, pp.~425--464, 2001.
+
+\bibitem{loeppky2009}
+J.~L. Loeppky, J.~Sacks, and W.~J. Welch, ``Choosing the sample size of a
+  computer experiment: a practical guide,'' {\em Technometrics}, vol.~51,
+  no.~4, pp.~366--376, 2009.
+
+\bibitem{chen2016}
+H.~Chen, J.~L. Loeppky, J.~Sacks, and W.~J. Welch, ``Analysis methods for
+  computer experiments: how to assess and what counts?,'' {\em Stat. Sci.},
+  vol.~31, no.~1, pp.~40--60, 2016.
+
+\bibitem{xiu2002}
+D.~Xiu and G.~E. Karniadakis, ``The {W}iener--{A}skey polynomial chaos for
+  stochastic differential equations,'' {\em SIAM J. Sci. Comput.}, vol.~24,
+  no.~2, pp.~619--644, 2002.
+
+\bibitem{sudret2008}
+B.~Sudret, ``Global sensitivity analysis using polynomial chaos expansions,''
+  {\em Reliab. Eng. Syst. Saf.}, vol.~93, no.~7, pp.~964--979, 2008.
+
+\bibitem{efron2004}
+B.~Efron, T.~Hastie, I.~Johnstone, and R.~Tibshirani, ``Least angle
+  regression,'' {\em The Annals of Statistics}, vol.~32, no.~2, pp.~407--451,
+  2004.
+
+\bibitem{blatman2011}
+G.~Blatman and B.~Sudret, ``Adaptive sparse polynomial chaos expansion based on
+  least angle regression,'' {\em Journal of Computational Physics}, vol.~230,
+  no.~6, pp.~2345--2367, 2011.
+
+\bibitem{owen2017}
+N.~E. Owen, P.~Challenor, P.~P. Menon, and S.~Bennani, ``Comparison of
+  surrogate-based uncertainty quantification methods for computationally
+  expensive simulators,'' {\em SIAM/ASA Journal on Uncertainty Quantification},
+  vol.~5, no.~1, pp.~403--435, 2017.
+
+\bibitem{goel2007}
+T.~Goel, R.~T. Haftka, W.~Shyy, and N.~V. Queipo, ``Ensemble of surrogates,''
+  {\em Struct. Multidiscip. Optim.}, vol.~33, no.~3, pp.~199--216, 2007.
+
+\bibitem{viana2009}
+F.~A.~C. Viana, R.~T. Haftka, and V.~Steffen, ``Multiple surrogates: how
+  cross-validation errors can help us to obtain the best predictor,'' {\em
+  Struct. Multidiscip. Optim.}, vol.~39, no.~4, pp.~439--457, 2009.
+
+\bibitem{ferson1996}
+S.~Ferson and L.~R. Ginzburg, ``Different methods are needed to propagate
+  ignorance and variability,'' {\em Reliab. Eng. Syst. Saf.}, vol.~54,
+  pp.~133--144, 1996.
+
+\bibitem{gramacy2009}
+R.~B. Gramacy and H.~K.~H. Lee, ``Adaptive design and analysis of supercomputer
+  experiments,'' {\em Technometrics}, vol.~51, no.~2, pp.~130--145, 2009.
+
+\bibitem{lin2024}
+Z.~Lin, S.~Trivedi, and J.~Sun, ``Generating with confidence: uncertainty
+  quantification for black-box large language models,'' {\em Trans. Mach.
+  Learn. Res.}, 2024.
+\newblock arXiv:2305.19187.
+
+\bibitem{echard2011}
+B.~Echard, N.~Gayton, and M.~Lemaire, ``{AK-MCS}: an active learning
+  reliability method combining {K}riging and {M}onte {C}arlo simulation,'' {\em
+  Structural Safety}, vol.~33, no.~2, pp.~145--154, 2011.
+
+\bibitem{heidenreich2015}
+S.~Heidenreich, H.~Gross, and M.~B{\"a}r, ``Bayesian approach to the
+  statistical inverse problem of scatterometry: comparison of three surrogate
+  models,'' {\em International Journal for Uncertainty Quantification}, vol.~5,
+  no.~6, pp.~511--526, 2015.
+
+\bibitem{farchmin2020}
+N.~Farchmin, M.~Hammerschmidt, P.-I. Schneider, M.~Wurm, B.~Bodermann,
+  M.~B{\"a}r, and S.~Heidenreich, ``Efficient {B}ayesian inversion for shape
+  reconstruction of lithography masks,'' {\em Journal of Micro/Nanolithography,
+  MEMS, and MOEMS}, vol.~19, no.~2, p.~024001, 2020.
+
+\bibitem{angelopoulos2023}
+A.~N. Angelopoulos and S.~Bates, ``Conformal prediction: a gentle
+  introduction,'' {\em Found. Trends Mach. Learn.}, vol.~16, no.~4,
+  pp.~494--591, 2023.
+
+\bibitem{barber2021}
+R.~F. Barber, E.~J. Cand{\`e}s, A.~Ramdas, and R.~J. Tibshirani, ``Predictive
+  inference with the jackknife+,'' {\em The Annals of Statistics}, vol.~49,
+  no.~1, pp.~486--507, 2021.
+
+\bibitem{vlse}
+S.~Surjanovic and D.~Bingham, ``Virtual library of simulation experiments: Test
+  functions and datasets.'' Simon Fraser University,
+  \url{https://www.sfu.ca/~ssurjano/}.
+\newblock Accessed 16 October 2026.
+
+\bibitem{wicaksono2023}
+D.~Wicaksono and M.~Hecht, ``{UQTestFuns}: a {P}ython3 library of uncertainty
+  quantification ({UQ}) test functions,'' {\em Journal of Open Source
+  Software}, vol.~8, no.~90, p.~5671, 2023.
+
+\bibitem{repo}
+Y.~J. Vora and W.~H. Ng, ``Surrogate models for {GUM} {S}upplement 1
+  uncertainty propagation with small budgets of model runs: code, per-seed
+  records and figure scripts.''
+  \url{https://github.com/Yugam2508/fyp-active-learning-cfd}, 2026.
+
+\bibitem{arlot2010}
+S.~Arlot and A.~Celisse, ``A survey of cross-validation procedures for model
+  selection,'' {\em Statistics Surveys}, vol.~4, pp.~40--79, 2010.
+
+\bibitem{vovk2019}
+V.~Vovk, J.~Shen, V.~Manokhin, and M.-g. Xie, ``Nonparametric predictive
+  distributions based on conformal prediction,'' {\em Machine Learning},
+  vol.~108, no.~3, pp.~445--474, 2019.
+
+\bibitem{foremanmackey2013}
+D.~Foreman-Mackey, D.~W. Hogg, D.~Lang, and J.~Goodman, ``emcee: The {MCMC}
+  hammer,'' {\em Publications of the Astronomical Society of the Pacific},
+  vol.~125, no.~925, pp.~306--312, 2013.
+
+\bibitem{harper1983}
+W.~V. Harper and S.~K. Gupta, ``Sensitivity/uncertainty analysis of a borehole
+  scenario comparing {L}atin hypercube sampling and deterministic sensitivity
+  approaches,'' Tech. Rep. BMI/ONWI-516, Office of Nuclear Waste Isolation,
+  Battelle Memorial Institute, Columbus, OH, 1983.
+
+\bibitem{morris1993}
+M.~D. Morris, T.~J. Mitchell, and D.~Ylvisaker, ``Bayesian design and analysis
+  of computer experiments: use of derivatives in surface prediction,'' {\em
+  Technometrics}, vol.~35, no.~3, pp.~243--255, 1993.
+
+\bibitem{benari2007}
+E.~N. Ben-Ari and D.~M. Steinberg, ``Modeling data from computer experiments:
+  an empirical comparison of kriging with {MARS} and projection pursuit
+  regression,'' {\em Quality Engineering}, vol.~19, pp.~327--338, 2007.
+
+\bibitem{forrester2008}
+A.~I.~J. Forrester, A.~S{\'o}bester, and A.~J. Keane, {\em Engineering Design
+  via Surrogate Modelling: A Practical Guide}.
+\newblock Chichester: Wiley, 2008.
+
+\bibitem{moon2010}
+H.~Moon, {\em Design and Analysis of Computer Experiments for Screening Input
+  Variables}.
+\newblock PhD thesis, The Ohio State University, 2010.
+
+\bibitem{iooss2015}
+B.~Iooss and P.~Lema{\^i}tre, ``A review on global sensitivity analysis
+  methods,'' in {\em Uncertainty Management in Simulation-Optimization of
+  Complex Systems} (G.~Dellino and C.~Meloni, eds.), vol.~59 of {\em Operations
+  Research/Computer Science Interfaces Series}, pp.~101--122, Boston, MA:
+  Springer, 2015.
+
+\bibitem{jcgm102}
+{BIPM, IEC, IFCC, ILAC, ISO, IUPAC, IUPAP and OIML}, ``Evaluation of
+  measurement data -- {S}upplement 2 to the ``{G}uide to the expression of
+  uncertainty in measurement'' -- {E}xtension to any number of output
+  quantities.'' Joint Committee for Guides in Metrology, JCGM 102:2011, 2011.
+
+\bibitem{weller1998}
+H.~G. Weller, G.~Tabor, H.~Jasak, and C.~Fureby, ``A tensorial approach to
+  computational continuum mechanics using object-oriented techniques,'' {\em
+  Computers in Physics}, vol.~12, no.~6, pp.~620--631, 1998.
+
+\bibitem{richards1993}
+P.~J. Richards and R.~P. Hoxey, ``Appropriate boundary conditions for
+  computational wind engineering models using the $k$-$\epsilon$ turbulence
+  model,'' {\em Journal of Wind Engineering and Industrial Aerodynamics},
+  vol.~46--47, pp.~145--153, 1993.
+
+\bibitem{blocken2007}
+B.~Blocken, T.~Stathopoulos, and J.~Carmeliet, ``{CFD} simulation of the
+  atmospheric boundary layer: wall function problems,'' {\em Atmospheric
+  Environment}, vol.~41, no.~2, pp.~238--252, 2007.
+
+\bibitem{tominaga2007}
+Y.~Tominaga and T.~Stathopoulos, ``Turbulent {S}chmidt numbers for {CFD}
+  analysis with various types of flowfield,'' {\em Atmospheric Environment},
+  vol.~41, no.~37, pp.~8091--8099, 2007.
+
+\bibitem{breiman1996}
+L.~Breiman, ``Stacked regressions,'' {\em Machine Learning}, vol.~24, no.~1,
+  pp.~49--64, 1996.
+
+\bibitem{morris1995}
+M.~D. Morris and T.~J. Mitchell, ``Exploratory designs for computational
+  experiments,'' {\em Journal of Statistical Planning and Inference}, vol.~43,
+  no.~3, pp.~381--402, 1995.
+
+\bibitem{sobol1967}
+I.~M. Sobol', ``On the distribution of points in a cube and the approximate
+  evaluation of integrals,'' {\em USSR Computational Mathematics and
+  Mathematical Physics}, vol.~7, no.~4, pp.~86--112, 1967.
+
+\bibitem{gneiting2007}
+T.~Gneiting and A.~E. Raftery, ``Strictly proper scoring rules, prediction, and
+  estimation,'' {\em Journal of the American Statistical Association},
+  vol.~102, no.~477, pp.~359--378, 2007.
+
+\bibitem{baudin2017}
+M.~Baudin, A.~Dutfoy, B.~Iooss, and A.-L. Popelin, ``{OpenTURNS}: An industrial
+  software for uncertainty quantification in simulation,'' in {\em Handbook of
+  Uncertainty Quantification} (R.~Ghanem, D.~Higdon, and H.~Owhadi, eds.),
+  pp.~2001--2038, Cham: Springer, 2017.
+
+\bibitem{schobi2015}
+R.~Sch{\"o}bi, B.~Sudret, and J.~Wiart, ``Polynomial-chaos-based {K}riging,''
+  {\em International Journal for Uncertainty Quantification}, vol.~5, no.~2,
+  pp.~171--193, 2015.
+
+\bibitem{celik2008}
+I.~B. Celik, U.~Ghia, P.~J. Roache, C.~J. Freitas, H.~Coleman, and P.~E. Raad,
+  ``Procedure for estimation and reporting of uncertainty due to discretization
+  in {CFD} applications,'' {\em Journal of Fluids Engineering}, vol.~130,
+  no.~7, p.~078001, 2008.
+
+\bibitem{saltelli2010}
+A.~Saltelli, P.~Annoni, I.~Azzini, F.~Campolongo, M.~Ratto, and S.~Tarantola,
+  ``Variance based sensitivity analysis of model output. {D}esign and estimator
+  for the total sensitivity index,'' {\em Computer Physics Communications},
+  vol.~181, no.~2, pp.~259--270, 2010.
+
+\end{thebibliography}

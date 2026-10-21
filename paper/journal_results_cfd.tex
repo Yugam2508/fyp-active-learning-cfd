@@ -1,0 +1,99 @@
+% journal_results_cfd.tex — results on the CFD dispersion case (Section 5.7).
+% Numbers: results/journal/summary.json, results/cfd_reference.json,
+% results/cfd_grid_check.json, results/cfd_iteration_check.json,
+% results/journal/completion.json (cfd_numerics).
+
+\subsection{CFD dispersion case}
+\label{sec:res-cfd}
+\emph{The case.} Fig.~\ref{fig:cfd} shows the flow and concentration field
+for the centre of the input box: the plume is lifted over the building,
+part of it is trapped in a recirculating wake that extends several building
+heights downstream, and the concentration at breathing height is nearly
+uniform inside the wake and decays beyond it. Of the 2900 CFD runs of the
+main study (1550 for the designs and the reference, the rest added by the
+adaptive designs), 80\% met the residual criteria within 4000
+iterations (median 1322
+iterations), as did 80\% of all 8170 runs, those of the further checks
+included; for the others, mostly tall buildings whose steady wake keeps
+the residuals oscillating, the receptor concentration varied by less than
+0.16\% over the last 2000 iterations, so the iteration error is negligible.
+Refining the mesh twice in each direction changed the receptor
+concentration by 0.9--6.5\% (median 3.7\%) in six flow states spread over
+the input box, and a mesh with half the cells in each direction gave values
+between 8.1\% lower and 0.5\% higher. The convergence was oscillatory at 21
+of the 24 combinations of flow state and receptor distance, the standard
+mesh giving the largest value, and at the other three the differences grew
+with refinement. The solutions are therefore not in the asymptotic range,
+where the grid convergence index applies~\cite{celik2008}; estimated from
+the range of the three solutions, the discretisation error of the standard
+mesh is about 6\% (median 5.9\%, at most 8.1\%). It is part of the model
+as defined, as it would be for any production CFD model. (The coarse-mesh
+runs reached the iteration limit without meeting the residual criterion
+of the scalar, but their receptor values changed by less than
+$4\times10^{-5}$ after 1000 iterations.) The reference gives
+a mean of 434\,mg\,m$^{-3}$, an SD of 413\,mg\,m$^{-3}$, a 95th percentile
+of 1252\,mg\,m$^{-3}$ and $P(C>\mathrm{IDLH})=0.673$, with standard
+uncertainties from a bootstrap over the 800 reference runs of 2.3\%,
+3.4\%, 3.3\% and 0.007; validation errors of the propagated quantities
+below about 5\% are therefore not resolved. A second, independent reference
+of 800 runs agreed with the first within 1.8 combined standard
+uncertainties for all four quantities (95th percentile 1192 against
+1252\,mg\,m$^{-3}$, $P(C>\mathrm{IDLH})$ 0.662 against 0.673). Against the
+combined reference of 1600 runs, the 95th percentile from the log-variable
+GP was within 4.3\% (6.9\% against the first reference alone) and
+$P(C>\mathrm{IDLH})$ within 0.004 (0.009), while the errors of the Mat\'ern
+GP hardly changed (18\% and 0.020). Part of the error of the better
+surrogates is therefore that of the reference, and the comparison between
+surrogates does not depend on which reference is used.
+
+\emph{Specification and selection.} The CFD case confirms the analytical
+results (Table~\ref{tab:n20}, last row). Kernel specification did not
+matter (ratio 0.96), but the log scale did: the log-variable GP had a
+median nRMSE of 0.080 against 0.53 for the Mat\'ern GP (ratio 0.17, better
+in all 30 seeds), and a quadratic trend on the log scale reduced it further
+to 0.060 (ratio 0.76). Sparse PCE was 1.4 times worse than the GP on the raw
+scale and 2.3 times on the log scale, and the CV-weighted committee was no
+better than the GP with trend (ratio 1.08). The selection by LOO error
+chose a log-scale GP in all 30 seeds and was within 0.1\% of the best
+candidate in hindsight. With the log-variable GP, the 95th percentile was
+within 6.9\% of the reference and $P(C>\mathrm{IDLH})$ within 0.009, against
+18.5\% and 0.019 for the Mat\'ern GP and 27\% and 0.059 for the committee.
+
+With 10 and 40 runs the picture is the same: the log scale reduced the
+nRMSE of the Mat\'ern GP by factors of 0.58 and 0.094, the GP-SD design made
+no difference (1.02 and 1.10) and sparse PCE remained less accurate than the
+GP (1.21 and 1.45).
+
+\emph{Adaptive designs.} Adding runs at the largest GP posterior SD did not
+change the nRMSE (ratio 0.93), and AK-MCS did not improve
+$P(C>\mathrm{IDLH})$ (ratio 0.94): the IDLH is exceeded in two thirds of the
+cases, so the threshold lies in the bulk of the distribution rather than in
+a tail, where a targeted design has most to gain. The adaptive committee
+reduced the nRMSE relative to the passive one (ratio 0.84) but, as on the
+plume model, its estimate of $P(C>\mathrm{IDLH})$ was off by a median of
+0.11, against 0.06 for the passive committee and 0.009 for the log-variable
+GP.
+
+\emph{Surrogate contribution.} The coverage results carry over to the CFD
+case (Table~\ref{tab:coverage}, last row; diamonds in
+Fig.~\ref{fig:coverage}). Pointwise, the GP intervals covered 69--92\% of
+test points and the jackknife+ intervals 94.8--99.1\%. Treating the
+surrogate as exact gave GUM~S1 coverage intervals with an achieved coverage
+of 90.8--94.7\%; adding the LOO error gave 93.8--95.7\%. The GP posterior
+was most misleading for the 95th percentile: with the raw-scale GPs
+(Mat\'ern, with or without trend) its 95\% interval contained the true
+value in only 10\% of seeds, against 87--93\% for the jackknife; with the
+log-variable GP the figures were 80\% and 97\%.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\textwidth]{journal/fig_cfd_case}
+\caption{CFD dispersion case. (a) Concentration at a unit release rate for
+the centre of the input box; white line: zero streamwise velocity,
+enclosing the recirculating wake; star: release. (b) Concentration at
+1.5\,m height against distance from the leeward face for eight reference
+runs. (c) Iterations of the 2900 runs; the runs at 4000 did not meet the
+residual criteria but changed by less than 0.16\% over their last 2000
+iterations.}
+\label{fig:cfd}
+\end{figure}

@@ -25,7 +25,7 @@ except Exception:                        # pragma: no cover
 from scipy.stats import qmc, chi2
 from scipy.spatial.distance import pdist, squareform
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern, WhiteKernel
+from sklearn.gaussian_process.kernels import RBF, Matern, WhiteKernel, ConstantKernel
 from sklearn.preprocessing import StandardScaler, PolynomialFeatures
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import BayesianRidge
@@ -41,8 +41,19 @@ if _HAS_TORCH:
 
 
 def lhs(d, n):
-    """Latin Hypercube Sample, shape (n, d) in [0,1]^d  (scipy backend)."""
-    return qmc.LatinHypercube(d=d).random(n)
+    """Latin Hypercube Sample, shape (n, d) in [0,1]^d  (scipy backend).
+
+    The engine is seeded from the global numpy RNG so that np.random.seed()
+    fixes the design.  Recent SciPy (>= 1.15) seeds an unseeded engine from
+    OS entropy, which made initial designs irreproducible and broke the
+    paired-seed protocol; see docs/REPRODUCIBILITY.md.
+    """
+    seed = int(np.random.randint(0, 2**31 - 1))
+    try:
+        engine = qmc.LatinHypercube(d=d, rng=np.random.default_rng(seed))
+    except TypeError:                    # SciPy < 1.15 has no `rng` keyword
+        engine = qmc.LatinHypercube(d=d, seed=seed)
+    return engine.random(n)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -85,6 +96,12 @@ class ToyProblem:
         x1, x2, x3 = X[:, 0], X[:, 1], X[:, 2]
         return np.sin(x1) + 7*np.sin(x2)**2 + 0.1*x3**4*np.sin(x1)
 
+    def _schwefel(self, X):
+        # Standard Schwefel function (Surjanovic & Bingham); added for the
+        # domain-size control in experiments/campaign_domain.py.
+        d = X.shape[1]
+        return 418.9829*d - np.sum(X*np.sin(np.sqrt(np.abs(X))), axis=1)
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Surrogates (unchanged from notebook)
@@ -97,13 +114,29 @@ class Surrogate:
 
 
 class GPSurrogate(Surrogate):
-    def __init__(self, kernel="RBF"):
-        super().__init__(f"GP-{kernel}", "GP")
-        k = RBF() if kernel == "RBF" else Matern(nu=1.5)
-        self.gp = GaussianProcessRegressor(
-            kernel=k + WhiteKernel(1e-2), normalize_y=True, n_restarts_optimizer=5)
+    """GP member.  spec="orig" (default) is the notebook's kernel,
+    k + White with NO signal-amplitude hyperparameter and an isotropic
+    length scale.  spec="ard" adds a ConstantKernel amplitude and one length
+    scale per input (ARD); its name carries a trailing "*".  The "orig" kernel
+    is what causes the prior-reversion failure on the physics benchmark; see
+    experiments/campaign_gpspec.py and docs/FINDINGS_soft_vs_hard.md."""
+    def __init__(self, kernel="RBF", spec="orig"):
+        super().__init__(f"GP-{kernel}" + ("*" if spec == "ard" else ""), "GP")
+        self.kernel_name, self.spec = kernel, spec
+        self.gp = None
         self.scaler = StandardScaler()
+    def _kernel(self, d):
+        if self.spec == "orig":
+            k = RBF() if self.kernel_name == "RBF" else Matern(nu=1.5)
+            return k + WhiteKernel(1e-2)
+        ls = np.ones(d)
+        k = (RBF(ls, (1e-2, 1e3)) if self.kernel_name == "RBF"
+             else Matern(ls, (1e-2, 1e3), nu=1.5))
+        return ConstantKernel(1.0, (1e-3, 1e3)) * k + WhiteKernel(1e-4, (1e-8, 1e-1))
     def fit(self, X, y):
+        self.gp = GaussianProcessRegressor(
+            kernel=self._kernel(X.shape[1]), normalize_y=True,
+            n_restarts_optimizer=5)
         self.scaler.fit(X); self.gp.fit(self.scaler.transform(X), y)
     def predict(self, X):
         return self.gp.predict(self.scaler.transform(X))

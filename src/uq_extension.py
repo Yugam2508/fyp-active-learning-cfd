@@ -183,7 +183,10 @@ def default_model_factory(model, dim):
                                 SVRSurrogate, DNNSurrogate)
     name = model.name
     if name.startswith("GP-"):
-        return GPSurrogate(name.split("-", 1)[1])
+        k = name.split("-", 1)[1]
+        if k.endswith("*"):
+            return GPSurrogate(k[:-1], spec="ard")
+        return GPSurrogate(k)
     if name.startswith("PCE-d"):
         return PCESurrogate(int(name[-1]))
     if name.startswith("RF-"):

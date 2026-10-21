@@ -70,3 +70,165 @@ result (when and why it is necessary), not a new method.
 - All of the above is one synthetic benchmark whose dominant term matches PCE-d2's
   hypothesis class exactly. `nopce` (committee without PCE) fails outright. Nothing
   here generalises until it is repeated on benchmarks with no anchor model.
+
+---
+
+## Update 2026-10-16 — reruns for the IMEKO WC 2027 extended abstract
+
+All runs below use PyTorch DNNs and the fixed Latin-hypercube seeding
+(`docs/REPRODUCIBILITY.md` §3); 30 seeds each. Numbers are recomputed by
+`paper/imeko2027/check_numbers.py`.
+
+### Fair baseline, now complete (`results/results_hardmin3.json`)
+`campaign_hardmin.py` now scores **both** aggregation rules on the **same**
+final survivors and data in every trial, replacing the 12-seed sklearn row.
+
+| K_min = 3 survivors, same data | Median RMSE | Success |
+|---|---:|---:|
+| uniform mean | 1556 | 0/30 |
+| CV inverse-error weights | 0.701 | 27/30 |
+
+PCE-d2 survives in 27/30 trials. Weighting succeeds in all 27 and fails in
+exactly the 3 without it (seeds 1006, 1012, 1014); uniform averaging fails in
+all 30. Paired Wilcoxon p = 5.6e-9. The aggregation rule is causal, but it
+can only exploit an anchor that is present.
+
+### Domain sweep reproduced, interpretation revised (`results/results_domain_*.json`)
+The thesis ratios reproduce approximately: ρ = 1.04 at h = 2 (thesis 1.06),
+0.51 at h = 10 (0.384), 0.030 at h = 200 (0.044), Schwefel 1.10 (1.09). The
+thesis's "peak advantage at h = 50" does not: here ρ falls monotonically up
+to h = 200.
+
+Normalised by output SD, however, the **passive GP sits at 0.60 SD for every
+h ≥ 10 and at 1.00 SD for Schwefel**: it is close to a constant predictor in
+both. The committee's absolute median RMSE stays at 0.62–0.68 (h = 2 and
+h ≥ 50), which is the RMS of the sin·cos + exp terms (0.50–0.61) that no
+member learns from 20 runs. The quadratic term (44 % of the variance at h = 2,
+≈ 100 % for h ≥ 10) is captured exactly by PCE-d2. At h = 10 hard rejection
+keeps PCE-d2 in only 15/30 trials (median RMSE 1.99).
+
+**Consequence:** the old "large domain **and** high dynamic range"
+criterion is not isolated by the Schwefel control, because there the GP also
+fails and no committee member matches the response either. The supported
+statement is: *a passive GP fails once run spacing is large relative to the
+response length scale; a committee helps only to the extent that a member
+represents the dominant component.* The README and the extended abstract
+use this wording.
+
+### Representative run (`results/representative_run_seed1000.json`)
+Seed 1000 (first seed, not selected): RMSE 0.633; mean 0.21 %, SD 0.14 %,
+q05/q50/q95 0.66/0.24/0.41 % from the 2×10⁵ reference. The final weights put
+0.999999 on PCE-d2, so the weighted model-form share falls from 0.50 to 7e-8,
+consistent with the true surrogate error share RMSE²/Var Y ≈ 2e-8. The p-box
+and exceedance interval are **unweighted** member envelopes, so they remain
+wide ([0, 0.058] around the true 0.05). The earlier text's "0.76 → ≈ 0" had
+no stored record; it is replaced by these values.
+
+### Decomposition rerun with PyTorch (`results/results_decompose.json`)
+Confirms the sklearn-backend record in `results/reference_sklearn/`: hard
+rejection collapses to one member in 30/30 trials, at median iteration 10 of
+15; 139 of 450 queries (31 %) are then random. The sole survivor is PCE-d2 in
+27/30 (PCE-d3 2, DNN-H64 1). The predictor swap (hard trajectory, CV-weighted
+predictor) changes nothing: p = 0.90, 26/30 pairs within 1 %.
+
+### Extended abstract changes
+- The Sobol sentence was removed from the IMEKO abstract: no Sobol result is
+  shown or validated there.
+- Table III median-quantile error for the weighted committee is 0.23 %
+  (0.235 %); earlier drafts rounded it to 0.24 %.
+
+---
+
+## Update 2026-10-17 — controlled comparison with correctly specified baselines
+
+**Trigger.** Adding a standard GP baseline (Matérn-5/2, ARD, amplitude) to the
+generalisation study showed that the passive GP on the physics benchmark is
+not catastrophically bad at all.
+
+### 1. The "prior reversion" failure is a kernel-specification artefact
+`framework_core.GPSurrogate` (the notebook's kernel) is `RBF() + WhiteKernel`
+with **no amplitude (signal-variance) hyperparameter** and one isotropic
+length scale. With `normalize_y=True` this fixes the prior variance to the
+data variance and the GP cannot represent the quadratic bowl. Median nRMSE,
+physics benchmark, 20-point LHS, 30 seeds (`results_gen_physics_gp_*.json`):
+
+| Kernel | nRMSE |
+|---|---:|
+| original (no amplitude, isotropic) | 0.591 |
+| + amplitude | **0.033** |
+| + ARD only | 0.608 |
+| + amplitude + ARD | 0.036 |
+| Matérn-5/2 + amplitude + ARD | 0.079 |
+
+The amplitude alone improves all 30 seeds (p = 1.9e-9). Across the domain
+sweep, the original kernel sits at 0.60 for h = 10…200, while the Matérn GP
+reaches 0.17 at h = 10 and 0.08 for h = 50…200 (`rmse_lhsgp_m52` in
+`results_domain_*.json`). **All earlier claims that "passive GPs fail
+catastrophically on large domains" are withdrawn**; what remains true is that
+the committee is more accurate on *this* benchmark because PCE-d2 matches it.
+
+### 2. Generalisation study (`campaign_generalisation.py`, 4 models × 11 arms × 30 seeds)
+Summary in `results/summary_generalisation.json`; audit in
+`paper/imeko2027/check_numbers.py`.
+
+- **Kernel specification**: physics 18× (amplitude); borehole 3.4× (ARD);
+  no effect on plume or Ishigami.
+- **Log-transformed variables** (plume, borehole): 8× better on borehole
+  (0.089 → 0.011, 30/30), 1.4× on plume (0.60 → 0.42, 27/30). Largest gain for
+  a model without a matching committee member.
+- **Committee vs best single GP** (same 20-point design): wins only on
+  physics (>100×, PCE-d2 anchor). Borehole: committee 2.3× *worse*
+  (0/30). Plume, Ishigami: tie.
+- **Aggregation**: CV weighting ≥ uniform everywhere; significant on physics,
+  plume, borehole. Holds with corrected GP members too.
+- **Adaptive runs**: single GP never better (plume worse, p = 0.008).
+  Committee: better on physics (0.80) and borehole (0.61), worse on plume
+  (1.25, adaptive committee mean error 55 %), neutral on Ishigami.
+- **Spectral vs variance acquisition**: UEigV worse on physics (1.02, p = 0.021),
+  borehole (1.67, p = 2.6e-8) and Ishigami (1.07, p = 0.004); better only on
+  plume (0.90, p = 0.009).
+- **Member envelopes** as model-form intervals for P(Y > y95): coverage
+  0–100 % depending on model and strategy; not calibrated.
+
+### Consequence for the paper
+The IMEKO extended abstract was rewritten around the controlled comparison:
+kernel specification and variable transformation matter more than committees
+or adaptive designs at N = 20; committees help only with a matching member
+and only with error weighting.
+
+---
+
+## Update 2026-10-17 (b) — reviewer round; estimating the surrogate error
+
+A mock review (IMEKO-style, "accept with minor revisions") raised four main
+points; each is now addressed in the extended abstract.
+
+1. **Validation error vs uncertainty contribution.** New experiment
+   `campaign_error_estimation.py` (results `results_err_*.json`): for the
+   recommended GPs, compare the true error with what is available from the
+   20 runs alone.
+
+   | Model | GP | CV / true | GP SD / true | 95 % coverage |
+   |---|---|---:|---:|---:|
+   | Physics | Matérn | 9.06 | 1.58 | 100 % |
+   | Plume | Matérn | 0.99 | 0.36 | 77 % |
+   | Plume | log | 0.81 | 0.42 | 73 % |
+   | Borehole | Matérn | 2.11 | 0.79 | 90 % |
+   | Borehole | log | 2.61 | 1.45 | 99 % |
+   | Ishigami | Matérn | 1.07 | 0.58 | 73 % |
+
+   Five-fold CV is conservative (≥ true error in 28/30 and 30/30 seeds where
+   the GP is good; < ½ true in at most 6/30). The GP's own predictive SD
+   understates the error 1.7–2.8× exactly where the GP is weak, and its 95 %
+   intervals cover only 73–77 %. Proposed GUM S1 treatment: add a surrogate
+   error input E_s with zero mean and standard uncertainty = CV RMSE.
+2. **Plume is not CFD.** Stated explicitly as an analytical proxy.
+3. **Exceedance metrics.** P(Y > y95,ref) (tail accuracy, true value 0.05)
+   is separated from P(C > IDLH) (fixed threshold, reference 0.123); over 30
+   seeds the log GP's median absolute error is 0.009, the raw GP's 0.023.
+4. **Adaptive claim too broad.** Restricted to the tested designs.
+
+Also: Holm adjustment over the 36 paired tests. Three statements lose
+significance and were narrowed (uniform vs CV on plume; adaptive GP worse on
+plume; UEigV vs variance on physics, plume, Ishigami). UEigV remains
+significantly worse on borehole (adjusted p = 7e-7).

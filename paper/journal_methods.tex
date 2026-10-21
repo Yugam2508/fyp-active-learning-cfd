@@ -1,0 +1,367 @@
+% journal_methods.tex — Sections 2-4 of the journal manuscript (paper.tex),
+% kept in a separate file while the results sections are written.
+
+\section{Surrogate-based propagation and the surrogate contribution}
+\label{sec:framework}
+\subsection{Propagation of distributions through a surrogate}
+Let $Y=f(\mathbf X)$ be the measurement model, $g_{\mathbf X}$ the joint
+probability density of the inputs (here with independent components) and
+$\{(\mathbf x_i,y_i)\}_{i=1}^N$, $y_i=f(\mathbf x_i)$, the $N$ available
+model runs. A surrogate $\hat f$ is fitted to the runs and the Monte Carlo
+method of GUM~S1~\cite{jcgm101} is applied to $\hat f$: $M$ draws
+$\mathbf x^{(r)}\sim g_{\mathbf X}$ give $\hat y^{(r)}=\hat f(\mathbf x^{(r)})$,
+from which the estimate $y$ (the mean), the standard uncertainty $u(y)$ (the
+standard deviation), the probabilistically symmetric 95\% coverage interval
+$[y_{0.025},y_{0.975}]$, the 95th percentile $y_{0.95}$ and the probability
+$P(Y>T)$ of exceeding a threshold $T$ are computed. We call these the
+\emph{reported quantities}.
+
+Surrogates are fitted on a \emph{latent} scale $z=\varphi(y)$, with
+$\varphi=\log$ for the log-variable variants and the identity otherwise, and
+predictions are mapped back by $\varphi^{-1}$. For a Gaussian latent
+predictive distribution, $\exp$ of the latent mean is the predictive median
+of $Y$; no bias correction is applied.
+
+\subsection{The surrogate error as an uncertainty contribution}
+\label{sec:contrib}
+The surrogate error $e(\mathbf x)=\varphi(f(\mathbf x))-\varphi(\hat f(\mathbf x))$
+is unknown. Following Kennedy and O'Hagan~\cite{kennedy2001}, who treat model
+inadequacy as an uncertainty source, we propagate
+\begin{equation}
+Y=\varphi^{-1}\!\left(\varphi(\hat f(\mathbf X))+E\right),
+\label{eq:contrib}
+\end{equation}
+with $E$ a random variable describing the surrogate error, drawn
+independently for every Monte Carlo trial. Three models for $E$ are
+compared, all available from the $N$ runs alone:
+\begin{itemize}\setlength\itemsep{1pt}
+\item \emph{GP}: $E\mid\mathbf x\sim\mathrm N(0,s^2(\mathbf x))$, with
+$s(\mathbf x)$ the predictive SD of a Gaussian process surrogate;
+\item \emph{CV-normal}: $E\sim\mathrm N(0,s_{\mathrm{LOO}}^2)$, with
+$s_{\mathrm{LOO}}^2=N^{-1}\sum_i r_i^2$ and
+$r_i=\varphi(y_i)-\varphi(\hat f_{-i}(\mathbf x_i))$ the leave-one-out (LOO)
+residuals; $\hat f_{-i}$ is the surrogate re-fitted, hyperparameters
+included, without run $i$;
+\item \emph{resampling}: $E$ drawn with equal probabilities from
+$\{r_1,\dots,r_N\}$.
+\end{itemize}
+The same ingredients give pointwise 95\% prediction intervals for
+$f(\mathbf x)$: the GP interval $\hat z\pm1.96\,s(\mathbf x)$, the CV-normal
+interval $\hat z\pm1.96\,s_{\mathrm{LOO}}$, and the jackknife+
+interval~\cite{barber2021}
+\begin{equation}
+\left[\,q^-_{\alpha}\{\hat z_{-i}(\mathbf x)-|r_i|\},\;
+q^+_{\alpha}\{\hat z_{-i}(\mathbf x)+|r_i|\}\,\right],
+\end{equation}
+where $q^-_\alpha$ is the $\lfloor\alpha(N+1)\rfloor$-th smallest and
+$q^+_\alpha$ the $\lceil(1-\alpha)(N+1)\rceil$-th smallest of the $N$ values,
+$\alpha=0.05$. For exchangeable runs the jackknife+ interval covers $f$ with
+probability at least $1-2\alpha$ whatever the surrogate~\cite{barber2021};
+it is a member of the conformal family~\cite{angelopoulos2023}.
+
+\emph{Why resampling the LOO residuals can be expected to work.} For an
+input $\mathbf X\sim g_{\mathbf X}$ drawn independently of the runs,
+$\varphi(f(\mathbf X))=\varphi(\hat f(\mathbf X))+e(\mathbf X)$ exactly, so
+equation~\eqref{eq:contrib} gives the true distribution of the output if $E$
+behaves as $e(\mathbf X)$. If the run inputs and $\mathbf X$ are
+exchangeable, as for independent draws from $g_{\mathbf X}$, each $r_i$ is
+distributed as the error of a surrogate fitted to $N-1$ runs at a new input,
+so the empirical distribution of the $r_i$ estimates the distribution of
+$e(\mathbf X)$, on the conservative side because $N-1$ rather than $N$ runs
+are used~\cite{arlot2010}. Three approximations remain. Resampling draws $E$
+independently of $\mathbf X$: it reproduces the variance of the error but
+drops its covariance with $\varphi(\hat f(\mathbf X))$, which is zero in
+expectation when $\hat f$ is the posterior mean of a correctly specified
+model but not in general. A Latin hypercube design is close to, not exactly,
+exchangeable with independent draws. And a feature of $f$ that no run
+reaches leaves no trace in any $r_i$ (Section~\ref{sec:res-robust}). At a
+fixed input $\mathbf x$, the same construction with $\hat f_{-i}(\mathbf x)$
+in place of $\hat f(\mathbf x)$ is the predictive distribution behind the
+jackknife+ interval, one of the conformal predictive distributions, which
+are valid in finite samples under exchangeability~\cite{barber2021,vovk2019}.
+For the distribution of $Y$, which mixes over the inputs, no such guarantee
+is available, and the coverage study of Section~\ref{sec:res-coverage} is
+its empirical check.
+
+For a reported quantity $\theta$ itself (the mean, SD, $y_{0.95}$ or
+$P(Y>T)$ of the output over a fixed set of input draws), two 95\% intervals
+are compared: the 2.5th and 97.5th percentiles of $\theta$ over joint sample
+paths of the GP posterior, and the jackknife interval
+$\hat\theta\pm1.96\,\mathrm{SE}_{\mathrm J}$ with
+$\mathrm{SE}_{\mathrm J}^2=\frac{N-1}{N}\sum_i(\hat\theta_{-i}-\bar\theta)^2$,
+where $\hat\theta_{-i}$ is computed from $\hat f_{-i}$.
+
+\emph{Hyperparameter uncertainty.} The GP intervals above plug in the
+maximum-likelihood (ML) hyperparameters, which may make them too narrow
+with few runs. Three variants test whether the GP's shortfall is a plug-in
+effect: (i) a Student-t process, with the overall variance scale and a
+constant mean integrated out under the reference prior
+$p(\beta,\sigma^2)\propto\sigma^{-2}$ and the correlation hyperparameters at
+their ML values (the standard Bayesian emulator~\cite{ohagan2006}, $N-1$
+degrees of freedom); (ii) a fully Bayesian GP, all hyperparameters
+integrated out by Markov chain Monte Carlo (affine-invariant ensemble
+sampler~\cite{foremanmackey2013}, uniform prior on each log-hyperparameter
+within the ML search range, 800 steps of which 300 burn-in, 200 posterior
+draws; $N=20$ only, for cost); and (iii) the GP SD recalibrated by the LOO
+standardised residuals $z_i=r_i/s_{-i}(\mathbf x_i)$: pointwise
+$\hat z\pm q\,s(\mathbf x)$ with $q$ the $\lceil0.95(N+1)\rceil$-th
+smallest $|z_i|$, $E=s(\mathbf x)\,z_J$ in equation~\eqref{eq:contrib}, and
+sample paths with the covariance scaled by the mean of $z_i^2$. The last is
+a hybrid that keeps the GP's localisation of the error and takes its scale
+from the runs. Each variant is assessed in the same three ways.
+
+\section{Test models}
+\label{sec:models}
+Table~\ref{tab:models} lists the twelve models. Eight have independent uniform
+inputs, three have the non-uniform input distributions of a GUM-type
+evaluation, and one is a CFD simulation. The physics model is the benchmark
+of the earlier analysis; its quadratic term carries practically all the
+output variance on $[-200,200]^3$ and lies in the class of a degree-2
+polynomial. The plume model is the ground-level concentration of a
+continuous ammonia release from a Gaussian plume with ground reflection,
+\begin{equation}
+C=\frac{10^3\,Q}{2\uppi\,u\,\sigma_y\sigma_z}
+\exp\!\left(-\frac{y^2}{2\sigma_y^2}\right)
+2\exp\!\left(-\frac{H^2}{2\sigma_z^2}\right)\ \mathrm{mg\,m^{-3}},
+\end{equation}
+with Briggs rural coefficients for neutral stability,
+$\sigma_y=0.08x(1+10^{-4}x)^{-1/2}$ and $\sigma_z=0.06x(1+1.5\times10^{-3}x)^{-1/2}$.
+The borehole~\cite{harper1983,morris1993,vlse},
+Ishigami~\cite{vlse}, OTL circuit and piston~\cite{benari2007} and wing
+weight~\cite{forrester2008} functions are standard test functions for
+computer experiments. To test whether the results hold when the inputs
+outnumber what 20 runs can resolve, the OTL circuit is also run with 14
+additional inputs that do not affect the output (uniform on $[100,200]$,
+as in the screening study of Moon~\cite{moon2010}), so that $d=20$ and
+$N=20$ is one run per input. The flood
+model~\cite{iooss2015} gives the maximal annual underflow of a river with
+truncated Gumbel, truncated normal, triangular and uniform inputs. The
+borehole model is also run with the input model of Harper and
+Gupta~\cite{harper1983} (normal borehole radius, lognormal radius of
+influence) and the plume model with GUM-type inputs: lognormal emission rate
+(median 500\,g\,s$^{-1}$, geometric SD 2), a Weibull wind speed (shape 2,
+scale 4\,m\,s$^{-1}$, truncated to $[0.5,15]$\,m\,s$^{-1}$) and a normal
+crosswind offset (SD 15\,m). All formulas and input models were checked
+against the independent implementation in UQTestFuns~\cite{wicaksono2023}
+(relative differences below $10^{-10}$ for outputs and $10^{-6}$ for
+marginal quantiles).
+
+A further analytical model, reported separately, tests the limits of the
+procedure: a smooth
+function of four uniform inputs on $[0,1]^4$ plus a narrow Gaussian bump,
+$f=x_1+x_2^2+0.5\sin(2\uppi x_3)+0.5x_4+3.6\exp(-\lVert\mathbf x-0.7\rVert^2/(2\cdot0.13^2))$.
+The bump carries about 10\% of the output variance in a region (bump above
+10\% of its height) of 3\% of the input volume, which a Latin hypercube of
+20 runs misses with probability 0.53 and one of 40 runs with probability
+0.26 (Section~\ref{sec:res-robust}).
+Two variants test assumptions of the main study. In the first, the inputs
+are dependent: the borehole model with GUM-type inputs, with a Gaussian
+copula of correlation 0.5 between the two transmissivities and between the
+two heads. Designs are drawn in the space of independent uniform variables
+and mapped to the inputs by the inverse Rosenblatt transformation of the
+copula, so the surrogates and the propagation are otherwise unchanged. In
+the second, the output is a vector: the plume model at three receptors on
+the plume axis, at $x$, $x+200$\,m and $x+400$\,m, gives three strongly
+correlated output quantities, propagated as in GUM~S2~\cite{jcgm102}. Each
+component has its own log-scale GP, and the surrogate error is added on the
+log scale in one of three ways: as the LOO residual vector of one run, drawn
+with equal probabilities (\emph{joint} resampling, which keeps the
+correlation between the components), as residuals drawn independently for
+each component, or as independent normal errors with the LOO RMS error of
+each component. The coverage region is the hyperellipsoidal region of
+GUM~S2, from the mean and covariance matrix of the propagated sample with
+the coverage factor set so that 95\% of the sample lies inside, computed on
+the original and on the log scale. Its achieved coverage is evaluated under
+$2\times10^5$ draws of the true model, and its volume is compared with that
+of the same region computed from the true model.
+
+Exceedance is assessed at a fixed threshold where the model has one (the
+IDLH level for ammonia, 210\,mg\,m$^{-3}$, about 300\,ppm, for the plume
+and CFD models), and otherwise at the reference 95th percentile, for which
+$P(Y>T)=0.05$ by construction. Flooding has a probability below $10^{-5}$
+for the flood input model, so its threshold is the reference 5th percentile
+of the underflow, $P(Y<T)=0.05$.
+
+\begin{table*}[tb]
+\centering
+\caption{Test models. $d$: number of inputs; U: independent uniform inputs.
+The models below the line test the limits and assumptions of the procedure
+and are reported separately.}
+\label{tab:models}
+\small
+\begin{tabular}{llp{53mm}p{54mm}}
+\toprule
+Model & $d$ & Inputs & Character\\
+\midrule
+Physics & 3 & U$[-200,200]^3$, noise SD 0.1 & quadratic bowl plus small oscillatory terms\\
+Plume & 5 & U: $Q$, $u$, $H$, $x$, $y$ & multiplicative, positive, heavy right tail\\
+Borehole & 8 & U, ranges of~\cite{vlse} & smooth, multiplicative, positive\\
+Ishigami & 3 & U$[-\uppi,\uppi]^3$ & strongly non-linear, interactions\\
+OTL circuit & 6 & U~\cite{benari2007} & smooth, nearly additive, positive\\
+Piston & 7 & U~\cite{benari2007} & non-linear, positive\\
+Wing weight & 10 & U~\cite{forrester2008} & smooth, multiplicative, positive\\
+OTL circuit, 20 inputs & 20 & U, 14 inactive~\cite{moon2010} & as OTL circuit; sparse\\
+Borehole (GUM) & 8 & normal, lognormal, uniform~\cite{harper1983} & as borehole; input tails\\
+Plume (GUM) & 5 & lognormal, truncated Weibull, uniform, normal & as plume; heavier input and output tails\\
+Flood & 8 & truncated Gumbel and normal, triangular, uniform~\cite{iooss2015} & smooth, lower-tail threshold\\
+CFD dispersion & 6 & U: $U_{\mathrm{ref}}$, $z_0$, $H_{\mathrm b}$, $Sc_t$, $x_r$, $Q$ & RANS solution: wake recirculation, numerical error\\
+\midrule
+Bump (failure mode) & 4 & U$[0,1]^4$ & smooth part plus a narrow bump that the runs can miss\\
+Borehole, dependent & 8 & as Borehole (GUM), Gaussian copula & dependent inputs\\
+Plume, 3 receptors & 5 & as Plume & vector output (GUM~S2)\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{CFD dispersion case}
+\label{sec:cfd}
+The CFD case replaces the plume formula by a Reynolds-averaged
+Navier--Stokes (RANS) simulation of a continuous ground-level release
+upwind of a building, solved with OpenFOAM v1912~\cite{weller1998}. The
+domain is two-dimensional (a vertical plane along the wind; the building
+and the release are infinitely wide), from 80\,m upstream to 250\,m
+downstream of the windward face and 150\,m high. The building is 10\,m deep
+and $H_{\mathrm b}$ high; the release is a unit line source 20\,m upstream
+of the building, 0.5\,m above the ground. The inflow is the neutral
+atmospheric surface layer of Richards and Hoxey~\cite{richards1993},
+$U(z)=(u_*/\kappa)\ln((z+z_0)/z_0)$, $k=u_*^2/\sqrt{C_\mu}$,
+$\varepsilon=u_*^3/(\kappa(z+z_0))$, scaled to the wind speed
+$U_{\mathrm{ref}}$ at 10\,m, with the standard $k$--$\varepsilon$ model
+($\sigma_\varepsilon=1.11$ for consistency with the inflow), a rough-wall
+function on the ground~\cite{blocken2007}, smooth building walls and a slip
+top boundary. The concentration $s$ of the passive scalar solves
+$\nabla\cdot(\mathbf U s)-\nabla\cdot((\nu/Sc+\nu_t/Sc_t)\nabla s)=S$, with
+$Sc=0.7$ and the turbulent Schmidt number $Sc_t$ as an input, since its
+appropriate value is uncertain and varies between flows~\cite{tominaga2007}.
+Flow and scalar are solved together by the SIMPLE algorithm on 7776
+hexahedral cells, refined towards the building, until all scaled residuals
+fall below $10^{-5}$ (pressure) and $10^{-6}$ (other fields), or 4000
+iterations, typically in
+1000--1500 iterations (about 20\,s on one core). The output is the
+concentration at 1.5\,m height a distance $x_r$ downstream of the leeward
+face, $C=10^3\,Q\,s(x_r)$\,mg\,m$^{-3}$ for a release rate $Q$ per metre of
+crosswind width; since the scalar is passive, $x_r$ and $Q$ need no
+separate run. The six inputs are uniform: $U_{\mathrm{ref}}\in[1,6]$\,m\,s$^{-1}$,
+$z_0\in[0.01,0.3]$\,m, $H_{\mathrm b}\in[6,15]$\,m, $Sc_t\in[0.5,1.3]$,
+$x_r\in[5,120]$\,m and $Q\in[1,20]$\,g\,s$^{-1}$\,m$^{-1}$.
+
+The case contains what the plume formula lacks: flow separation at the
+building edges, a recirculating wake whose length and strength change with
+$H_{\mathrm b}$ and $z_0$, receptors inside and beyond the wake, and a
+discretisation and iteration error that varies with the inputs. It is a
+benchmark, not a validated prediction of a particular site: the model is
+\emph{defined} as this discretised RANS solution, which is what a surrogate
+of an expensive simulation has to reproduce. A reference Monte Carlo of
+$2\times10^5$ CFD runs is not affordable. The reference distribution is
+built instead from 800 runs at independent uniform draws of the four flow
+inputs, each combined with 50 independent draws of $(x_r,Q)$: 40\,000
+reference points, of which 4000 (five per run) form the test set and 1600
+(two per run) the input set for derived quantities. A second, independent
+set of 800 runs checks this reference. The grid sensitivity of the case is
+reported in Section~\ref{sec:res-cfd}.
+
+\section{Surrogates, designs and protocol}
+\label{sec:protocol}
+\subsection{Surrogates}
+\paragraph{Gaussian processes.} All GPs are fitted on standardised inputs
+and outputs by maximising the log marginal likelihood (L-BFGS-B, five
+random restarts) with scikit-learn. The specifications, in order of
+increasing completeness, are: (i) the \emph{original} kernel of the earlier
+analysis, a squared exponential with one length scale and an amplitude
+\emph{fixed} at 1 on the standardised output; (ii) with the amplitude
+estimated; (iii) with one length scale per input (automatic relevance
+determination, ARD) but the amplitude fixed; (iv) with both; (v) a
+Mat\'ern-5/2 ARD kernel with amplitude and a nugget; (vi) (v) plus an
+amplitude-scaled quadratic polynomial kernel, i.e.\ a GP with a quadratic
+trend whose coefficients are integrated out. Length scales are bounded to
+$[10^{-2},10^3]$, the amplitude to $[10^{-3},10^3]$ and the nugget variance
+to $[10^{-8},10^{-1}]$. Variants (v) and (vi) are also fitted on the log
+scale for positive outputs, with logarithmic transformation of inputs whose
+support is positive.
+
+\paragraph{Sparse polynomial chaos.} A sparse PCE~\cite{blatman2011} with an
+orthonormal Legendre basis on inputs mapped to $[-1,1]$ (affinely for
+uniform inputs, through their distribution functions otherwise), candidate
+sets of total degree $p=1,\dots,5$ with hyperbolic truncation ($q=1$ for
+$p\le2$, $q=0.75$ above), least-angle regression~\cite{efron2004} to order
+the basis terms, ordinary least squares on every active set along the path,
+and selection of the active set and degree by the corrected LOO
+error~\cite{blatman2011}. It is fitted on the raw and on the log scale.
+
+\paragraph{Committees.} Nine members: two GPs (squared exponential and
+Mat\'ern-3/2, both ARD with amplitude), PCEs~\cite{xiu2002,sudret2008} of degrees 2
+and 3 (Bayesian ridge regression), random forests of 50 and 100 trees, a
+support vector regressor and two neural networks. Members are combined
+uniformly or with weights
+$w_k\propto[\mathrm{MSE}_{\mathrm{CV},k}(1+\pi_k)]^{-1}$, with
+$\mathrm{MSE}_{\mathrm{CV},k}$ the three-fold cross-validation error of
+member $k$ and $\pi_k\ge0$ a penalty for predictions below a known
+physical bound~\cite{goel2007,viana2009}.
+
+\paragraph{Stacking.} As an alternative to choosing one candidate surrogate
+(Section~\ref{sec:res-select}), the candidates are combined by
+stacking~\cite{breiman1996}: non-negative weights that minimise the squared
+error of the weighted sum of their LOO predictions (non-negative least
+squares) are applied to the candidates fitted to all runs.
+
+\subsection{Designs}
+Passive designs are $N$-point Latin hypercubes drawn on $[0,1]^d$ and mapped
+to the inputs by the inverse distribution functions. Adaptive designs start
+from $N_0$ Latin hypercube runs ($N_0=5$ for $N\le20$, $N/4$ above) and add
+one run at a time, refitting after every run: \emph{GP-SD} adds the
+candidate with the largest posterior SD~\cite{gramacy2009}; the adaptive
+committees add the candidate where the active members disagree most, by the
+variance of their predictions or by the spectral measure
+UEigV~\cite{lin2024} of the earlier analysis; and \emph{AK-MCS} adds the
+candidate minimising $|\hat z(\mathbf x)-\varphi(T)|/s(\mathbf x)$, the
+learning function of Echard et al.~\cite{echard2011}, which concentrates
+runs near the threshold $T$ of the exceedance probability. \emph{IMSE}
+adds the candidate that most reduces the integrated posterior variance of
+the GP~\cite{sacks1989}, averaged over 1000 draws from the input
+distribution, a criterion aimed at the whole distribution of the output
+rather than at the largest local uncertainty. Candidates are random draws
+from the input distribution (300 for GP-SD and IMSE, 2000 for AK-MCS).
+To test whether the results depend on the type of passive design, the
+Latin hypercube is replaced, in a separate comparison at $N=20$, by the
+maximin Latin hypercube~\cite{morris1995} (the one with the largest
+smallest distance between two runs among 200 random ones) and by the first
+$N$ points of a randomly scrambled Sobol' sequence~\cite{sobol1967}.
+
+\subsection{Protocol and statistics}
+Every strategy is run with the 30 seeds 1000--1029 and budgets
+$N=10,20,40,80$ (the full set of strategies at $N=20$). Seeds are shared and
+the Latin hypercube is seeded from the global random state, so that for a
+given seed all passive strategies use the identical design and all adaptive
+strategies the identical start. Accuracy over the input domain is the root
+mean square error on 5000 test points divided by the reference output SD
+(normalised RMSE, nRMSE; 1 corresponds to a constant predictor). The
+surrogates propagate $3\times10^4$ input draws; the reference uses
+$2\times10^5$ draws of the model (Section~\ref{sec:cfd} for the CFD case).
+
+For each strategy and model the median over seeds is reported with a 95\%
+percentile-bootstrap confidence interval (10\,000 resamples of the seeds).
+Two strategies are compared on the same seeds by the median of the per-seed
+ratio of their errors, with a paired bootstrap 95\% confidence interval,
+and by a two-sided Wilcoxon signed-rank test on the log ratios; the
+$p$-values of all comparisons of the main study are adjusted together by
+Holm's method, and those of each further comparison (design types, IMSE,
+stacking) within that comparison. Coverage of prediction and coverage intervals is the share of test
+points or of the reference distribution inside the interval, averaged over
+seeds; coverage of intervals for reported quantities is the share of seeds
+whose interval contains the true value, with a Wilson 95\% interval. The
+interval score~\cite{gneiting2007} combines width and coverage. Because a
+practitioner has a single design, coverage is also reported per design, as
+the share of the 30 designs whose achieved coverage is below 90\%.
+
+A comparison without a significant difference does not show that two
+strategies are equivalent. Such comparisons are classified as equivalent
+within $\pm20\%$ (or $\pm10\%$) when the 95\% bootstrap interval of the median
+ratio lies inside $[0.8,1.25]$ (or $[0.9,1/0.9]$), and as inconclusive
+otherwise. These margins, the thresholds for coverage (at least 93\%
+pointwise; at least 26 of 30 seeds for a reported quantity, the smallest
+count not rejected against 95\% by a one-sided exact binomial test at the
+5\% level) and the decisions that the results would trigger were fixed in a
+research plan committed to the repository~\repocite\ before the runs.
+Finally, the sparse PCE and GP implementations were checked against an
+independent one, OpenTURNS~1.27~\cite{baudin2017}, on the 30 designs of six
+models with uniform inputs.

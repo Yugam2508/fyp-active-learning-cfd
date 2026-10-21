@@ -1,0 +1,73 @@
+% measurement_cover_letter.tex — cover letter for the Measurement submission.
+% ITEMS MARKED [CONFIRM] NEED THE AUTHORS' DECISION BEFORE SUBMISSION.
+% Build from paper/ with pdflatex.
+\documentclass[11pt,a4paper]{letter}
+\usepackage[margin=25mm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xurl}
+\signature{Yugam Jinesh Vora\\(corresponding author, on behalf of both authors)}
+\address{Department of Engineering Science\\National University of
+Singapore\\\texttt{yugam@u.nus.edu}}
+
+\begin{document}
+\begin{letter}{The Editor-in-Chief\\\emph{Measurement}}
+\opening{Dear Editor,}
+
+We submit the manuscript \emph{Surrogate models for Monte Carlo uncertainty
+propagation with few runs of an expensive model: specification, selection
+and a valid surrogate contribution}, by Yugam Jinesh Vora (National
+University of Singapore) and Wee Hoe Ng (National Metrology Centre,
+A*STAR), for consideration as a research article.
+
+\emph{Contribution to measurement science.} When the measurement model is
+an expensive simulation, the Monte Carlo method of GUM Supplement~1 is
+applied to a surrogate fitted to a few tens of model runs, and the error of
+the surrogate becomes a component of the measurement uncertainty. Which
+surrogate to use, and how to include its error in the uncertainty budget so
+that the stated coverage holds, are open questions in practice. The
+manuscript answers both with a paired comparison on twelve models with up
+to 20 inputs, including GUM-type input distributions and a computational
+fluid dynamics simulation, at budgets of 10 to 80 runs, with every
+uncertainty statement checked against reference Monte Carlo evaluations of
+the true models. Its main findings are:
+\begin{itemize}
+\item the specification of the surrogate matters more than committees or
+stacking of surrogates, the type of design or adaptive designs, and from
+20 runs on, choosing among a few candidates by their leave-one-out error is
+practically as good as the best choice in hindsight;
+\item adding the surrogate's resampled leave-one-out residuals to every
+Monte Carlo trial gives GUM~S1 coverage intervals with the nominal
+coverage from 10 to 80 runs, also with dependent inputs and for vector
+outputs, whereas intervals from the Gaussian process predictive variance,
+the usual choice, often fell short of their nominal coverage, also with the
+hyperparameters treated in a fully Bayesian way;
+\item the results are condensed into a procedure, applied in a worked
+example with an uncertainty budget for a gas-dispersion simulation.
+\end{itemize}
+The work fits the scope of \emph{Measurement} in the evaluation of
+measurement uncertainty and the mathematical tools for measurement, and is
+directed at metrologists and engineers who evaluate uncertainty with
+simulation models.
+
+\emph{Prior presentation.} A study at a budget of 20 runs on four models
+has been submitted as an extended abstract to the XXV IMEKO World Congress
+(Rimini, 2027) [CONFIRM status at submission]. The manuscript extends it
+substantially and has not been published or submitted elsewhere.
+
+\emph{Data and code.} All code, the per-seed result records, the cached
+simulation runs and a script that recomputes every number in the
+manuscript are openly available and archived at Zenodo (DOI on the title
+page). The manuscript is anonymized for double-anonymized review; the
+declaration on the use of generative AI is on the title page.
+
+[CONFIRM: optional suggested reviewers, chosen by the authors, with their
+affiliations and e-mail addresses.]
+
+The authors declare no competing interests. Thank you for considering the
+manuscript.
+
+\closing{Yours sincerely,}
+\end{letter}
+\end{document}

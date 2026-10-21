@@ -1,0 +1,81 @@
+% journal_body.tex — the body of the journal manuscript (Sections 1-8 with
+% tables and figures), shared by paper.tex and measurement_manuscript.tex.
+\input{journal_intro}
+\input{journal_methods}
+
+\begin{table}[tb]
+\centering
+\caption{Median nRMSE over 30 seeds with $N=20$ runs; bold: best per model.
+AK-MCS on the log scale for positive outputs. Generated from the result
+records; 95\% bootstrap intervals are in the supplementary summary.}
+\label{tab:n20}
+\scriptsize
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{l ccccc cc ccc c}
+\toprule
+& \multicolumn{5}{c}{GP} & \multicolumn{2}{c}{Sparse PCE} &
+\multicolumn{3}{c}{Committee / adaptive} & Targeted\\
+\cmidrule(lr){2-6}\cmidrule(lr){7-8}\cmidrule(lr){9-11}\cmidrule(lr){12-12}
+Model & orig. & Mat\'ern & +trend & log & log+tr. & raw & log &
+CV & GP-SD & adapt. & AK-MCS\\
+\midrule
+\tabinput{../results/journal/tab_n20.tex}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[tb]
+\centering
+\caption{Paired comparisons at $N=20$: median over 30 seeds of the ratio of
+the first strategy's error to the second's (nRMSE; for the exceedance rows,
+the absolute error of $P(Y>T)$). Below 1 favours the first. Bold: Holm-adjusted
+$p<0.05$ (two-sided Wilcoxon signed-rank test on log ratios, all comparisons
+of the study adjusted together). Generated from the result records.}
+\label{tab:tests}
+\scriptsize
+\setlength{\tabcolsep}{2.0pt}
+\begin{tabular}{l cccccccccccc}
+\toprule
+Comparison & Phys. & Plume & Bore. & Ishi. & OTL & Pist. & Wing & OTL20 & Bore.G & Plume.G & Flood & CFD\\
+\midrule
+\tabinput{../results/journal/tab_tests.tex}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\input{journal_results_main}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[width=\textwidth]{journal/fig_relative_nrmse}
+\caption{nRMSE of each strategy relative to the Mat\'ern ARD GP on the same
+design, $N=20$: median over 30 seeds of the paired ratio with 95\%
+bootstrap interval. Star: the candidate chosen per seed by the smallest
+LOO error (the procedure of Fig.~\ref{fig:flowchart}).}
+\label{fig:relative}
+\end{figure}
+
+\begin{table}[tb]
+\centering
+\caption{Validation error of the reported quantities, median over 30 seeds,
+$N=20$: relative error (\%) of the mean, SD and $y_{0.95}$ and absolute
+error ($\times100$) of $P(Y>T)$ for the recommended GP (log scale for
+positive outputs), the same with an AK-MCS design, and the CV-weighted
+committee. Generated from the result records.}
+\label{tab:prop}
+\small
+\begin{tabular}{l rrrr r rr}
+\toprule
+& \multicolumn{4}{c}{GP (passive)} & AK-MCS & \multicolumn{2}{c}{Committee}\\
+\cmidrule(lr){2-5}\cmidrule(lr){6-6}\cmidrule(lr){7-8}
+Model & mean & SD & $y_{0.95}$ & $P$ & $P$ & $y_{0.95}$ & $P$\\
+\midrule
+\tabinput{../results/journal/tab_prop.tex}
+\bottomrule
+\end{tabular}
+\end{table}
+
+\input{journal_results_coverage}
+\input{journal_results_cfd}
+\input{journal_discussion}
+\input{journal_conclusion}

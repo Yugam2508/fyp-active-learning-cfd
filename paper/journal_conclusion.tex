@@ -1,0 +1,33 @@
+% journal_conclusion.tex — Section 8.
+
+\section{Conclusion}
+\label{sec:conclusion}
+For GUM~S1 evaluations in which the measurement model can be run only a few
+tens of times, the way a surrogate is specified matters more than the
+strategy around it. A GP should estimate its amplitude and one length scale
+per input and work on the log scale when the output is positive; a failure
+of GP surrogates reported in an earlier analysis was an artefact of one
+hyperparameter held fixed. A quadratic trend helps when the response has
+one but can overfit when there are many inputs, so it belongs among the
+candidates rather than in every model. Among such candidates and a sparse
+PCE, the one with the smallest leave-one-out error
+was practically as good as the best in hindsight on all twelve models from
+20 runs on,
+including a CFD simulation of a release behind a building. Committees and
+stacking of surrogates gained little or nothing, the type of space-filling
+design hardly mattered, and variance-driven adaptive designs gave no
+consistent gain at 20 runs,
+whereas a design targeted at the threshold improved exceedance
+probabilities when the threshold lay in a tail of the distribution. Finally, the surrogate's own error must be part of the
+uncertainty statement, and it should be estimated from leave-one-out
+residuals rather than from the GP's predictive variance: the former
+restored the nominal coverage of the GUM~S1 coverage interval, and the
+jackknife over the leave-one-out fits gave intervals for reported
+quantities that reached it in 39 of 42 cases with 20 runs; the latter was
+overconfident precisely where the surrogate was poor, and fell short also
+with its hyperparameters integrated out. The contribution held from 10 to
+80 runs, with other space-filling designs, with dependent inputs and for
+vector outputs (with the residuals of all components resampled together).
+Its limit is that of any estimate from the runs: a
+local feature that no run reaches is not seen, and where one is plausible,
+prior knowledge or runs placed there are needed.
