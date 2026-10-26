@@ -151,8 +151,8 @@ D.~Wicaksono and M.~Hecht, ``{UQTestFuns}: a {P}ython3 library of uncertainty
 \bibitem{repo}
 Y.~J. Vora and W.~H. Ng, ``Surrogate models for {GUM} {S}upplement 1
   uncertainty propagation with small budgets of model runs: code, per-seed
-  records and figure scripts.''
-  \url{https://github.com/Yugam2508/fyp-active-learning-cfd}, 2026.
+  records and figure scripts.'' Zenodo, release v1.0,
+  \url{https://doi.org/10.5281/zenodo.23661235}, 2026.
 
 \bibitem{arlot2010}
 S.~Arlot and A.~Celisse, ``A survey of cross-validation procedures for model
