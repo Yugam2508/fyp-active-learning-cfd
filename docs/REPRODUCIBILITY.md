@@ -222,6 +222,7 @@ Notes.
   `experiments/cfd_smoke.py`, which reruns one stored CFD case with the
   image's OpenFOAM (relative tolerance 1e-3). Both passed on the first
   build (2026-10-20).
-- The release cited in the papers is archived at Zenodo with the cached CFD
+- The release cited in the papers, v1.0, is archived at Zenodo
+  (DOI 10.5281/zenodo.23661235) with the cached CFD
   runs and every result record, so the analyses can be repeated without
   OpenFOAM even if the package stops being installable.

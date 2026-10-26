@@ -9,7 +9,8 @@ what actually matters, with every per-seed record and the scripts that
 regenerate every table, figure and quoted number.
 
 Authors: Yugam Jinesh Vora (NUS, corresponding, yugam@u.nus.edu) and
-Wee Hoe Ng (National Metrology Centre, A*STAR). Cite via `CITATION.cff`.
+Wee Hoe Ng (National Metrology Centre, A*STAR). Cite via `CITATION.cff`;
+release v1.0 is archived at Zenodo, DOI [10.5281/zenodo.23661235](https://doi.org/10.5281/zenodo.23661235).
 
 ## Status — read this first
 
