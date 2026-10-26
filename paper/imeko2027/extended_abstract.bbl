@@ -117,8 +117,8 @@ B.~Sudret, Global sensitivity analysis using polynomial chaos expansions,
 \bibitem{repo}
 Y.~J. Vora,~W.~H. Ng, Surrogate models for {GUM} {S}upplement 1 uncertainty
   propagation with small budgets of model runs: code, per-seed records and
-  figure scripts, \url{https://github.com/Yugam2508/fyp-active-learning-cfd},
-  2026.
+  figure scripts, Zenodo, release v1.0,
+  \url{https://doi.org/10.5281/zenodo.23661235}, 2026.
 
 \bibitem{barber2021}
 R.~F. Barber, E.~J. Cand{\`e}s, A.~Ramdas,~R.~J. Tibshirani, Predictive
