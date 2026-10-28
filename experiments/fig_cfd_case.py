@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.join(ROOT, "src"))
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams["pdf.fonttype"] = 42          # TrueType, not Type 3
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 import cfd_dispersion as cfd
