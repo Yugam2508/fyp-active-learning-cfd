@@ -411,6 +411,7 @@ def plain(m):
 def fig_sweep(S):
     import matplotlib
     matplotlib.use("Agg")
+    matplotlib.rcParams["pdf.fonttype"] = 42      # TrueType, not Type 3
     import matplotlib.pyplot as plt
     benches = [b for b in BENCHES
                if any(len(r) >= 2 for r in S["sweep"].get(b, {}).values())]
@@ -461,6 +462,7 @@ def fig_coverage(S):
     """Coverage of nominal 95 % intervals over every model x surrogate."""
     import matplotlib
     matplotlib.use("Agg")
+    matplotlib.rcParams["pdf.fonttype"] = 42      # TrueType, not Type 3
     import matplotlib.pyplot as plt
     panels = [("(a) pointwise prediction interval",
                [("pw_gp_cov", "GP"), ("pw_cvnorm_cov", "CV-normal"), ("pw_jkplus_cov", "jackknife+")]),
@@ -502,6 +504,7 @@ def fig_n20(S):
     candidate chosen by LOO error (the proposed procedure)."""
     import matplotlib
     matplotlib.use("Agg")
+    matplotlib.rcParams["pdf.fonttype"] = 42      # TrueType, not Type 3
     import matplotlib.pyplot as plt
     show = ["gp_orig", "gp_quad", "gp_log", "gp_quadlog", "spce", "spce_log",
             "pas_ard:cv", "al_gp", "al_var:cv", "loo"]

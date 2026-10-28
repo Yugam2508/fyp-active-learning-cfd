@@ -27,6 +27,7 @@ import sys, json, glob
 import numpy as np
 import matplotlib
 matplotlib.use("Agg")
+matplotlib.rcParams["pdf.fonttype"] = 42          # TrueType, not Type 3
 import matplotlib.pyplot as plt
 
 COL_W = 82 / 25.4                       # one IMEKO column, inches
