@@ -18,6 +18,10 @@ jobs:
           python-version: "3.11"
       - name: Install pinned dependencies (CPU PyTorch)
         run: pip install -r requirements-lock.txt --extra-index-url https://download.pytorch.org/whl/cpu
+      - name: Unpack the result records (results/*.zip)
+        run: python experiments/results_pack.py
+      - name: Packs agree with the records; release archive within Zenodo's preview limit
+        run: python experiments/results_pack.py check
       - name: Unit tests
         run: python -m pytest -q
       - name: Benchmarks agree with UQTestFuns

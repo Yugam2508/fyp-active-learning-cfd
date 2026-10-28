@@ -18,3 +18,11 @@ venv/
 Thumbs.db
 desktop.ini
 *.blg
+
+# Unpacked from results/cfd_runs.zip and results/records.zip by
+# experiments/results_pack.py; the ZIP files are the tracked copies
+results/cfd_runs/
+results/results_*.json
+results/parts/
+results/reference_sklearn/
+results/*.zip.tmp

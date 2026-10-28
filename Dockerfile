@@ -1,7 +1,7 @@
 # Dockerfile — the software environment of the campaigns, for long-term
 # reproducibility (docs/REPRODUCIBILITY.md, section 9): Ubuntu 24.04, OpenFOAM
 # v1912 from the Ubuntu archive, Python 3.11 and the locked package versions,
-# LaTeX for the papers.
+# LaTeX for the papers. The result records are unpacked from results/*.zip.
 #   docker build -t fyp-surrogate-gum .
 #   docker run --rm fyp-surrogate-gum                      # the CI checks
 #   docker run --rm -it -v "$PWD/results:/work/results" fyp-surrogate-gum bash
@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir -r requirements-lock.txt \
       --extra-index-url https://download.pytorch.org/whl/cpu
 
 COPY . .
+RUN python experiments/results_pack.py
 CMD ["sh", "-c", "python -m pytest -q && python experiments/check_benchmarks.py \
  && python experiments/test_reproducibility.py --quick --rtol 1e-4 \
  && python paper/imeko2027/check_numbers.py \

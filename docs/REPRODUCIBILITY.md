@@ -77,6 +77,7 @@ run) so all earlier records remain reproducible.
 ## 5. Re-running everything
 
 ```bash
+python experiments/results_pack.py      # unpack results/*.zip first
 pip install -r requirements.txt
 python experiments/campaign.py hard 0 30
 python experiments/campaign.py soft 0 30
@@ -91,7 +92,9 @@ python experiments/make_paper_figures.py
 ```
 
 Campaigns are resumable: they skip seeds already present in their JSON
-file. Delete a file to rerun it from scratch.
+file. Delete a file to rerun it from scratch, and run `python
+experiments/results_pack.py pack` afterwards: git tracks the ZIP files,
+not the single records (section 9).
 
 ## 6. Number provenance
 
@@ -226,3 +229,14 @@ Notes.
   (DOI 10.5281/zenodo.23661235) with the cached CFD
   runs and every result record, so the analyses can be repeated without
   OpenFOAM even if the package stops being installable.
+- From v1.1 the 8170 cached CFD runs and the 926 per-seed records are
+  kept in two ZIP files, `results/cfd_runs.zip` and `results/records.zip`,
+  whose members are byte-identical to the single files of v1.0;
+  `python experiments/results_pack.py` unpacks them (and never overwrites
+  a file that differs), `pack` rebuilds them reproducibly and `check`
+  compares them with the files. The source archive of a release then has
+  about 150 files instead of 9246, below the 1000 entries that Zenodo's
+  preview lists (`check` tests this on `git archive` of HEAD; CI runs it).
+  The two sklearn reference records `results_hard.json` and
+  `results_soft.json` in `results/reference_sklearn/` carry new names
+  from v1.1; their content is unchanged.
