@@ -4,3 +4,7 @@ paper/*.aux
 paper/*.log
 paper/**/*.aux
 paper/**/*.log
+results/cfd_runs/
+results/results_*.json
+results/parts/
+results/reference_sklearn/

@@ -1,5 +1,5 @@
 {
-  "title": "Surrogate models for GUM Supplement 1 uncertainty propagation with small budgets of model runs: code, per-seed records and figure scripts",
+  "title": "Valid uncertainty from few model runs: surrogates in GUM Supplement 1 (code, per-seed records and figure scripts)",
   "upload_type": "software",
   "creators": [
     {"name": "Vora, Yugam Jinesh", "affiliation": "Department of Engineering Science, National University of Singapore"},
@@ -7,5 +7,5 @@
   ],
   "license": "MIT",
   "keywords": ["measurement uncertainty", "GUM Supplement 1", "surrogate model", "Gaussian process", "polynomial chaos", "active learning", "gas dispersion"],
-  "description": "Code, per-seed result records (JSON), cached CFD runs and scripts that regenerate every table, figure and quoted number of the accompanying papers. See README.md and docs/REPRODUCIBILITY.md."
+  "description": "Code, per-seed result records (JSON), cached CFD runs and scripts that regenerate every table, figure and quoted number of the accompanying papers. The records and the CFD runs are packed in results/records.zip and results/cfd_runs.zip; unpack them with python experiments/results_pack.py. See README.md and docs/REPRODUCIBILITY.md."
 }

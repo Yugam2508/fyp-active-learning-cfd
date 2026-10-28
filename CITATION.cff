@@ -1,6 +1,6 @@
 cff-version: 1.2.0
 message: "If you use this code or the result records, please cite them as below."
-title: "Surrogate models for GUM Supplement 1 uncertainty propagation with small budgets of model runs: code, per-seed records and figure scripts"
+title: "Valid uncertainty from few model runs: surrogates in GUM Supplement 1 (code, per-seed records and figure scripts)"
 type: software
 authors:
   - family-names: Vora
@@ -10,8 +10,8 @@ authors:
   - family-names: Ng
     given-names: Wee Hoe
     affiliation: "National Metrology Centre, Agency for Science, Technology and Research (A*STAR), Singapore"
-version: "v1.0"
-date-released: "2026-10-26"
+version: "v1.1"
+date-released: "2026-10-28"
 doi: 10.5281/zenodo.23661235
 repository-code: "https://github.com/Yugam2508/fyp-active-learning-cfd"
 license: MIT

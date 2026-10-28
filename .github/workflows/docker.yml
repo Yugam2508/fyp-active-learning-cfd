@@ -9,6 +9,7 @@ on:
       - .dockerignore
       - requirements-lock.txt
       - experiments/cfd_smoke.py
+      - experiments/results_pack.py
       - .github/workflows/docker.yml
   workflow_dispatch:
 

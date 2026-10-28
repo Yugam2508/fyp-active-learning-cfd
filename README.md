@@ -1,4 +1,4 @@
-# Surrogate models for GUM S1 uncertainty propagation with few model runs
+# Valid uncertainty from few model runs: surrogates in GUM Supplement 1
 
 Monte Carlo propagation of distributions (GUM Supplement 1) through a
 surrogate fitted to 10–80 runs of an expensive model, motivated by CFD
@@ -84,7 +84,8 @@ experiments/               runnable studies, launch from anywhere
   campaign_error_estimation.py   conference-paper scripts
   campaign.py, campaign_ablations.py, campaign_hardmin.py, decompose_soft_vs_hard.py,
   demo_uq.py                     earlier FYP campaigns (physics model)
-results/                   per-seed JSON records (resumable), cfd_runs/ cache,
+results/                   per-seed JSON records (resumable) and cfd_runs/ cache, packed
+                           in records.zip and cfd_runs.zip (results_pack.py);
                            journal/ (summary.json + generated LaTeX tables)
 figures/                   generated figures (journal/ for the journal manuscript)
 paper/                     imeko2027/ (extended abstract), paper.tex + journal_*.tex
@@ -95,6 +96,7 @@ docs/                      research plan, reproducibility record, reference chec
 ## Setup
 
 ```bash
+python experiments/results_pack.py     # unpack the records and CFD runs (results/*.zip)
 pip install -r requirements-lock.txt   # exact versions (CPU PyTorch: add
                                        # --extra-index-url https://download.pytorch.org/whl/cpu)
 sudo apt-get install openfoam          # only to recompute CFD runs (v1912)
@@ -124,7 +126,10 @@ python paper/imeko2027/check_numbers.py          # audit the extended abstract
 ```
 
 All campaigns are resumable (finished seeds are skipped); seeds are
-1000–1029, paired across arms. Full details, environment and caveats:
+1000–1029, paired across arms. After a campaign, `python
+experiments/results_pack.py pack` updates the ZIP files, which git tracks
+instead of the single records (so that a release archive stays below the
+1000 files Zenodo's preview lists). Full details, environment and caveats:
 `docs/REPRODUCIBILITY.md`.
 
 ## Papers
