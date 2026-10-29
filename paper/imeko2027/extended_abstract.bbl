@@ -115,10 +115,9 @@ B.~Sudret, Global sensitivity analysis using polynomial chaos expansions,
   {Reliab. Eng. Syst. Saf.}, vol.~93, 2008, no.~7, pp. 964--979.
 
 \bibitem{repo}
-Y.~J. Vora,~W.~H. Ng, Surrogate models for {GUM} {S}upplement 1 uncertainty
-  propagation with small budgets of model runs: code, per-seed records and
-  figure scripts, Zenodo, release v1.0,
-  \url{https://doi.org/10.5281/zenodo.23661235}, 2026.
+Y.~J. Vora,~W.~H. Ng, Valid uncertainty from few model runs: surrogates in
+  {GUM} {S}upplement 1 (code, per-seed records and figure scripts), Zenodo,
+  release v1.1, \url{https://doi.org/10.5281/zenodo.23722532}, 2026.
 
 \bibitem{barber2021}
 R.~F. Barber, E.~J. Cand{\`e}s, A.~Ramdas,~R.~J. Tibshirani, Predictive
